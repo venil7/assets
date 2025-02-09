@@ -1,0 +1,28 @@
+name: GO COMPILE & TEST BEFORE PULL REQUEST
+run-name: ${{ gitea.actor }} is testing compiling and testing
+on: [push]
+
+jobs:
+  Explore-Gitea-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: CHECK-OUT
+        uses: actions/checkout@v4
+      - name: SETUP GO
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21.x"
+      - name: INSTALL DEPENDENCIES
+        run: |
+          go get .
+      - name: RUN TESTS
+        run: |
+          make test
+      - name: BUILD
+        run: |
+          make build
+      # - name: DOCKER BUILD
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     push: true
+      #     tags: raspi4:5000/gql-test:latest
