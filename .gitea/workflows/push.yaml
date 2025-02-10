@@ -1,0 +1,23 @@
+name: PUSH-CHECK
+# run-name: ${{ gitea.actor }} is compiling and testing
+on: [push]
+
+jobs:
+  build-and-test-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: CHECK-OUT
+        uses: actions/checkout@v4
+      - name: SETUP GO
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+      - name: INSTALL DEPENDENCIES
+        run: |
+          go get .
+      - name: RUN TESTS
+        run: |
+          make test
+      - name: BUILD
+        run: |
+          make build

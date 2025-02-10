@@ -1,6 +1,9 @@
-name: GO COMPILE & TEST BEFORE PULL REQUEST
-run-name: ${{ gitea.actor }} is testing compiling and testing
-on: [push]
+name: PULL-REQUEST-CHECK
+# run-name: ${{ gitea.actor }} is compiling and testing
+on:
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build-and-test-code:
