@@ -3,7 +3,25 @@ run-name: ${{ gitea.actor }} is testing compiling and testing
 on: [push]
 
 jobs:
-  Explore-Gitea-Actions:
+  build-and-test-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: CHECK-OUT
+        uses: actions/checkout@v4
+      - name: SETUP GO
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+      - name: INSTALL DEPENDENCIES
+        run: |
+          go get .
+      - name: RUN TESTS
+        run: |
+          make test
+      - name: BUILD
+        run: |
+          make build
+  run-migrations:
     runs-on: ubuntu-latest
     steps:
       - name: CHECK-OUT
@@ -16,17 +34,19 @@ jobs:
         run: |
           go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
           ~/go/bin/migrate -path ./.migrations -database=sqlite3://assets.db up
-      - name: INSTALL DEPENDENCIES
-        run: |
-          go get .
-      - name: RUN TESTS
-        run: |
-          make test
-      - name: BUILD
-        run: |
-          make build
-      # - name: DOCKER BUILD
-      #   uses: docker/build-push-action@v6
-      #   with:
-      #     push: true
-      #     tags: raspi4:5000/gql-test:latest
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: CHECK-OUT
+        uses: actions/checkout@v4
+      - name: LOGIN TO DOCKER
+        uses: docker/login-action@v3
+        with:
+          registry: raspi4:6363
+          username: ${{ vars.CONTAINER_REGISTRY_USERNAME }}
+          password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+      - name: BUILD DOCKER IMAGE
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: raspi4:6363/${{ vars.CONTAINER_REGISTRY_USERNAME }}/assets
