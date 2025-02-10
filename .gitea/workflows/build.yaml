@@ -11,7 +11,11 @@ jobs:
       - name: SETUP GO
         uses: actions/setup-go@v5
         with:
-          go-version: "1.21.x"
+          go-version: "1.23.x"
+      - name: RUN MIGRATION
+        run: |
+          go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+          ~/go/bin/migrate -path ./.migrations -database=sqlite3://assets.db up
       - name: INSTALL DEPENDENCIES
         run: |
           go get .

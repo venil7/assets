@@ -1,6 +1,3 @@
-CREATE TABLE assets (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    ticker TEXT UNIQUE NOT NULL,
-    metadata TEXT
-);
+DROP TABLE  IF EXISTS users;
+DROP TABLE  IF EXISTS tokens;
+DROP TABLE  IF EXISTS assets;
