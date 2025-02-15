@@ -5,12 +5,15 @@ GOTEST=go test
 GOCLEAN=go clean
 GOVET=go vet
 GOFMT=go fmt
+DOCKERBUILD=docker buildx build -t "assets:latest" .
 
 all: build
 run:
 	$(GORUN) .
 build:
 	$(GOBUILD) -o $(BINARY_NAME) -v
+docker:
+	$(DOCKERBUILD)
 test:
 	$(GOTEST) -v ./...
 clean:

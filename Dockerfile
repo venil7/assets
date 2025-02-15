@@ -1,4 +1,12 @@
-FROM catthehacker/ubuntu:act-latest
+FROM golang:1.23 as builder
+WORKDIR /app
 
-RUN apt update && apt install -y golang-go
-# RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN make build
+
+FROM alpine:latest as runner
+WORKDIR /app
+COPY --from=builder /app/dist/assets ./assets
+CMD ["./assets"]
