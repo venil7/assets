@@ -1,6 +1,12 @@
-name: PUSH-CHECK
-# run-name: ${{ gitea.actor }} is compiling and testing
-on: [push]
+name: BUILD-AND-TEST
+run-name: ${{ gitea.actor }} is building and running tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build-and-test-code:
@@ -14,7 +20,7 @@ jobs:
           go-version: "1.23.x"
       - name: INSTALL DEPENDENCIES
         run: |
-          go get .
+          go mod download
       - name: RUN TESTS
         run: |
           make test
