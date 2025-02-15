@@ -1,18 +1,20 @@
 package main
 
 import (
-	_ "log"
 	"log/slog"
 
 	_ "github.com/caarlos0/env/v11"
+	_ "github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv"
 )
 
 func main() {
-	config, err := GetConfig()
+	appConfig, err := GetConfig()
 	if err != nil {
-		slog.Error("main", "config", err)
-		panic("failed to obtain config")
+		slog.Error("main", "app-config", err)
+		panic("failed to obtain app-config")
 	}
-	slog.Info("main", "config", config)
+	slog.Info("main", "config", &appConfig)
+	r := setupRouter(&appConfig)
+	r.Run(appConfig.BindAddress)
 }

@@ -1,0 +1,27 @@
+name: RELEASE-DOCKER-CONTAINER
+run-name: ${{ gitea.actor }} building and pushing docker container
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: CHECK-OUT
+        uses: actions/checkout@v4
+      - name: GET GIT TAG
+        run: |
+          echo "TAG=$(git describe --tags --always)"
+      - name: LOGIN TO DOCKER
+        uses: docker/login-action@v3
+        with:
+          registry: raspi4:6363
+          username: ${{ vars.CONTAINER_REGISTRY_USERNAME }}
+          password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+      - name: BUILD DOCKER IMAGE
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: raspi4:6363/${{ vars.CONTAINER_REGISTRY_USERNAME }}/assets:$TAG
