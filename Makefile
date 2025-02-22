@@ -6,9 +6,17 @@ GOCLEAN=go clean
 GOVET=go vet
 GOFMT=go fmt
 DOCKERBUILD=docker buildx build -t "assets:latest" .
+MIGRATE=migrate -path ./.migrations -database=sqlite3://assets.db
 
 all: build
+migrate:
+	$(MIGRATE) up
+migrdown:
+	$(MIGRATE) down
 run:
+	SLOG_LEVEL=DEBUG \
+	ASSETS_BIND=0.0.0.0:8080 \
+	ASSETS_DB=./assets.db \
 	$(GORUN) .
 build:
 	$(GOBUILD) -o $(BINARY_NAME) -v
