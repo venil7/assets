@@ -3,10 +3,13 @@ WORKDIR /app
 
 COPY go.mod go.sum ./
 RUN go mod download
+RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 COPY . .
 RUN make build
 
 FROM alpine:latest AS runner
 WORKDIR /app
+COPY --from=builder /go/bin/migrate ./migrate
+COPY --from=builder /app/.migrations ./.migrartions
 COPY --from=builder /app/dist/assets ./assets
-CMD ["./assets"]
+CMD ["migrate -verbose -path ./.migrations -database=sqlite3://$ASSETS_DB up && ./assets"]

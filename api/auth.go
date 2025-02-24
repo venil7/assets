@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"log/slog"
@@ -8,7 +8,6 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/gin-gonic/gin"
 
-	"github.com/venil7/assets-service/repository"
 	r "github.com/venil7/assets-service/repository"
 )
 
@@ -27,9 +26,10 @@ type login struct {
 }
 
 const IDENITY_KEY = "id"
+const USERNAME_KEY = "username"
 const ADMIN_KEY = "admin"
 
-func NewJwtMiddleware() *jwt.GinJWTMiddleware {
+func JwtConfig() *jwt.GinJWTMiddleware {
 	conf, err := securityConfig()
 	if err != nil {
 		slog.Error("JWT", "failed to get config", err)
@@ -59,8 +59,9 @@ func NewJwtMiddleware() *jwt.GinJWTMiddleware {
 func payloadFunc(data any) jwt.MapClaims {
 	if user, ok := data.(r.User); ok {
 		return jwt.MapClaims{
-			ADMIN_KEY:   user.Admin,
-			IDENITY_KEY: user.Username,
+			IDENITY_KEY:  user.Id,
+			ADMIN_KEY:    user.Admin,
+			USERNAME_KEY: user.Username,
 		}
 	}
 	return jwt.MapClaims{}
@@ -69,8 +70,9 @@ func payloadFunc(data any) jwt.MapClaims {
 func identityHandler(ctx *gin.Context) any {
 	claims := jwt.ExtractClaims(ctx)
 	return &r.User{
+		Id:       int64(claims[IDENITY_KEY].(float64)),
 		Admin:    claims[ADMIN_KEY].(bool),
-		Username: claims[IDENITY_KEY].(string),
+		Username: claims[USERNAME_KEY].(string),
 	}
 }
 
@@ -87,7 +89,7 @@ func authenticate(ctx *gin.Context) (any, error) {
 		return nil, err
 	}
 	slog.Debug("authenticator", "db", db)
-	userRepo := repository.NewUserRepository(db)
+	userRepo := r.NewUserRepo(db)
 	user, err := userRepo.GetUser(loginVals.Username)
 	if valid, err := user.Check(loginVals.Password); !valid || err != nil {
 		return nil, jwt.ErrFailedAuthentication
@@ -96,7 +98,7 @@ func authenticate(ctx *gin.Context) (any, error) {
 	return user, nil
 }
 
-func authorize(data any, c *gin.Context) bool {
+func authorize(data any, ctx *gin.Context) bool {
 	if v, ok := data.(*r.User); ok && v.Admin {
 		return true
 	}

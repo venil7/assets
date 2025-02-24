@@ -1,3 +1,4 @@
 DROP TABLE  IF EXISTS users;
-DROP TABLE  IF EXISTS tokens;
 DROP TABLE  IF EXISTS assets;
+DROP TABLE  IF EXISTS portfolios;
+DROP TABLE  IF EXISTS transactions;

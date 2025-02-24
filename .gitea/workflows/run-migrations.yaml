@@ -18,4 +18,5 @@ jobs:
       - name: RUN MIGRATION
         run: |
           go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-          ~/go/bin/migrate -path ./.migrations -database=sqlite3://assets.db up
+          # ~/go/bin/migrate -path ./.migrations -database=sqlite3://assets.db up
+          make migrate

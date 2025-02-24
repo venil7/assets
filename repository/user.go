@@ -1,20 +1,20 @@
 package repository
 
 import (
-	"database/sql"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	Id       string       `db:"id"`
-	Username string       `db:"username"`
-	Admin    bool         `db:"admin"`
-	Phash    string       `db:"phash"`
-	Psalt    string       `db:"psalt"`
-	Created  sql.NullTime `db:"created"`
-	Modified sql.NullTime `db:"modified"`
+	Id       int64     `db:"id"`
+	Username string    `db:"username"`
+	Admin    bool      `db:"admin"`
+	Phash    string    `db:"phash"`
+	Psalt    string    `db:"psalt"`
+	Created  time.Time `db:"created"`
+	Modified time.Time `db:"modified"`
 }
 
 func (user *User) Check(suppliedPwd string) (bool, error) {
@@ -32,7 +32,7 @@ type UserRepository struct {
 	repo *Database
 }
 
-func NewUserRepository(repo *Database) UserRepository {
+func NewUserRepo(repo *Database) UserRepository {
 	return UserRepository{repo}
 }
 

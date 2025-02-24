@@ -6,11 +6,12 @@ import (
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/venil7/assets-service/api"
 	"github.com/venil7/assets-service/repository"
 )
 
 func setupRouter(appConfig *AppConfig) *gin.Engine {
-	authMiddleware, err := jwt.New(NewJwtMiddleware())
+	authMiddleware, err := jwt.New(api.JwtConfig())
 	if err != nil {
 		log.Fatal("JWT Error:" + err.Error())
 	}
@@ -27,11 +28,15 @@ func setupRouter(appConfig *AppConfig) *gin.Engine {
 	r.Use(repository.WithDb(&db))
 
 	r.POST("/login", authMiddleware.LoginHandler)
-	r.NoRoute(authMiddleware.MiddlewareFunc(), NoRouteHandler)
+	r.NoRoute(authMiddleware.MiddlewareFunc(), api.NoRouteHandler)
+
+	apiGroup := r.Group("/api/v1", authMiddleware.MiddlewareFunc())
+	assetsGroup := apiGroup.Group("/assets")
+	assetsGroup.POST("/", api.NewAsset)
 
 	authGroup := r.Group("/auth", authMiddleware.MiddlewareFunc())
 	authGroup.GET("/refresh_token", authMiddleware.RefreshHandler)
-	authGroup.GET("/hello", HelloHandler)
+	// authGroup.GET("/hello", api.HelloHandler)
 
 	return r
 }
