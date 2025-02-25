@@ -7,9 +7,9 @@ RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@
 COPY . .
 RUN make build
 
-FROM alpine:latest AS runner
+FROM debian:bookworm-slim AS runner
 WORKDIR /app
 COPY --from=builder /go/bin/migrate ./migrate
 COPY --from=builder /app/.migrations ./.migrartions
 COPY --from=builder /app/dist/assets ./assets
-CMD ["migrate -verbose -path ./.migrations -database=sqlite3://$ASSETS_DB up && ./assets"]
+CMD ["./migrate -verbose -path ./.migrations -database=sqlite3://$ASSETS_DB up && ./assets"]

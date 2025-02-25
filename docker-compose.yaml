@@ -1,0 +1,12 @@
+services:
+  darkruby-assets:
+    image: raspi4:6363/darkruby/assets:946f1aa
+    environment:
+      - ASSETS_DB=/data/assets.db
+      - ASSETS_BIND=0.0.0.0:8080
+      - ASSETS_SECURITY_REALM=assets
+      - ASSETS_SECURITY_KEY=X7LGLA8D4frp
+    volumes:
+      - ./data:/data
+    ports:
+      - 1990:8080
