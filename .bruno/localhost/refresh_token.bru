@@ -1,0 +1,22 @@
+meta {
+  name: refresh_token
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:8080/auth/refresh_token
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjoxNzQwMzE4NTAwLCJpZCI6IjMzYjVhMjM3LWViMjEtNDY2OC05YzJkLTJlNTcwZTNlNmM5NiIsIm9yaWdfaWF0IjoxNzQwMzE0OTAwLCJ1c2VybmFtZSI6ImFkbWluIn0.ZZK58QVQZfks2V5zxlPWYfSoBmYFisuXRyBobA4-02s
+}
+
+body:json {
+  {
+    "username": "admin",
+    "password": "admin"
+  }
+}

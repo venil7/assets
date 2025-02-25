@@ -1,0 +1,22 @@
+meta {
+  name: hello
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://raspi4:1990/auth/hello
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjoxNzQwNTA5OTMxLCJpZCI6MSwib3JpZ19pYXQiOjE3NDA1MDYzMzEsInVzZXJuYW1lIjoiYWRtaW4ifQ.3HusfaXFDNmbpKvNY9od1AQEhlUigubtHYKIF0B20m8
+}
+
+body:json {
+  {
+    "username": "admin",
+    "password": "admin"
+  }
+}

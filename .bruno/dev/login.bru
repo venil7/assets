@@ -1,0 +1,18 @@
+meta {
+  name: login
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://raspi4:1990/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "admin",
+    "password": "admin"
+  }
+}

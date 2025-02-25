@@ -1,0 +1,22 @@
+meta {
+  name: create_asset
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://raspi4:1990/api/v1/assets/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjoxNzQwNTA5OTMxLCJpZCI6MSwib3JpZ19pYXQiOjE3NDA1MDYzMzEsInVzZXJuYW1lIjoiYWRtaW4ifQ.3HusfaXFDNmbpKvNY9od1AQEhlUigubtHYKIF0B20m8
+}
+
+body:json {
+  {
+    "name": "dfg",
+    "ticker": "dfg"
+  }
+}

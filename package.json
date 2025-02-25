@@ -1,0 +1,14 @@
+{
+  "name": "assets-test",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "fp-ts": "^2.16.9"
+  }
+}

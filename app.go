@@ -36,7 +36,7 @@ func setupRouter(appConfig *AppConfig) *gin.Engine {
 
 	authGroup := r.Group("/auth", authMiddleware.MiddlewareFunc())
 	authGroup.GET("/refresh_token", authMiddleware.RefreshHandler)
-	// authGroup.GET("/hello", api.HelloHandler)
+	authGroup.GET("/hello", api.HelloHandler)
 
 	return r
 }
