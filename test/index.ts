@@ -1,10 +1,10 @@
+import "dotenv/config";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as T from "fp-ts/lib/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 
-export const BASE_URL = "http://localhost:8080";
-// export const BASE_URL = "http://raspi4:1990";
+export const BASE_URL = `http://${process.env.URL ?? "localhost:8080"}`;
 export const LOGIN_URL = `${BASE_URL}/login`;
 
 export const USERNAME = "admin";

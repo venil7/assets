@@ -1,4 +1,4 @@
-name: DEPLOY
+name: DEV DEPLOY
 run-name: ${{ gitea.actor }} is deploying code
 
 on:

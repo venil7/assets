@@ -1,0 +1,24 @@
+name: DEV INTEGRATION TEST
+run-name: ${{ gitea.actor }} is testing the deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: "run tests against"
+        default: "192.168.0.186:1990"
+
+jobs:
+  dev-integartion-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: CHECKOUT
+        uses: actions/checkout@v4
+      - name: INSTALL BUN
+        uses: oven-sh/setup-bun@v2
+      - name: INSTALL DEPENDENCIES
+        run: bun install
+      - name: RUN TESTS
+        env:
+          URL: ${{ github.event.inputs.host }}
+        run: bun test
