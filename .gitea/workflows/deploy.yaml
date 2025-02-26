@@ -1,0 +1,17 @@
+name: DEPLOY
+run-name: ${{ gitea.actor }} is deploying code
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Environment to dispatch to"
+        default: "raspi"
+
+jobs:
+  build-and-test-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: JUST-A-TEST
+        run: |
+          echo deploying to ${{ github.event.inputs.env }}"
