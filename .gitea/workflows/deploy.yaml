@@ -14,4 +14,4 @@ jobs:
     steps:
       - name: JUST-A-TEST
         run: |
-          echo deploying to ${{ github.event.inputs.env }}"
+          echo "deploying to ${{ github.event.inputs.env }}"
