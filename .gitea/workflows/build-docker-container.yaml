@@ -1,9 +1,11 @@
 name: RELEASE-DOCKER-CONTAINER
 run-name: ${{ gitea.actor }} building and pushing docker container
 on:
+  workflow_dispatch:
   push:
     branches:
-      - master
+      # - master
+      - release
 
 jobs:
   build-docker:
@@ -24,4 +26,4 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: raspi4:6363/${{ vars.CONTAINER_REGISTRY_USERNAME }}/assets:${{ env.BUILD_TAG }}
+          tags: raspi4:6363/${{ vars.CONTAINER_REGISTRY_USERNAME }}/assets #${{ env.BUILD_TAG }}

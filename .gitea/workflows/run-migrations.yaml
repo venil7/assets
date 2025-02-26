@@ -3,7 +3,8 @@ run-name: ${{ gitea.actor }} is running migrations
 on:
   push:
     branches:
-      - master
+      # - master
+      - release
 
 jobs:
   run-migrations:

@@ -7,6 +7,7 @@ GOVET=go vet
 GOFMT=go fmt
 DOCKERBUILD=docker buildx build -t "assets:latest" .
 MIGRATE=migrate -path ./.migrations -database=sqlite3://assets.db
+DOCKER=docker compose
 
 all: build
 migrate:
@@ -27,6 +28,9 @@ test:
 clean:
 	$(GOCLEAN)
 	rm -f $(BINARY_NAME)
+deploy_headless:
+	$(DOCKER) down
+	$(DOCKER) up -d
 vet:
 	$(GOVET) ./...
 fmt:

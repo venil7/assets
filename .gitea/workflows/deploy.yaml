@@ -12,6 +12,24 @@ jobs:
   build-and-test-code:
     runs-on: ubuntu-latest
     steps:
-      - name: JUST-A-TEST
+      - name: SET UP SSH KEY
         run: |
-          echo "deploying to ${{ github.event.inputs.env }}"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > /root/.ssh/id_ed25519
+          chmod 600 /root/.ssh/id_ed25519
+          ssh-keyscan -p 22 ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+          apt update
+          apt install sshpass
+
+      - name: DEPLOY TO SERVER
+        run: |
+          sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' ssh -i /root/.ssh/id_ed25519 -v -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} <<'ENDSSH'
+          rm -rf ./repo ./service
+          mkdir service
+          git clone ${{ secrets.DEPLOY_REPO }} repo
+          cp ./repo/docker-compose.yaml ./service/docker-compose.yaml
+          cd ./service
+          docker pull ${{ secrets.DEPLOY_IMAGE }}:latest
+          docker compose down
+          docker compose up -d
+          ENDSSH

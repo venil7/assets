@@ -1,6 +1,6 @@
 services:
   darkruby-assets:
-    image: raspi4:6363/darkruby/assets:946f1aa
+    image: raspi4:6363/darkruby/assets:latest
     environment:
       - ASSETS_DB=/data/assets.db
       - ASSETS_BIND=0.0.0.0:8080
