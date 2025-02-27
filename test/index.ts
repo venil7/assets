@@ -65,3 +65,5 @@ export const run = async <A>(test: TES<A>) => {
   }
   return result.right;
 };
+
+export type Methods = ReturnType<typeof methods>;

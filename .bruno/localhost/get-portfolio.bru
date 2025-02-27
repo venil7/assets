@@ -1,0 +1,22 @@
+meta {
+  name: get-portfolio
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:8080/api/v1/portfolio
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjoxNzQwNjg0MzAyLCJpZCI6MSwib3JpZ19pYXQiOjE3NDA2ODA3MDIsInVzZXJuYW1lIjoiYWRtaW4ifQ.Mg4xoGFszzj8hiqbrirV6mE5CDdZgdjqF_atNq7dTso
+}
+
+body:json {
+  {
+    "name": "some name",
+    "description": "some desc"
+  }
+}

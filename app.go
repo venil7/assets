@@ -24,21 +24,28 @@ func setupRouter(appConfig *AppConfig) *gin.Engine {
 	}
 	slog.Debug("router", "db", db)
 
-	r := gin.Default()
-	r.Use(repository.WithDb(&db))
+	router := gin.Default()
+	router.Use(repository.WithDb(&db))
+	router.NoRoute(api.NoRouteHandler)
 
-	r.POST("/login", authMiddleware.LoginHandler)
-	r.NoRoute(authMiddleware.MiddlewareFunc(), api.NoRouteHandler)
+	router.POST("/login", authMiddleware.LoginHandler)
 
-	apiGroup := r.Group("/api/v1", authMiddleware.MiddlewareFunc())
-	assetsGroup := apiGroup.Group("/assets")
-	assetsGroup.POST("/", api.NewAsset)
+	apiGroup := router.Group("/api/v1", authMiddleware.MiddlewareFunc())
 
-	authGroup := r.Group("/auth", authMiddleware.MiddlewareFunc())
+	// AUTH
+	authGroup := apiGroup.Group("/auth")
 	authGroup.GET("/refresh_token", authMiddleware.RefreshHandler)
-	authGroup.GET("/hello", api.HelloHandler)
 
-	return r
+	// PORTFOLIOS & ASSETS
+	portfolioGroup := apiGroup.Group("/portfolio")
+	portfolioGroup.POST("/", api.NewPortfolio)
+	portfolioGroup.GET("/", api.Portfolios)
+	portfolioGroup.GET("/:portfolio_id", api.Portfolio)
+	portfolioGroup.GET("/:portfolio_id/assets/:asset_id", api.Asset)
+	portfolioGroup.GET("/:portfolio_id/assets", api.Assets)
+	portfolioGroup.POST("/:portfolio_id/assets", api.NewAsset)
+
+	return router
 }
 
 type App struct {
