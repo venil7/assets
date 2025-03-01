@@ -45,3 +45,27 @@ test("Get multiple assets", async () => {
   const assets = await run(methods.get<Asset[]>(ASSET_URL));
   expect(assets).toSatisfy((a) => Array.isArray(a) && a.length > 0);
 });
+
+test("Get single asset", async () => {
+  const { id, portfolio_id, name, ticker, created, modified } = await run(
+    methods.get<Asset>(`${ASSET_URL}/1`)
+  );
+  expect(id).toBeNumber();
+  expect(portfolio_id).toBe(portfolioId);
+  expect(name).toBeString();
+  expect(ticker).toBeString();
+  expect(created).toBeString();
+  expect(modified).toBeString();
+});
+
+test("Delete asset", async () => {
+  const { id } = await run(
+    methods.post<Asset>(ASSET_URL, {
+      name: "aset-to-be-deleted",
+      ticker: "--",
+    })
+  );
+
+  const deleted = await run(methods.delete<boolean>(`${ASSET_URL}/${id}`));
+  expect(deleted).toBeTrue();
+});

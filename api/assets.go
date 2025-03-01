@@ -13,15 +13,16 @@ type PostAsset struct {
 	Ticker string `json:"ticker" binding:"required"`
 }
 
+type AssetUri struct {
+	AssetId     int64 `uri:"asset_id" binding:"required"`
+	PortfolioId int64 `uri:"portfolio_id" binding:"required"`
+}
+
 func Asset(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
-	var params struct {
-		AssetId     int64 `uri:"asset_id" binding:"required"`
-		PortfolioId int64 `uri:"portfolio_id" binding:"required"`
-	}
-
+	var params AssetUri
 	err = ctx.BindUri(&params)
 	check(err)
 
@@ -38,13 +39,32 @@ func Asset(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, asset)
 }
 
+func DeleteAsset(ctx *gin.Context) {
+	var err error
+	check := GetCheck(ctx)
+
+	var params AssetUri
+	err = ctx.BindUri(&params)
+	check(err)
+
+	user, err := GetUser(ctx)
+	check(err)
+
+	db, err := r.GetDb(ctx)
+	check(err)
+
+	repo := r.NewAssetRepo(db)
+	err = repo.Delete(params.AssetId, params.PortfolioId, user)
+	check(err)
+
+	ctx.JSON(http.StatusOK, true)
+}
+
 func Assets(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
-	var params struct {
-		PortfolioId int64 `uri:"portfolio_id" binding:"required"`
-	}
+	var params PortfolioUri
 	err = ctx.BindUri(&params)
 	check(err)
 
@@ -56,10 +76,10 @@ func Assets(ctx *gin.Context) {
 
 	assetsRepo := r.NewAssetRepo(db)
 	paging := r.NewDefaultPaging()
-	portfolios, err := assetsRepo.Assets(&paging, params.PortfolioId, user)
+	assets, err := assetsRepo.Assets(&paging, params.PortfolioId, user)
 	check(err)
 
-	ctx.JSON(http.StatusOK, portfolios)
+	ctx.JSON(http.StatusOK, assets)
 }
 
 func NewAsset(ctx *gin.Context) {
@@ -67,9 +87,7 @@ func NewAsset(ctx *gin.Context) {
 	var assetPost PostAsset
 	check := GetCheck(ctx)
 
-	var params struct {
-		PortfolioId int64 `uri:"portfolio_id" binding:"required"`
-	}
+	var params PortfolioUri
 	err = ctx.BindUri(&params)
 	check(err)
 

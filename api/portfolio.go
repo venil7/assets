@@ -13,14 +13,15 @@ type PostPortfolio struct {
 	Description string `json:"description" binding:"required"`
 }
 
+type PortfolioUri struct {
+	PortfolioId int64 `uri:"portfolio_id" binding:"required"`
+}
+
 func Portfolio(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
-	var params struct {
-		Id int64 `uri:"portfolio_id" binding:"required"`
-	}
-
+	var params PortfolioUri
 	err = ctx.BindUri(&params)
 	check(err)
 
@@ -31,10 +32,31 @@ func Portfolio(ctx *gin.Context) {
 	check(err)
 
 	repo := r.NewPortfolioRepo(db)
-	portfolio, err := repo.Portfolio(params.Id, user)
+	portfolio, err := repo.Portfolio(params.PortfolioId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, portfolio)
+}
+
+func DeletePortfolio(ctx *gin.Context) {
+	var err error
+	check := GetCheck(ctx)
+
+	var params PortfolioUri
+	err = ctx.BindUri(&params)
+	check(err)
+
+	user, err := GetUser(ctx)
+	check(err)
+
+	db, err := r.GetDb(ctx)
+	check(err)
+
+	repo := r.NewPortfolioRepo(db)
+	err = repo.Delete(params.PortfolioId, user)
+	check(err)
+
+	ctx.JSON(http.StatusOK, true)
 }
 
 func Portfolios(ctx *gin.Context) {

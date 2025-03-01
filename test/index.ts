@@ -44,7 +44,9 @@ export const methods = (token: string = "") => {
     rest<TResult>(url, { method: "GET", headers });
   const post = <TResult>(url: string, body: {}) =>
     rest<TResult>(url, { method: "POST", body: JSON.stringify(body), headers });
-  return { get, post };
+  const delete1 = <TResult>(url: string) =>
+    rest<TResult>(url, { method: "DELETE", headers });
+  return { get, post, delete: delete1 };
 };
 
 const { post } = methods();

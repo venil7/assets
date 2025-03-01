@@ -53,6 +53,7 @@ func (repo *AssetRepository) Asset(id int64, portfolioId int64, user *User) (ass
 }
 
 func (repo *AssetRepository) Assets(paging *Paging, portfolioId int64, user *User) (assets []Asset, err error) {
+	assets = make([]Asset, 0)
 	err = (*repo.repo).Db().Select(&assets,
 		`
 			SELECT A.*
@@ -63,4 +64,26 @@ func (repo *AssetRepository) Assets(paging *Paging, portfolioId int64, user *Use
 			LIMIT ? OFFSET ?;
 		`, portfolioId, user.Id, paging.pageSize, paging.Offset())
 	return assets, err
+}
+
+func (repo *AssetRepository) Delete(id int64, portfolioId int64, user *User) (err error) {
+	result, err := (*repo.repo).Db().Exec(
+		`
+			DELETE FROM assets
+			WHERE id IN (
+				SELECT A.id
+				FROM assets A
+				INNER JOIN portfolios P ON P.id = A.portfolio_id
+				INNER JOIN users U ON U.id = P.user_id
+				WHERE P.id=? AND U.id=?
+				LIMIT 1
+			);
+		`, id, portfolioId, user.Id)
+	if err != nil {
+		return err
+	}
+	if rows, err := result.RowsAffected(); rows < 1 {
+		return err
+	}
+	return nil
 }

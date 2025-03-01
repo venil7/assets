@@ -41,7 +41,9 @@ func setupRouter(appConfig *AppConfig) *gin.Engine {
 	portfolioGroup.POST("/", api.NewPortfolio)
 	portfolioGroup.GET("/", api.Portfolios)
 	portfolioGroup.GET("/:portfolio_id", api.Portfolio)
+	portfolioGroup.DELETE("/:portfolio_id", api.DeletePortfolio)
 	portfolioGroup.GET("/:portfolio_id/assets/:asset_id", api.Asset)
+	portfolioGroup.DELETE("/:portfolio_id/assets/:asset_id", api.DeleteAsset)
 	portfolioGroup.GET("/:portfolio_id/assets", api.Assets)
 	portfolioGroup.POST("/:portfolio_id/assets", api.NewAsset)
 
