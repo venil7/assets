@@ -47,13 +47,19 @@ test("Get multiple assets", async () => {
 });
 
 test("Get single asset", async () => {
+  const { id: assetId } = await run(
+    methods.post<Asset>(ASSET_URL, {
+      name: "check-me",
+      ticker: "check-me-too",
+    })
+  );
   const { id, portfolio_id, name, ticker, created, modified } = await run(
-    methods.get<Asset>(`${ASSET_URL}/1`)
+    methods.get<Asset>(`${ASSET_URL}/${assetId}`)
   );
   expect(id).toBeNumber();
   expect(portfolio_id).toBe(portfolioId);
-  expect(name).toBeString();
-  expect(ticker).toBeString();
+  expect(name).toBe("check-me");
+  expect(ticker).toBe("check-me-too");
   expect(created).toBeString();
   expect(modified).toBeString();
 });

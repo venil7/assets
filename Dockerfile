@@ -8,6 +8,7 @@ COPY . .
 RUN make build
 
 FROM debian:bookworm-slim AS runner
+RUN apt update && apt install -y ca-certificates
 WORKDIR /app
 COPY --from=builder /go/bin/migrate ./migrate
 COPY --from=builder /app/.migrations ./.migrations
