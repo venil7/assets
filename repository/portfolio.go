@@ -10,7 +10,7 @@ type Portfolio struct {
 	Id          int64     `db:"id" json:"id"`
 	UserId      int64     `db:"user_id" json:"user_id"`
 	Name        string    `db:"name" json:"name"`
-	Description *string   `db:"description" json:"description"`
+	Description string    `db:"description" json:"description"`
 	Created     time.Time `db:"created" json:"created"`
 	Modified    time.Time `db:"modified" json:"modified"`
 }

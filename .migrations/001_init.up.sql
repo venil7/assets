@@ -35,7 +35,7 @@ CREATE TABLE transactions (
     type TEXT NOT NULL CHECK(type IN ('buy', 'sell')),
     quantity REAL NOT NULL,
     price REAL NOT NULL,
-    date DATETIME NOT NULL,
+    date DATE NOT NULL,
     created DATETIME DEFAULT CURRENT_TIMESTAMP,
     modified DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (asset_id) REFERENCES assets(id)

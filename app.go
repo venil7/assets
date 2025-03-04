@@ -26,6 +26,7 @@ func setupRouter(appConfig *AppConfig) *gin.Engine {
 
 	router := gin.Default()
 	router.Use(repository.WithDb(&db))
+	// router.Use(repository.Cache(&db))
 	router.NoRoute(api.NoRouteHandler)
 
 	router.POST("/login", authMiddleware.LoginHandler)
@@ -36,16 +37,26 @@ func setupRouter(appConfig *AppConfig) *gin.Engine {
 	authGroup := apiGroup.Group("/auth")
 	authGroup.GET("/refresh_token", authMiddleware.RefreshHandler)
 
-	// PORTFOLIOS & ASSETS
+	// PORTFOLIOS & ASSETS & TX
 	portfolioGroup := apiGroup.Group("/portfolio")
 	portfolioGroup.POST("/", api.NewPortfolio)
 	portfolioGroup.GET("/", api.Portfolios)
 	portfolioGroup.GET("/:portfolio_id", api.Portfolio)
 	portfolioGroup.DELETE("/:portfolio_id", api.DeletePortfolio)
+
 	portfolioGroup.GET("/:portfolio_id/assets/:asset_id", api.Asset)
 	portfolioGroup.DELETE("/:portfolio_id/assets/:asset_id", api.DeleteAsset)
 	portfolioGroup.GET("/:portfolio_id/assets", api.Assets)
 	portfolioGroup.POST("/:portfolio_id/assets", api.NewAsset)
+
+	portfolioGroup.GET("/assets/:asset_id/transactions/:transaction_id", api.Transaction)
+	portfolioGroup.DELETE("/assets/:asset_id/transactions/:transaction_id", api.DeleteTransaction)
+	portfolioGroup.GET("/assets/:asset_id/transactions", api.AssetTransactions)
+	portfolioGroup.POST("/assets/:asset_id/transactions", api.NewTransaction)
+
+	// YAHOO
+	lookupGroup := apiGroup.Group("/lookup")
+	lookupGroup.GET("/ticker", api.LookupTicker)
 
 	return router
 }
