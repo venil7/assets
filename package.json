@@ -3,13 +3,16 @@
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/faker": "5"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
+    "faker": "5.5.3",
     "fp-ts": "^2.16.9"
   }
 }

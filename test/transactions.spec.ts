@@ -1,77 +1,88 @@
 import { beforeAll, expect, test } from "bun:test";
-import { type Asset } from "./asset.spec";
-import { authenticate, run, type Methods } from "./index";
-import { PORTFOLIO_URL, type Portfolio } from "./portfolio.spec";
-var methods: Methods;
+import { formatISO, startOfDay } from "date-fns";
+import { createAsset } from "./asset.spec";
+import { authenticate, BASE_URL, run, type Methods } from "./index";
+import { createPortfolio } from "./portfolio.spec";
+
+export const TX_URL = (assetId: number) =>
+  `${BASE_URL}/api/v1/portfolio/assets/${assetId}/transactions`;
 
 export type Transaction = {
   id?: number;
   asset_id?: number;
-  type: string;
+  type: "buy" | "sell";
   quantity: number;
   price: number;
   date: string;
   created?: string;
   modified?: string;
 };
-var assetId: number;
-var TRANSACTION_URL: string;
+var methods: Methods;
+
+export const createTx = (
+  assetId: number,
+  type: Transaction["type"],
+  quantity = 1,
+  price = 10,
+  date = formatISO(new Date(), { representation: "date" })
+) =>
+  methods.post<Transaction>(TX_URL(assetId), {
+    type,
+    quantity,
+    price,
+    date,
+  });
+
+export const getTx = (assetId: number, id: number) =>
+  methods.get<Transaction>(`${TX_URL(assetId)}/${id}`);
+
+export const getTxs = (assetId: number) =>
+  methods.get<Transaction[]>(TX_URL(assetId));
+
+export const deleteTx = (assetId: number, id: number) =>
+  methods.delete<Transaction>(`${TX_URL(assetId)}/${id}`);
+
+var portfolioId = 0,
+  assetId = 0;
 
 beforeAll(async () => {
   methods = await run(authenticate());
-  const { id } = await run(
-    methods.post<Portfolio>(PORTFOLIO_URL, {
-      name: "portfolio-for-asset",
-      description: "-",
-    })
-  );
-  const portfolioId = id!;
-  const { id: assetIdResult } = await run(
-    methods.post<Asset>(`${PORTFOLIO_URL}/${portfolioId}/assets`, {
-      name: "asset-for-transaction",
-      ticker: "ASSET",
-    })
-  );
-  assetId = assetIdResult!;
-  TRANSACTION_URL = `${PORTFOLIO_URL}/assets/${assetId}/transactions`;
+  portfolioId = (await run(createPortfolio())).id!;
+  assetId = (await run(createAsset(portfolioId!))).id!;
 });
 
 test("Create transaction", async () => {
   const { id, asset_id, type, quantity, price, date, created, modified } =
     await run(
-      methods.post<Transaction>(TRANSACTION_URL, {
-        type: "buy",
-        quantity: 10,
-        price: 100,
-        date: "2022-01-01",
-      })
+      createTx(
+        assetId,
+        "buy",
+        10,
+        100,
+        formatISO(new Date(), { representation: "date" })
+      )
     );
   expect(id).toBeNumber();
   expect(asset_id).toBe(assetId);
   expect(type).toBe("buy");
   expect(quantity).toBe(10);
   expect(price).toBe(100);
-  expect(date).toBe("2022-01-01T00:00:00Z");
+  expect(date).toBe(
+    formatISO(startOfDay(new Date()), { representation: "complete" })
+  );
   expect(created).toBeString();
   expect(modified).toBeString();
 });
 
 test("Get multiple transactions", async () => {
-  const transactions = await run(methods.get<Transaction[]>(TRANSACTION_URL));
+  const transactions = await run(getTxs(assetId));
   expect(transactions).toSatisfy((a) => Array.isArray(a) && a.length > 0);
 });
 
 test("Get single transaction", async () => {
-  const { id: txid } = await run(
-    methods.post<Transaction>(TRANSACTION_URL, {
-      type: "buy",
-      quantity: 10,
-      price: 100,
-      date: "2022-01-01",
-    })
-  );
+  const { id: txId } = await run(createTx(assetId, "buy"));
   const { id, asset_id, type, quantity, price, date, created, modified } =
-    await run(methods.get<Transaction>(`${TRANSACTION_URL}/${txid}`));
+    await run(getTx(assetId, txId!));
 
   expect(id).toBeNumber();
   expect(asset_id).toBe(assetId);
@@ -84,17 +95,7 @@ test("Get single transaction", async () => {
 });
 
 test("Delete transaction", async () => {
-  const { id } = await run(
-    methods.post<Transaction>(TRANSACTION_URL, {
-      type: "buy",
-      quantity: 10,
-      price: 100,
-      date: "2022-01-01",
-    })
-  );
-
-  const deleted = await run(
-    methods.delete<boolean>(`${TRANSACTION_URL}/${id}`)
-  );
+  const { id: txId } = await run(createTx(assetId, "buy"));
+  const deleted = await run(deleteTx(assetId, txId!));
   expect(deleted).toBeTrue();
 });

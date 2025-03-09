@@ -1,0 +1,22 @@
+meta {
+  name: get-asset
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://localhost:8080/api/v1/portfolio/96/assets/92
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjoxNzQxNTQ1ODE4LCJpZCI6MSwib3JpZ19pYXQiOjE3NDE1NDIyMTgsInVzZXJuYW1lIjoiYWRtaW4ifQ.TSK4Lb0wtclCI4k_iTKYtR6XrTTbqFbvHMEjpHYqiIE
+}
+
+body:json {
+  {
+    "username": "admin",
+    "password": "admin"
+  }
+}

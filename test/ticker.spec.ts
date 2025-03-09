@@ -12,18 +12,20 @@ type Ticker = {
   symbol: string;
   longname: string;
 };
+
 type TickerSearchResult = {
   quotes: Ticker[];
 };
+
+export const lookupTicker = (ticker: string = `MSFT`) =>
+  methods.get<TickerSearchResult>(`${TICKER_URL}?term=${ticker}`);
 
 beforeAll(async () => {
   methods = await run(authenticate());
 });
 
 test("Lookup ticker", async () => {
-  const { quotes } = await run(
-    methods.get<TickerSearchResult>(`${TICKER_URL}?term=MSFT`)
-  );
+  const { quotes } = await run(lookupTicker("MSFT"));
   expect(quotes).toBeArray();
   expect(quotes[0].symbol).toBe("MSFT");
 });

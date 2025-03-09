@@ -16,6 +16,13 @@ type Asset struct {
 	Modified   time.Time `db:"modified" json:"modified"`
 }
 
+type AssetHodlings struct {
+	Asset
+	Holdings float64  `db:"holdings" json:"holdings"`
+	Invested float64  `db:"invested" json:"invested"`
+	AvgPrice *float64 `db:"avg_price" json:"avg_price"`
+}
+
 type AssetRepository struct {
 	repo *Database
 }
@@ -30,7 +37,7 @@ func AssetRepoProvider(i *do.Injector) (*AssetRepository, error) {
 	return &repo, nil
 }
 
-func (repo *AssetRepository) NewUserAsset(asset *Asset, portfolioId int64, user *User) (ass Asset, err error) {
+func (repo *AssetRepository) New(asset *Asset, portfolioId int64, user *User) (ass AssetHodlings, err error) {
 	asset.PorfolioId = portfolioId
 	result, err := (*repo.repo).Db().NamedExec(`
 		INSERT INTO assets (name, ticker, portfolio_id)
@@ -43,31 +50,45 @@ func (repo *AssetRepository) NewUserAsset(asset *Asset, portfolioId int64, user 
 	if err != nil {
 		return
 	}
-	return repo.Asset(assetId, portfolioId, user)
+	return repo.Get(assetId, portfolioId, user)
 }
 
-func (repo *AssetRepository) Asset(id int64, portfolioId int64, user *User) (asset Asset, err error) {
-	err = (*repo.repo).Db().Get(&asset,
-		`
-			SELECT A.*
+func (repo *AssetRepository) Get(id int64, portfolioId int64, user *User) (asset AssetHodlings, err error) {
+	err = (*repo.repo).Db().Get(&asset, `
+			SELECT
+				SUB.*,
+       	CASE WHEN SUB.holdings = 0 THEN NULL ELSE SUB.invested/SUB.holdings END AS avg_price
+			FROM
+			(SELECT A.*,
+		    COALESCE(SUM(CASE WHEN t.type = 'buy' THEN t.quantity ELSE -t.quantity END),0) AS holdings,
+    		COALESCE(SUM(CASE WHEN t.type = 'buy' THEN t.quantity * t.price ELSE -t.quantity * t.price END),0) AS invested
 			FROM assets A
-			INNER JOIN portfolios P ON P.id = A.portfolio_id
-			INNER JOIN users U ON U.id = P.user_id
+				INNER JOIN portfolios P ON P.id = A.portfolio_id
+				LEFT JOIN transactions T on T.asset_id = A.id
+				INNER JOIN users U ON U.id = P.user_id
 			WHERE A.id=? AND P.id=? AND U.id=?
+			GROUP BY A.id, A.name) AS SUB
 			LIMIT 1;
 		`, id, portfolioId, user.Id)
 	return asset, err
 }
 
-func (repo *AssetRepository) Assets(paging *Paging, portfolioId int64, user *User) (assets []Asset, err error) {
-	assets = make([]Asset, 0)
-	err = (*repo.repo).Db().Select(&assets,
-		`
-			SELECT A.*
+func (repo *AssetRepository) GetMany(paging *Paging, portfolioId int64, user *User) (assets []AssetHodlings, err error) {
+	assets = make([]AssetHodlings, 0)
+	err = (*repo.repo).Db().Select(&assets, `
+			SELECT
+				SUB.*,
+       	CASE WHEN SUB.holdings = 0 THEN NULL ELSE SUB.invested/SUB.holdings END AS avg_price
+			FROM
+			(SELECT A.*,
+		    COALESCE(SUM(CASE WHEN t.type = 'buy' THEN t.quantity ELSE -t.quantity END),0) AS holdings,
+    		COALESCE(SUM(CASE WHEN t.type = 'buy' THEN t.quantity * t.price ELSE -t.quantity * t.price END),0) AS invested
 			FROM assets A
-			INNER JOIN portfolios P ON P.id = A.portfolio_id
-			INNER JOIN users U ON U.id = P.user_id
+				INNER JOIN portfolios P ON P.id = A.portfolio_id
+				LEFT JOIN transactions T on T.asset_id = A.id
+				INNER JOIN users U ON U.id = P.user_id
 			WHERE P.id=? AND U.id=?
+			GROUP BY A.id, A.name) AS SUB
 			LIMIT ? OFFSET ?;
 		`, portfolioId, user.Id, paging.pageSize, paging.Offset())
 	return assets, err
