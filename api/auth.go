@@ -8,6 +8,7 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/gin-gonic/gin"
 
+	"github.com/venil7/assets-service/di"
 	r "github.com/venil7/assets-service/repository"
 )
 
@@ -83,14 +84,14 @@ func authenticate(ctx *gin.Context) (any, error) {
 	}
 	slog.Debug("authenticator", "login", loginVals.Username)
 
-	db, err := r.GetDb(ctx)
+	repo, err := di.Get[*r.UserRepository](ctx)
 	if err != nil {
-		slog.Error("authenticator", "db", err)
 		return nil, err
 	}
-	slog.Debug("authenticator", "db", db)
-	userRepo := r.NewUserRepo(db)
-	user, err := userRepo.GetUser(loginVals.Username)
+	user, err := repo.GetUser(loginVals.Username)
+	if err != nil {
+		return nil, err
+	}
 	if valid, err := user.Check(loginVals.Password); !valid || err != nil {
 		return nil, jwt.ErrFailedAuthentication
 	}

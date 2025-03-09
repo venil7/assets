@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
+	"github.com/samber/do"
 	r "github.com/venil7/assets-service/repository"
 )
 
@@ -18,7 +19,17 @@ type AssetUri struct {
 	PortfolioId int64 `uri:"portfolio_id" binding:"required"`
 }
 
-func Asset(ctx *gin.Context) {
+type AssetsApi struct {
+	repo *r.AssetRepository
+}
+
+func AssetsApiProvider(i *do.Injector) (*AssetsApi, error) {
+	repo := do.MustInvoke[*r.AssetRepository](i)
+	api := AssetsApi{repo}
+	return &api, nil
+}
+
+func (api *AssetsApi) Get(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
@@ -29,17 +40,13 @@ func Asset(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	repo := r.NewAssetRepo(db)
-	asset, err := repo.Asset(params.AssetId, params.PortfolioId, user)
+	asset, err := api.repo.Asset(params.AssetId, params.PortfolioId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, asset)
 }
 
-func DeleteAsset(ctx *gin.Context) {
+func (api *AssetsApi) Delete(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
@@ -50,17 +57,13 @@ func DeleteAsset(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	repo := r.NewAssetRepo(db)
-	err = repo.Delete(params.AssetId, params.PortfolioId, user)
+	err = api.repo.Delete(params.AssetId, params.PortfolioId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, true)
 }
 
-func Assets(ctx *gin.Context) {
+func (api *AssetsApi) GetMany(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
@@ -71,18 +74,15 @@ func Assets(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	assetsRepo := r.NewAssetRepo(db)
 	paging := r.NewDefaultPaging()
-	assets, err := assetsRepo.Assets(&paging, params.PortfolioId, user)
+
+	assets, err := api.repo.Assets(&paging, params.PortfolioId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, assets)
 }
 
-func NewAsset(ctx *gin.Context) {
+func (api *AssetsApi) New(ctx *gin.Context) {
 	var err error
 	var assetPost PostAsset
 	check := GetCheck(ctx)
@@ -97,15 +97,11 @@ func NewAsset(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	repo := r.NewAssetRepo(db)
 	var asset r.Asset
 	err = copier.Copy(&asset, assetPost)
 	check(err)
 
-	nAsset, err := repo.NewUserAsset(&asset, params.PortfolioId, user)
+	nAsset, err := api.repo.NewUserAsset(&asset, params.PortfolioId, user)
 	check(err)
 
 	ctx.JSON(http.StatusCreated, nAsset)

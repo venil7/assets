@@ -4,6 +4,8 @@ go 1.23.6
 
 require github.com/appleboy/gin-jwt/v2 v2.10.1
 
+require github.com/samber/do v1.6.0 // indirect
+
 require (
 	github.com/bytedance/sonic v1.12.6 // indirect
 	github.com/bytedance/sonic/loader v0.2.1 // indirect

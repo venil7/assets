@@ -6,9 +6,26 @@ import (
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/samber/do"
 	"github.com/venil7/assets-service/api"
+	"github.com/venil7/assets-service/di"
 	"github.com/venil7/assets-service/repository"
 )
+
+func diInitialize(db *repository.Database) *do.Injector {
+	inj := do.New()
+	do.ProvideValue(inj, db)
+	do.Provide(inj, repository.UserRepoProvider)
+	do.Provide(inj, repository.AssetRepoProvider)
+	do.Provide(inj, repository.PortfolioRepoProvider)
+	do.Provide(inj, repository.TxRepoProvider)
+	do.Provide(inj, repository.YahooServiceProvider)
+	do.Provide(inj, api.AssetsApiProvider)
+	do.Provide(inj, api.PortfolioApiProvider)
+	do.Provide(inj, api.TxApiProvider)
+	do.Provide(inj, api.YahooApiProvider)
+	return inj
+}
 
 func setupRouter(appConfig *AppConfig) *gin.Engine {
 	authMiddleware, err := jwt.New(api.JwtConfig())
@@ -24,9 +41,10 @@ func setupRouter(appConfig *AppConfig) *gin.Engine {
 	}
 	slog.Debug("router", "db", db)
 
+	inj := diInitialize(&db)
+
 	router := gin.Default()
-	router.Use(repository.WithDb(&db))
-	// router.Use(repository.Cache(&db))
+	router.Use(di.WithInjector(inj))
 	router.NoRoute(api.NoRouteHandler)
 
 	router.POST("/login", authMiddleware.LoginHandler)
@@ -39,24 +57,33 @@ func setupRouter(appConfig *AppConfig) *gin.Engine {
 
 	// PORTFOLIOS & ASSETS & TX
 	portfolioGroup := apiGroup.Group("/portfolio")
-	portfolioGroup.POST("/", api.NewPortfolio)
-	portfolioGroup.GET("/", api.Portfolios)
-	portfolioGroup.GET("/:portfolio_id", api.Portfolio)
-	portfolioGroup.DELETE("/:portfolio_id", api.DeletePortfolio)
 
-	portfolioGroup.GET("/:portfolio_id/assets/:asset_id", api.Asset)
-	portfolioGroup.DELETE("/:portfolio_id/assets/:asset_id", api.DeleteAsset)
-	portfolioGroup.GET("/:portfolio_id/assets", api.Assets)
-	portfolioGroup.POST("/:portfolio_id/assets", api.NewAsset)
+	PortfolioApi := do.MustInvoke[*api.PortfolioApi](inj)
 
-	portfolioGroup.GET("/assets/:asset_id/transactions/:transaction_id", api.Transaction)
-	portfolioGroup.DELETE("/assets/:asset_id/transactions/:transaction_id", api.DeleteTransaction)
-	portfolioGroup.GET("/assets/:asset_id/transactions", api.AssetTransactions)
-	portfolioGroup.POST("/assets/:asset_id/transactions", api.NewTransaction)
+	portfolioGroup.POST("/", PortfolioApi.New)
+	portfolioGroup.GET("/", PortfolioApi.GetMany)
+	portfolioGroup.GET("/:portfolio_id", PortfolioApi.Get)
+	portfolioGroup.DELETE("/:portfolio_id", PortfolioApi.Delete)
+
+	AssetsApi := do.MustInvoke[*api.AssetsApi](inj)
+
+	portfolioGroup.POST("/:portfolio_id/assets", AssetsApi.New)
+	portfolioGroup.GET("/:portfolio_id/assets/:asset_id", AssetsApi.Get)
+	portfolioGroup.GET("/:portfolio_id/assets", AssetsApi.GetMany)
+	portfolioGroup.DELETE("/:portfolio_id/assets/:asset_id", AssetsApi.Delete)
+
+	TxApi := do.MustInvoke[*api.TxApi](inj)
+
+	portfolioGroup.POST("/assets/:asset_id/transactions", TxApi.New)
+	portfolioGroup.GET("/assets/:asset_id/transactions", TxApi.GetMany)
+	portfolioGroup.GET("/assets/:asset_id/transactions/:transaction_id", TxApi.Get)
+	portfolioGroup.DELETE("/assets/:asset_id/transactions/:transaction_id", TxApi.Delete)
 
 	// YAHOO
+	YahooApi := do.MustInvoke[*api.YahooApi](inj)
+
 	lookupGroup := apiGroup.Group("/lookup")
-	lookupGroup.GET("/ticker", api.LookupTicker)
+	lookupGroup.GET("/ticker", YahooApi.LookupTicker)
 
 	return router
 }

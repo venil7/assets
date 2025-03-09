@@ -4,6 +4,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/samber/do"
 )
 
 type Portfolio struct {
@@ -21,6 +22,12 @@ type PortfolioRepo struct {
 
 func NewPortfolioRepo(repo *Database) PortfolioRepo {
 	return PortfolioRepo{repo}
+}
+
+func PortfolioRepoProvider(i *do.Injector) (*PortfolioRepo, error) {
+	db := do.MustInvoke[*Database](i)
+	repo := NewPortfolioRepo(db)
+	return &repo, nil
 }
 
 func (r *PortfolioRepo) NewPortfolio(portfolio *Portfolio, user *User) (port Portfolio, err error) {

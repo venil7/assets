@@ -4,6 +4,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/samber/do"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -42,4 +43,10 @@ func (userRepo *UserRepository) GetUser(username string) (User, error) {
 		"SELECT * FROM `users` WHERE `username`=? LIMIT 1;",
 		username)
 	return user, err
+}
+
+func UserRepoProvider(i *do.Injector) (*UserRepository, error) {
+	db := do.MustInvoke[*Database](i)
+	repo := NewUserRepo(db)
+	return &repo, nil
 }

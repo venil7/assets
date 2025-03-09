@@ -4,6 +4,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/samber/do"
 )
 
 type Asset struct {
@@ -21,6 +22,12 @@ type AssetRepository struct {
 
 func NewAssetRepo(repo *Database) AssetRepository {
 	return AssetRepository{repo}
+}
+
+func AssetRepoProvider(i *do.Injector) (*AssetRepository, error) {
+	db := do.MustInvoke[*Database](i)
+	repo := NewAssetRepo(db)
+	return &repo, nil
 }
 
 func (repo *AssetRepository) NewUserAsset(asset *Asset, portfolioId int64, user *User) (ass Asset, err error) {

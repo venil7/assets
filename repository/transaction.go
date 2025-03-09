@@ -5,6 +5,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/samber/do"
 )
 
 type Transaction struct {
@@ -24,6 +25,12 @@ type TxRepo struct {
 
 func NewTxRepo(repo *Database) TxRepo {
 	return TxRepo{repo}
+}
+
+func TxRepoProvider(i *do.Injector) (*TxRepo, error) {
+	db := do.MustInvoke[*Database](i)
+	repo := NewTxRepo(db)
+	return &repo, nil
 }
 
 func (repo *TxRepo) NewTransaction(transaction *Transaction, assetId int64, user *User) (trans Transaction, err error) {

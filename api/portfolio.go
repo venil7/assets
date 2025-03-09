@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
+	"github.com/samber/do"
 	r "github.com/venil7/assets-service/repository"
 )
 
@@ -17,7 +18,17 @@ type PortfolioUri struct {
 	PortfolioId int64 `uri:"portfolio_id" binding:"required"`
 }
 
-func Portfolio(ctx *gin.Context) {
+type PortfolioApi struct {
+	repo *r.PortfolioRepo
+}
+
+func PortfolioApiProvider(i *do.Injector) (*PortfolioApi, error) {
+	repo := do.MustInvoke[*r.PortfolioRepo](i)
+	api := PortfolioApi{repo}
+	return &api, nil
+}
+
+func (api *PortfolioApi) Get(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
@@ -28,17 +39,13 @@ func Portfolio(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	repo := r.NewPortfolioRepo(db)
-	portfolio, err := repo.Portfolio(params.PortfolioId, user)
+	portfolio, err := api.repo.Portfolio(params.PortfolioId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, portfolio)
 }
 
-func DeletePortfolio(ctx *gin.Context) {
+func (api *PortfolioApi) Delete(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
@@ -49,35 +56,27 @@ func DeletePortfolio(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	repo := r.NewPortfolioRepo(db)
-	err = repo.Delete(params.PortfolioId, user)
+	err = api.repo.Delete(params.PortfolioId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, true)
 }
 
-func Portfolios(ctx *gin.Context) {
+func (api *PortfolioApi) GetMany(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	repo := r.NewPortfolioRepo(db)
 	paging := r.NewDefaultPaging()
-	portfolios, err := repo.Portfolios(&paging, user)
+	portfolios, err := api.repo.Portfolios(&paging, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, portfolios)
 }
 
-func NewPortfolio(ctx *gin.Context) {
+func (api *PortfolioApi) New(ctx *gin.Context) {
 	var err error
 	var postPortfolio PostPortfolio
 	check := GetCheck(ctx)
@@ -88,15 +87,11 @@ func NewPortfolio(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	portfolioRepo := r.NewPortfolioRepo(db)
 	var portfolio r.Portfolio
 	err = copier.Copy(&portfolio, postPortfolio)
 	check(err)
 
-	newPortfolio, err := portfolioRepo.NewPortfolio(&portfolio, user)
+	newPortfolio, err := api.repo.NewPortfolio(&portfolio, user)
 	check(err)
 
 	ctx.JSON(http.StatusCreated, newPortfolio)

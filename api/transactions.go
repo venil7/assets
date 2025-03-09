@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
+	"github.com/samber/do"
 	r "github.com/venil7/assets-service/repository"
 )
 
@@ -25,7 +26,17 @@ type TransactionUri struct {
 	TransactionId int64 `uri:"transaction_id" binding:"required"`
 }
 
-func Transaction(ctx *gin.Context) {
+type TxApi struct {
+	repo *r.TxRepo
+}
+
+func TxApiProvider(i *do.Injector) (*TxApi, error) {
+	repo := do.MustInvoke[*r.TxRepo](i)
+	api := TxApi{repo}
+	return &api, nil
+}
+
+func (api *TxApi) Get(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
@@ -36,17 +47,13 @@ func Transaction(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	repo := r.NewTxRepo(db)
-	transaction, err := repo.Transaction(params.TransactionId, params.AssetId, user)
+	transaction, err := api.repo.Transaction(params.TransactionId, params.AssetId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, transaction)
 }
 
-func DeleteTransaction(ctx *gin.Context) {
+func (api *TxApi) Delete(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
@@ -57,17 +64,13 @@ func DeleteTransaction(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	repo := r.NewTxRepo(db)
-	err = repo.Delete(params.TransactionId, params.AssetId, user)
+	err = api.repo.Delete(params.TransactionId, params.AssetId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, true)
 }
 
-func AssetTransactions(ctx *gin.Context) {
+func (api *TxApi) GetMany(ctx *gin.Context) {
 	var err error
 	check := GetCheck(ctx)
 
@@ -78,18 +81,14 @@ func AssetTransactions(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	transactionsRepo := r.NewTxRepo(db)
 	paging := r.NewDefaultPaging()
-	transactions, err := transactionsRepo.AssetTransactions(&paging, params.AssetId, user)
+	transactions, err := api.repo.AssetTransactions(&paging, params.AssetId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, transactions)
 }
 
-func NewTransaction(ctx *gin.Context) {
+func (api *TxApi) New(ctx *gin.Context) {
 	var err error
 	var transactionPost PostTransaction
 	check := GetCheck(ctx)
@@ -104,17 +103,13 @@ func NewTransaction(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	db, err := r.GetDb(ctx)
-	check(err)
-
-	repo := r.NewTxRepo(db)
 	var transaction r.Transaction
 
 	err = copier.Copy(&transaction, transactionPost)
 	transaction.Date, err = time.Parse(time.DateOnly, transactionPost.Date)
 	check(err)
 
-	nTransaction, err := repo.NewTransaction(&transaction, params.AssetId, user)
+	nTransaction, err := api.repo.NewTransaction(&transaction, params.AssetId, user)
 	check(err)
 
 	ctx.JSON(http.StatusCreated, nTransaction)
