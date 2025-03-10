@@ -40,7 +40,12 @@ func NewUserRepo(repo *Database) UserRepository {
 func (userRepo *UserRepository) GetUser(username string) (User, error) {
 	var user User
 	err := (*userRepo.repo).Db().Get(&user,
-		"SELECT * FROM `users` WHERE `username`=? LIMIT 1;",
+		`
+		SELECT *
+		FROM users
+		WHERE username=?
+		LIMIT 1;
+		`,
 		username)
 	return user, err
 }

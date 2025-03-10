@@ -47,7 +47,7 @@ func (api *TxApi) Get(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	transaction, err := api.repo.Transaction(params.TransactionId, params.AssetId, user)
+	transaction, err := api.repo.Get(params.TransactionId, params.AssetId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, transaction)
@@ -82,7 +82,7 @@ func (api *TxApi) GetMany(ctx *gin.Context) {
 	check(err)
 
 	paging := r.NewDefaultPaging()
-	transactions, err := api.repo.AssetTransactions(&paging, params.AssetId, user)
+	transactions, err := api.repo.GetMany(&paging, params.AssetId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, transactions)
@@ -109,7 +109,10 @@ func (api *TxApi) New(ctx *gin.Context) {
 	transaction.Date, err = time.Parse(time.DateOnly, transactionPost.Date)
 	check(err)
 
-	nTransaction, err := api.repo.NewTransaction(&transaction, params.AssetId, user)
+	nTransaction, err := api.repo.New(&transaction, params.AssetId, user)
+	// if err!=nil && strings.Contains(err.Error(), "Insufficient holdings") {
+
+	// }
 	check(err)
 
 	ctx.JSON(http.StatusCreated, nTransaction)

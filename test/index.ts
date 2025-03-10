@@ -20,16 +20,17 @@ const rest = <JSON>(
   const req = { method, body, headers } as RequestInit;
   return pipe(
     () => fetch(url, req),
-    T.map((resp) =>
-      resp.status >= 200 && resp.status < 300
-        ? E.right(resp)
-        : E.left(resp.statusText)
-    ),
-    TE.chain((resp) =>
+    T.map((resp) => E.right({ resp })),
+    TE.bind("body", ({ resp }) =>
       TE.tryCatch(
         () => resp.json() as Promise<JSON>,
-        () => "json failed"
+        () => "json_failed"
       )
+    ),
+    TE.chain(({ resp, body }) =>
+      resp.status >= 200 && resp.status < 300
+        ? TE.of(body)
+        : TE.left((body as any).error)
     )
   );
 };

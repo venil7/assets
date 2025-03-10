@@ -55,19 +55,9 @@ func (repo *AssetRepository) New(asset *Asset, portfolioId int64, user *User) (a
 
 func (repo *AssetRepository) Get(id int64, portfolioId int64, user *User) (asset AssetHodlings, err error) {
 	err = (*repo.repo).Db().Get(&asset, `
-			SELECT
-				SUB.*,
-       	CASE WHEN SUB.holdings = 0 THEN NULL ELSE SUB.invested/SUB.holdings END AS avg_price
-			FROM
-			(SELECT A.*,
-		    COALESCE(SUM(CASE WHEN t.type = 'buy' THEN t.quantity ELSE -t.quantity END),0) AS holdings,
-    		COALESCE(SUM(CASE WHEN t.type = 'buy' THEN t.quantity * t.price ELSE -t.quantity * t.price END),0) AS invested
-			FROM assets A
-				INNER JOIN portfolios P ON P.id = A.portfolio_id
-				LEFT JOIN transactions T on T.asset_id = A.id
-				INNER JOIN users U ON U.id = P.user_id
-			WHERE A.id=? AND P.id=? AND U.id=?
-			GROUP BY A.id, A.name) AS SUB
+			SELECT id,portfolio_id,name,ticker,created,modified,holdings,invested,avg_price
+			FROM asset_holdings A
+			WHERE A.id=? AND A.portfolio_id=? AND A.user_id=?
 			LIMIT 1;
 		`, id, portfolioId, user.Id)
 	return asset, err
@@ -76,19 +66,9 @@ func (repo *AssetRepository) Get(id int64, portfolioId int64, user *User) (asset
 func (repo *AssetRepository) GetMany(paging *Paging, portfolioId int64, user *User) (assets []AssetHodlings, err error) {
 	assets = make([]AssetHodlings, 0)
 	err = (*repo.repo).Db().Select(&assets, `
-			SELECT
-				SUB.*,
-       	CASE WHEN SUB.holdings = 0 THEN NULL ELSE SUB.invested/SUB.holdings END AS avg_price
-			FROM
-			(SELECT A.*,
-		    COALESCE(SUM(CASE WHEN t.type = 'buy' THEN t.quantity ELSE -t.quantity END),0) AS holdings,
-    		COALESCE(SUM(CASE WHEN t.type = 'buy' THEN t.quantity * t.price ELSE -t.quantity * t.price END),0) AS invested
-			FROM assets A
-				INNER JOIN portfolios P ON P.id = A.portfolio_id
-				LEFT JOIN transactions T on T.asset_id = A.id
-				INNER JOIN users U ON U.id = P.user_id
-			WHERE P.id=? AND U.id=?
-			GROUP BY A.id, A.name) AS SUB
+			SELECT id,portfolio_id,name,ticker,created,modified,holdings,invested,avg_price
+			FROM asset_holdings A
+			WHERE A.portfolio_id=? AND A.user_id=?
 			LIMIT ? OFFSET ?;
 		`, portfolioId, user.Id, paging.pageSize, paging.Offset())
 	return assets, err
@@ -102,8 +82,7 @@ func (repo *AssetRepository) Delete(id int64, portfolioId int64, user *User) (er
 				SELECT A.id
 				FROM assets A
 				INNER JOIN portfolios P ON P.id = A.portfolio_id
-				INNER JOIN users U ON U.id = P.user_id
-				WHERE P.id=? AND U.id=?
+				WHERE P.id=? AND P.user_id=?
 				LIMIT 1
 			);
 		`, id, portfolioId, user.Id)

@@ -39,7 +39,7 @@ func (api *PortfolioApi) Get(ctx *gin.Context) {
 	user, err := GetUser(ctx)
 	check(err)
 
-	portfolio, err := api.repo.Portfolio(params.PortfolioId, user)
+	portfolio, err := api.repo.Get(params.PortfolioId, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, portfolio)
@@ -70,7 +70,7 @@ func (api *PortfolioApi) GetMany(ctx *gin.Context) {
 	check(err)
 
 	paging := r.NewDefaultPaging()
-	portfolios, err := api.repo.Portfolios(&paging, user)
+	portfolios, err := api.repo.GetMany(&paging, user)
 	check(err)
 
 	ctx.JSON(http.StatusOK, portfolios)
@@ -91,7 +91,7 @@ func (api *PortfolioApi) New(ctx *gin.Context) {
 	err = copier.Copy(&portfolio, postPortfolio)
 	check(err)
 
-	newPortfolio, err := api.repo.NewPortfolio(&portfolio, user)
+	newPortfolio, err := api.repo.New(&portfolio, user)
 	check(err)
 
 	ctx.JSON(http.StatusCreated, newPortfolio)

@@ -28,8 +28,8 @@ export const createAsset = (
   ticker?: string
 ) =>
   methods.post<AssetHolding>(`${PORTFOLIO_URL}/${portfolioId}/assets`, {
-    name: name ?? faker.lorem.slug(),
-    ticker: ticker ?? "MCD",
+    name: name ?? faker.lorem.slug(2),
+    ticker: ticker ?? faker.lorem.slug(1),
   });
 
 export const getAsset = (portfolioId: number, id: number) =>
@@ -47,13 +47,14 @@ beforeAll(async () => {
 });
 
 test("Create asset", async () => {
+  const [assetName, assetTicker] = [faker.lorem.slug(2), faker.lorem.slug(2)];
   const { id, portfolio_id, name, ticker, created, modified } = await run(
-    createAsset(PORTFOLIO_ID, "microsoft", "MSFT")
+    createAsset(PORTFOLIO_ID, assetName, assetTicker)
   );
   expect(id).toBeNumber();
   expect(portfolio_id).toBe(PORTFOLIO_ID);
-  expect(name).toBe("microsoft");
-  expect(ticker).toBe("MSFT");
+  expect(name).toBe(assetName);
+  expect(ticker).toBe(assetTicker);
   expect(created).toBeString();
   expect(modified).toBeString();
 });
@@ -64,16 +65,17 @@ test("Get multiple assets", async () => {
 });
 
 test("Get single asset", async () => {
+  const [assetName, assetTicker] = [faker.lorem.slug(2), faker.lorem.slug(2)];
   const { id: assetId } = await run(
-    createAsset(PORTFOLIO_ID, "check-me", "check-me-too")
+    createAsset(PORTFOLIO_ID, assetName, assetTicker)
   );
   const { id, portfolio_id, name, ticker, created, modified } = await run(
     getAsset(PORTFOLIO_ID, assetId!)
   );
   expect(id).toBeNumber();
   expect(portfolio_id).toBe(PORTFOLIO_ID);
-  expect(name).toBe("check-me");
-  expect(ticker).toBe("check-me-too");
+  expect(name).toBe(assetName);
+  expect(ticker).toBe(assetTicker);
   expect(created).toBeString();
   expect(modified).toBeString();
 });

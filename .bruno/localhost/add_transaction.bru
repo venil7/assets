@@ -1,0 +1,23 @@
+meta {
+  name: add_transaction
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8080/api/v1/portfolio/assets/19/transactions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjoxNzQxNjUwMTQwLCJpZCI6MSwib3JpZ19pYXQiOjE3NDE2NDY1NDAsInVzZXJuYW1lIjoiYWRtaW4ifQ.yYrx0pVhZ4LUw1ZQ_5mqsFL8PDq6rEJYe69XUYFH5ew
+}
+
+body:json {
+  {
+    "type": "sell",
+    "quantity": 12,
+    "price": 50
+  }
+}

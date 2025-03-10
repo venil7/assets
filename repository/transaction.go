@@ -33,7 +33,7 @@ func TxRepoProvider(i *do.Injector) (*TxRepo, error) {
 	return &repo, nil
 }
 
-func (repo *TxRepo) NewTransaction(transaction *Transaction, assetId int64, user *User) (trans Transaction, err error) {
+func (repo *TxRepo) New(transaction *Transaction, assetId int64, user *User) (trans Transaction, err error) {
 	transaction.AssetId = assetId
 	result, err := (*repo.repo).Db().NamedExec(`
 			INSERT INTO transactions (asset_id, type, quantity, price, date)
@@ -46,57 +46,48 @@ func (repo *TxRepo) NewTransaction(transaction *Transaction, assetId int64, user
 	if err != nil {
 		return trans, fmt.Errorf("failed to get last insert id: %w", err)
 	}
-	trans, err = repo.Transaction(transactionId, assetId, user)
+	trans, err = repo.Get(transactionId, assetId, user)
 	if err != nil {
 		return trans, fmt.Errorf("failed to retrieve transaction: %w", err)
 	}
 	return trans, nil
 }
 
-func (repo *TxRepo) Transaction(id int64, assetId int64, user *User) (transaction Transaction, err error) {
+func (repo *TxRepo) Get(id int64, assetId int64, user *User) (transaction Transaction, err error) {
 	err = (*repo.repo).Db().Get(&transaction,
 		`
-					SELECT T.*
-					FROM transactions T
-					INNER JOIN assets A ON A.id = T.asset_id
-					INNER JOIN portfolios P ON P.id = A.portfolio_id
-					INNER JOIN users U ON U.id = P.user_id
-					WHERE T.id=? AND A.id=? AND U.id=?
-					LIMIT 1;
-			`, id, assetId, user.Id)
+		SELECT id, asset_id, type, quantity, price, date, created, modified
+		FROM asset_transactions AT
+		WHERE AT.id=? AND AT.asset_id=? AND AT.user_id=?
+		LIMIT 1;
+		`, id, assetId, user.Id)
 	return transaction, err
 }
 
-func (repo *TxRepo) AssetTransactions(paging *Paging, assetId int64, user *User) (transactions []Transaction, err error) {
+func (repo *TxRepo) GetMany(paging *Paging, assetId int64, user *User) (transactions []Transaction, err error) {
 	transactions = make([]Transaction, 0)
 	err = (*repo.repo).Db().Select(&transactions,
 		`
-					SELECT T.*
-					FROM transactions T
-					INNER JOIN assets A ON A.id = T.asset_id
-					INNER JOIN portfolios P ON P.id = A.portfolio_id
-					INNER JOIN users U ON U.id = P.user_id
-					WHERE T.asset_id=? AND P.id IN (SELECT portfolio_id FROM assets WHERE id=?) AND U.id=?
-					ORDER BY T.date DESC
-					LIMIT ? OFFSET ?;
-			`, assetId, assetId, user.Id, paging.pageSize, paging.Offset())
+		SELECT id, asset_id, type, quantity, price, date, created, modified
+		FROM asset_transactions AT
+		WHERE AT.asset_id=? AND AT.user_id=?
+		ORDER BY AT.date DESC
+		LIMIT ? OFFSET ?;
+		`, assetId, user.Id, paging.pageSize, paging.Offset())
 	return transactions, err
 }
 
 func (repo *TxRepo) Delete(id int64, assetId int64, user *User) (err error) {
 	result, err := (*repo.repo).Db().Exec(
 		`
-					DELETE FROM transactions
-					WHERE id IN (
-							SELECT T.id
-							FROM transactions T
-							INNER JOIN assets A ON A.id = T.asset_id
-							INNER JOIN portfolios P ON P.id = A.portfolio_id
-							INNER JOIN users U ON U.id = P.user_id
-							WHERE T.id=? AND A.id=? AND P.id IN (SELECT portfolio_id FROM assets WHERE id=?) AND U.id=?
-							LIMIT 1
-					);
-			`, id, assetId, assetId, user.Id)
+		DELETE FROM transactions
+		WHERE id IN (
+				SELECT AT.id
+				FROM asset_transactions AT
+				WHERE AT.id=? AND AT.user_id=?
+				LIMIT 1
+		);
+		`, id, assetId, assetId, user.Id)
 	if err != nil {
 		return err
 	}

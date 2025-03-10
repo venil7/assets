@@ -34,13 +34,18 @@ beforeAll(async () => {
 });
 
 test("Create portfolio", async () => {
+  const [portfolioName, portfolioDescription] = [
+    faker.lorem.slug(2),
+    faker.lorem.slug(2),
+  ];
+
   const { id, user_id, name, description, created, modified } = await run(
-    createPortfolio("test-name", "some description")
+    createPortfolio(portfolioName, portfolioDescription)
   );
   expect(id).toBeNumber();
   expect(user_id).toBeNumber();
-  expect(name).toBe("test-name");
-  expect(description).toBe("some description");
+  expect(name).toBe(portfolioName);
+  expect(description).toBe(portfolioDescription);
   expect(created).toBeString();
   expect(modified).toBeString();
 });

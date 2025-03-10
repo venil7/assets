@@ -30,7 +30,7 @@ func PortfolioRepoProvider(i *do.Injector) (*PortfolioRepo, error) {
 	return &repo, nil
 }
 
-func (r *PortfolioRepo) NewPortfolio(portfolio *Portfolio, user *User) (port Portfolio, err error) {
+func (r *PortfolioRepo) New(portfolio *Portfolio, user *User) (port Portfolio, err error) {
 	portfolio.UserId = user.Id
 
 	result, err := (*r.repo).Db().NamedExec(`
@@ -44,29 +44,27 @@ func (r *PortfolioRepo) NewPortfolio(portfolio *Portfolio, user *User) (port Por
 	if err != nil {
 		return
 	}
-	return r.Portfolio(portfolioId, user)
+	return r.Get(portfolioId, user)
 }
 
-func (r *PortfolioRepo) Portfolio(id int64, user *User) (asset Portfolio, err error) {
+func (r *PortfolioRepo) Get(id int64, user *User) (asset Portfolio, err error) {
 	err = (*r.repo).Db().Get(&asset,
 		`
 			SELECT P.*
 			FROM portfolios P
-			INNER JOIN users U on U.id = P.user_id
-			WHERE P.id=? AND U.id=?
+			WHERE P.id=? AND P.user_id=?
 			LIMIT 1;
 		`, id, user.Id)
 	return asset, err
 }
 
-func (r *PortfolioRepo) Portfolios(paging *Paging, user *User) (portfolios []Portfolio, err error) {
+func (r *PortfolioRepo) GetMany(paging *Paging, user *User) (portfolios []Portfolio, err error) {
 	portfolios = make([]Portfolio, 0)
 	err = (*r.repo).Db().Select(&portfolios,
 		`
 			SELECT P.*
 			FROM portfolios P
-			INNER JOIN users U on U.id = P.user_id
-			WHERE U.id=?
+			WHERE P.user_id=?
 			LIMIT ? OFFSET ?;
 		`, user.Id, paging.pageSize, paging.Offset())
 	return portfolios, err
@@ -76,13 +74,7 @@ func (repo *PortfolioRepo) Delete(id int64, user *User) (err error) {
 	result, err := (*repo.repo).Db().Exec(
 		`
 			DELETE FROM portfolios
-			WHERE id = (
-				SELECT P.id
-				FROM portfolios P
-				INNER JOIN users U ON U.id = P.user_id
-				WHERE P.id=? AND U.id=?
-				LIMIT 1
-			);
+			WHERE id=? AND user_id=?;
 		`, id, user.Id)
 	if err != nil {
 		return err
