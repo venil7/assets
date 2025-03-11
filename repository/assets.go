@@ -23,6 +23,11 @@ type AssetHodlings struct {
 	AvgPrice *float64 `db:"avg_price" json:"avg_price"`
 }
 
+type AssetContributions struct {
+	AssetHodlings
+	PortfolioContribution *float64 `db:"portfolio_contribution" json:"portfolio_contribution"`
+}
+
 type AssetRepository struct {
 	repo *Database
 }
@@ -37,7 +42,7 @@ func AssetRepoProvider(i *do.Injector) (*AssetRepository, error) {
 	return &repo, nil
 }
 
-func (repo *AssetRepository) New(asset *Asset, portfolioId int64, user *User) (ass AssetHodlings, err error) {
+func (repo *AssetRepository) New(asset *Asset, portfolioId int64, user *User) (ass AssetContributions, err error) {
 	asset.PorfolioId = portfolioId
 	result, err := (*repo.repo).Db().NamedExec(`
 		INSERT INTO assets (name, ticker, portfolio_id)
@@ -53,21 +58,21 @@ func (repo *AssetRepository) New(asset *Asset, portfolioId int64, user *User) (a
 	return repo.Get(assetId, portfolioId, user)
 }
 
-func (repo *AssetRepository) Get(id int64, portfolioId int64, user *User) (asset AssetHodlings, err error) {
+func (repo *AssetRepository) Get(id int64, portfolioId int64, user *User) (asset AssetContributions, err error) {
 	err = (*repo.repo).Db().Get(&asset, `
-			SELECT id,portfolio_id,name,ticker,created,modified,holdings,invested,avg_price
-			FROM asset_holdings A
+			SELECT id,portfolio_id,name,ticker,created,modified,holdings,invested,avg_price,portfolio_contribution
+			FROM assets_contributions A
 			WHERE A.id=? AND A.portfolio_id=? AND A.user_id=?
 			LIMIT 1;
 		`, id, portfolioId, user.Id)
 	return asset, err
 }
 
-func (repo *AssetRepository) GetMany(paging *Paging, portfolioId int64, user *User) (assets []AssetHodlings, err error) {
-	assets = make([]AssetHodlings, 0)
+func (repo *AssetRepository) GetMany(paging *Paging, portfolioId int64, user *User) (assets []AssetContributions, err error) {
+	assets = make([]AssetContributions, 0)
 	err = (*repo.repo).Db().Select(&assets, `
-			SELECT id,portfolio_id,name,ticker,created,modified,holdings,invested,avg_price
-			FROM asset_holdings A
+			SELECT id,portfolio_id,name,ticker,created,modified,holdings,invested,avg_price,portfolio_contribution
+			FROM assets_contributions A
 			WHERE A.portfolio_id=? AND A.user_id=?
 			LIMIT ? OFFSET ?;
 		`, portfolioId, user.Id, paging.pageSize, paging.Offset())

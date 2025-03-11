@@ -1,36 +1,13 @@
 import { beforeAll, expect, test } from "bun:test";
 import faker from "faker";
-import { authenticate, BASE_URL, run, type Methods } from "./index";
+import { type Api, api as getApi } from "./api";
+import { authenticate, run } from "./index";
 
-export const PORTFOLIO_URL = `${BASE_URL}/api/v1/portfolio`;
-
-var methods: Methods;
-
-export const createPortfolio = (name?: string, description?: string) =>
-  methods.post<Portfolio>(PORTFOLIO_URL, {
-    name: name ?? faker.lorem.slug(),
-    description: description ?? faker.lorem.slug(),
-  });
-
-export const getPortfolio = (id: number) =>
-  methods.get<Portfolio>(`${PORTFOLIO_URL}/${id}`);
-
-export const deletePortfolio = (id: number) =>
-  methods.delete<Portfolio>(`${PORTFOLIO_URL}/${id}`);
-
-export const getPortfolios = () => methods.get<Portfolio>(PORTFOLIO_URL);
-
-export type Portfolio = {
-  id?: number;
-  user_id?: number;
-  name: string;
-  description: string;
-  created?: string;
-  modified?: string;
-};
+var api: Api;
 
 beforeAll(async () => {
-  methods = await run(authenticate());
+  const methods = await run(authenticate());
+  api = getApi(methods);
 });
 
 test("Create portfolio", async () => {
@@ -40,7 +17,7 @@ test("Create portfolio", async () => {
   ];
 
   const { id, user_id, name, description, created, modified } = await run(
-    createPortfolio(portfolioName, portfolioDescription)
+    api.createPortfolio(portfolioName, portfolioDescription)
   );
   expect(id).toBeNumber();
   expect(user_id).toBeNumber();
@@ -51,13 +28,13 @@ test("Create portfolio", async () => {
 });
 
 test("Get multiple portfolios", async () => {
-  const portfolios = await run(getPortfolios());
+  const portfolios = await run(api.getPortfolios());
   expect(portfolios).toSatisfy((a) => Array.isArray(a) && a.length > 0);
 });
 
 test("Get single portfolio", async () => {
   const { id, user_id, name, description, created, modified } = await run(
-    getPortfolio(1)
+    api.getPortfolio(1)
   );
   expect(id).toBe(1);
   expect(user_id).toBeNumber();
@@ -68,8 +45,32 @@ test("Get single portfolio", async () => {
 });
 
 test("Delete portfolio", async () => {
-  const { id } = await run(createPortfolio());
+  const { id } = await run(api.createPortfolio());
 
-  const deleted = await run(methods.delete<boolean>(`${PORTFOLIO_URL}/${id}`));
+  const deleted = await run(api.deletePortfolio(id!));
   expect(deleted).toBeTrue();
+});
+
+test("Total invested/num assets is zero in new portfolio", async () => {
+  const { total_invested, num_assets } = await run(api.createPortfolio());
+
+  expect(total_invested).toBe(0);
+  expect(num_assets).toBe(0);
+});
+
+test("correct amount of invested/assets in portfolio", async () => {
+  const { id } = await run(api.createPortfolio());
+
+  const a1 = await run(api.createAsset(id!));
+  const a2 = await run(api.createAsset(id!));
+  const a3 = await run(api.createAsset(id!));
+
+  await run(api.createTx(a1.id!, "buy", 10, 1));
+  await run(api.createTx(a2.id!, "buy", 10, 2));
+  await run(api.createTx(a3.id!, "buy", 10, 3));
+
+  const { total_invested, num_assets } = await run(api.getPortfolio(id!));
+
+  expect(num_assets).toBe(3);
+  expect(total_invested).toBe(60);
 });

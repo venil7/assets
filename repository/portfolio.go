@@ -15,6 +15,11 @@ type Portfolio struct {
 	Created     time.Time `db:"created" json:"created"`
 	Modified    time.Time `db:"modified" json:"modified"`
 }
+type PortfolioExt struct {
+	Portfolio
+	TotalInvested float64 `db:"total_invested" json:"total_invested"`
+	NumAssets     float64 `db:"num_assets" json:"num_assets"`
+}
 
 type PortfolioRepo struct {
 	repo *Database
@@ -30,7 +35,7 @@ func PortfolioRepoProvider(i *do.Injector) (*PortfolioRepo, error) {
 	return &repo, nil
 }
 
-func (r *PortfolioRepo) New(portfolio *Portfolio, user *User) (port Portfolio, err error) {
+func (r *PortfolioRepo) New(portfolio *Portfolio, user *User) (port PortfolioExt, err error) {
 	portfolio.UserId = user.Id
 
 	result, err := (*r.repo).Db().NamedExec(`
@@ -47,23 +52,23 @@ func (r *PortfolioRepo) New(portfolio *Portfolio, user *User) (port Portfolio, e
 	return r.Get(portfolioId, user)
 }
 
-func (r *PortfolioRepo) Get(id int64, user *User) (asset Portfolio, err error) {
+func (r *PortfolioRepo) Get(id int64, user *User) (asset PortfolioExt, err error) {
 	err = (*r.repo).Db().Get(&asset,
 		`
 			SELECT P.*
-			FROM portfolios P
+			FROM portfolios_ext P
 			WHERE P.id=? AND P.user_id=?
 			LIMIT 1;
 		`, id, user.Id)
 	return asset, err
 }
 
-func (r *PortfolioRepo) GetMany(paging *Paging, user *User) (portfolios []Portfolio, err error) {
-	portfolios = make([]Portfolio, 0)
+func (r *PortfolioRepo) GetMany(paging *Paging, user *User) (portfolios []PortfolioExt, err error) {
+	portfolios = make([]PortfolioExt, 0)
 	err = (*r.repo).Db().Select(&portfolios,
 		`
 			SELECT P.*
-			FROM portfolios P
+			FROM portfolios_ext P
 			WHERE P.user_id=?
 			LIMIT ? OFFSET ?;
 		`, user.Id, paging.pageSize, paging.Offset())

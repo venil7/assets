@@ -1,51 +1,51 @@
 --tables
-CREATE TABLE
+create table
     users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        phash TEXT NOT NULL,
-        psalt TEXT NOT NULL,
-        admin BOOL NOT NULL,
-        created DATETIME DEFAULT CURRENT_TIMESTAMP,
-        modified DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE (username)
+        id integer primary key autoincrement,
+        username text not null,
+        phash text not null,
+        psalt text not null,
+        admin bool not null,
+        created datetime default current_timestamp,
+        modified datetime default current_timestamp,
+        unique (username)
     );
 
-CREATE TABLE
+create table
     assets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        portfolio_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        ticker TEXT NOT NULL,
-        created DATETIME DEFAULT CURRENT_TIMESTAMP,
-        modified DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (portfolio_id) REFERENCES portfolios (id),
-        UNIQUE (ticker, portfolio_id)
+        id integer primary key autoincrement,
+        portfolio_id integer not null,
+        name text not null,
+        ticker text not null,
+        created datetime default current_timestamp,
+        modified datetime default current_timestamp,
+        foreign key (portfolio_id) references portfolios (id),
+        unique (ticker, portfolio_id)
     );
 
-CREATE TABLE
+create table
     portfolios (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        description TEXT,
-        created DATETIME DEFAULT CURRENT_TIMESTAMP,
-        modified DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (id),
-        UNIQUE (user_id, name)
+        id integer primary key autoincrement,
+        user_id integer not null,
+        name text not null,
+        description text,
+        created datetime default current_timestamp,
+        modified datetime default current_timestamp,
+        foreign key (user_id) references users (id),
+        unique (user_id, name)
     );
 
-CREATE TABLE
+create table
     transactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        asset_id INTEGER NOT NULL,
-        type TEXT NOT NULL CHECK (type IN ('buy', 'sell')),
-        quantity REAL NOT NULL,
-        price REAL NOT NULL,
-        date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        created DATETIME DEFAULT CURRENT_TIMESTAMP,
-        modified DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (asset_id) REFERENCES assets (id)
+        id integer primary key autoincrement,
+        asset_id integer not null,
+        type text not null check (type in ('buy', 'sell')),
+        quantity real not null,
+        price real not null,
+        date date not null default current_timestamp,
+        created datetime default current_timestamp,
+        modified datetime default current_timestamp,
+        foreign key (asset_id) references assets (id)
     );
 
 -- views
@@ -53,87 +53,119 @@ drop view if exists asset_transactions;
 
 create view
     asset_transactions as
-SELECT
-    T.*,
-    A.name,
-    A.ticker,
-    P.name as portfolio_name,
-    P.description as portfolio_description,
-    P.user_id
-FROM
-    transactions T
-    INNER JOIN assets A ON A.id = T.asset_id
-    INNER JOIN portfolios P ON P.id = A.portfolio_id;
+select
+    t.*,
+    a.name,
+    a.ticker,
+    p.name as portfolio_name,
+    p.description as portfolio_description,
+    p.user_id
+from
+    transactions t
+    inner join assets a on a.id = t.asset_id
+    inner join portfolios p on p.id = a.portfolio_id;
 
-DROP VIEW IF EXISTS asset_holdings;
+drop view if exists asset_holdings;
 
-CREATE VIEW IF NOT EXISTS
-    asset_holdings AS
-SELECT
-    SUB.*,
-    CASE
-        WHEN SUB.holdings = 0 THEN NULL
-        ELSE SUB.invested / SUB.holdings
-    END AS avg_price
-FROM
+create view if not exists
+    asset_holdings as
+select
+    sub.*,
+    case
+        when sub.holdings = 0 then null
+        else sub.invested / sub.holdings
+    end as avg_price
+from
     (
-        SELECT
-            A.*,
-            U.id as user_id,
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN t.type = 'buy' THEN t.quantity
-                        ELSE - t.quantity
-                    END
+        select
+            a.*,
+            u.id as user_id,
+            coalesce(
+                sum(
+                    case
+                        when t.type = 'buy' then t.quantity
+                        else - t.quantity
+                    end
                 ),
                 0
-            ) AS holdings,
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN t.type = 'buy' THEN t.quantity * t.price
-                        ELSE - t.quantity * t.price
-                    END
+            ) as holdings,
+            coalesce(
+                sum(
+                    case
+                        when t.type = 'buy' then t.quantity * t.price
+                        else - t.quantity * t.price
+                    end
                 ),
                 0
-            ) AS invested,
-            COUNT(T.id) AS num_tx
-        FROM
-            assets A
-            INNER JOIN portfolios P ON P.id = A.portfolio_id
-            LEFT JOIN transactions T on T.asset_id = A.id
-            INNER JOIN users U ON U.id = P.user_id
-        GROUP BY
-            A.id,
-            A.name
-    ) AS SUB;
+            ) as invested,
+            count(t.id) as num_tx
+        from
+            assets a
+            inner join portfolios p on p.id = a.portfolio_id
+            left join transactions t on t.asset_id = a.id
+            inner join users u on u.id = p.user_id
+        group by
+            a.id,
+            a.name
+    ) as sub;
+
+drop view if exists portfolios_ext;
+
+create view
+    portfolios_ext as
+select
+    p.*,
+    coalesce(a.total_invested, 0) as total_invested,
+    coalesce(a.num_assets, 0) as num_assets
+from
+    portfolios p
+    left join (
+        select
+            portfolio_id,
+            sum(invested) as total_invested,
+            count(id) as num_assets
+        from
+            asset_holdings
+        group by
+            portfolio_id
+    ) as a on p.id = a.portfolio_id;
+
+drop view if exists assets_contributions;
+
+create view
+    assets_contributions as
+select
+    ah.*,
+    invested / coalesce(pt.total_invested, 1) as portfolio_contribution
+from
+    asset_holdings ah
+    left join portfolios_ext pt on ah.portfolio_id = pt.id;
 
 -- triggers
-DROP TRIGGER IF EXISTS check_holdings_before_sell;
+drop trigger if exists check_holdings_before_sell;
 
-CREATE TRIGGER check_holdings_before_sell BEFORE INSERT ON transactions FOR EACH ROW WHEN NEW.type = 'sell' BEGIN
-SELECT
-    CASE
-        WHEN (
-            SELECT
+create trigger check_holdings_before_sell before insert on transactions for each row when new.type = 'sell' begin
+select
+    case
+        when (
+            select
                 holdings
-            FROM
-                asset_holdings A
-            WHERE
-                id = NEW.asset_id
-        ) < NEW.quantity THEN RAISE (ABORT, 'Insufficient holdings')
-    END;
+            from
+                asset_holdings a
+            where
+                id = new.asset_id
+        ) < new.quantity then raise (abort, 'Insufficient holdings')
+    end;
 
-END;
+end;
 
 -- seed
-INSERT INTO
+insert into
     users (username, phash, psalt, admin)
-VALUES
+values
     (
         'admin',
         '$2a$12$UlhYekwyyrFuwSgrT74ZluHb893OB9Pf9UfY15l71DFBTmCIyhqbW',
         '123',
-        TRUE
+        true
     );

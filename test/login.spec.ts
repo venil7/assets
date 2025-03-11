@@ -1,17 +1,14 @@
 import { beforeAll, expect, test } from "bun:test";
-import { authenticate, BASE_URL, run, type Methods } from "./index";
+import { api as getApi, type Api } from "./api";
+import { authenticate, run } from "./index";
 
-const AUTH_URL = `${BASE_URL}/api/v1/auth`;
-const REFRESH_TOKEN_URL = `${AUTH_URL}/refresh_token`;
-var methods: Methods;
-
+var api: Api;
 beforeAll(async () => {
-  methods = await run(authenticate());
+  const methods = await run(authenticate());
+  api = getApi(methods);
 });
 
 test("Get refresh token", async () => {
-  const { token } = await run(
-    methods.get<{ token: string }>(REFRESH_TOKEN_URL)
-  );
+  const { token } = await run(api.getRefreshToken());
   expect(token).toBeString();
 });
