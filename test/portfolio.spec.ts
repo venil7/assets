@@ -1,13 +1,11 @@
 import { beforeAll, expect, test } from "bun:test";
 import faker from "faker";
-import { type Api, api as getApi } from "./api";
-import { authenticate, run } from "./index";
+import { type Api } from "../client/api";
+import { run, testApi } from "./helper";
 
 var api: Api;
-
 beforeAll(async () => {
-  const methods = await run(authenticate());
-  api = getApi(methods);
+  api = await run(testApi());
 });
 
 test("Create portfolio", async () => {

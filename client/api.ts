@@ -1,7 +1,12 @@
 import { formatISO } from "date-fns";
 import "dotenv/config";
 import faker from "faker";
-import { BASE_URL, type Methods } from "./index";
+import { pipe } from "fp-ts/lib/function";
+import * as TE from "fp-ts/lib/TaskEither";
+import { type Methods, methods as getMethods } from "./rest";
+
+const BASE_URL = `http://${process.env.URL ?? "localhost:8080"}`;
+const LOGIN_URL = `${BASE_URL}/login`;
 
 const PORTFOLIO_URL = `${BASE_URL}/api/v1/portfolio`;
 const AUTH_URL = `${BASE_URL}/api/v1/auth`;
@@ -60,7 +65,7 @@ type TickerSearchResult = {
   quotes: Ticker[];
 };
 
-export const api = (methods: Methods) => {
+const getApi = (methods: Methods) => {
   const getRefreshToken = () =>
     methods.get<{ token: string }>(REFRESH_TOKEN_URL);
   const createPortfolio = (name?: string, description?: string) =>
@@ -136,4 +141,16 @@ export const api = (methods: Methods) => {
   };
 };
 
-export type Api = ReturnType<typeof api>;
+export const login = (username: string, password: string) =>
+  pipe(getMethods().post<{ token: string }>(LOGIN_URL, { username, password }));
+
+export const methods = (username: string, password: string) =>
+  pipe(
+    login(username, password),
+    TE.map(({ token }) => getMethods(token))
+  );
+
+export const api = (username: string, password: string) =>
+  pipe(methods(username, password), TE.map(getApi));
+
+export type Api = ReturnType<typeof getApi>;

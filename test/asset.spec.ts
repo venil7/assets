@@ -3,25 +3,24 @@ import faker from "faker";
 import { pipe } from "fp-ts/lib/function";
 import * as A from "fp-ts/lib/ReadonlyArray";
 import * as TE from "fp-ts/lib/TaskEither";
-import { type Api, api as getApi, type Transaction } from "./api";
-import { authenticate, run } from "./index";
+import { type Transaction } from "../client/api";
+import { run, testApi, type TestApi } from "./helper";
 
-var api: Api;
-var PORTFOLIO_ID = 0;
-
+var api: TestApi;
 beforeAll(async () => {
-  const methods = await run(authenticate());
-  api = getApi(methods);
-  PORTFOLIO_ID = (await run(api.createPortfolio())).id!;
+  api = await run(testApi());
 });
 
 test("Create asset", async () => {
   const [assetName, assetTicker] = [faker.lorem.slug(2), faker.lorem.slug(2)];
-  const { id, portfolio_id, name, ticker, created, modified } = await run(
-    api.createAsset(PORTFOLIO_ID, assetName, assetTicker)
+  const {
+    portfolio,
+    asset: { id, portfolio_id, name, ticker, created, modified },
+  } = await run(
+    api.createPortfolioAsset(undefined, undefined, assetName, assetTicker)
   );
   expect(id).toBeNumber();
-  expect(portfolio_id).toBe(PORTFOLIO_ID);
+  expect(portfolio_id).toBe(portfolio.id!);
   expect(name).toBe(assetName);
   expect(ticker).toBe(assetTicker);
   expect(created).toBeString();
@@ -29,20 +28,23 @@ test("Create asset", async () => {
 });
 
 test("Get multiple assets", async () => {
-  const assets = await run(api.getAssets(PORTFOLIO_ID));
+  const portfolio = await run(api.createPortfolio());
+  const p1 = await run(api.createAsset(portfolio.id!));
+  const p2 = await run(api.createAsset(portfolio.id!));
+  const assets = await run(api.getAssets(portfolio.id!));
   expect(assets).toSatisfy((a) => Array.isArray(a) && a.length > 0);
 });
 
 test("Get single asset", async () => {
   const [assetName, assetTicker] = [faker.lorem.slug(2), faker.lorem.slug(2)];
-  const { id: assetId } = await run(
-    api.createAsset(PORTFOLIO_ID, assetName, assetTicker)
+  const { portfolio, asset } = await run(
+    api.createPortfolioAsset(undefined, undefined, assetName, assetTicker)
   );
   const { id, portfolio_id, name, ticker, created, modified } = await run(
-    api.getAsset(PORTFOLIO_ID, assetId!)
+    api.getAsset(portfolio.id!, asset.id!)
   );
   expect(id).toBeNumber();
-  expect(portfolio_id).toBe(PORTFOLIO_ID);
+  expect(portfolio_id).toBe(portfolio.id!);
   expect(name).toBe(assetName);
   expect(ticker).toBe(assetTicker);
   expect(created).toBeString();
@@ -50,9 +52,8 @@ test("Get single asset", async () => {
 });
 
 test("Delete asset", async () => {
-  const { id } = await run(api.createAsset(PORTFOLIO_ID));
-
-  const deleted = await run(api.deleteAsset(PORTFOLIO_ID, id!));
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
+  const deleted = await run(api.deleteAsset(portfolio.id!, asset.id!));
   expect(deleted).toBeTrue();
 });
 

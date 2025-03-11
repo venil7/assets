@@ -4,12 +4,6 @@ import { pipe } from "fp-ts/lib/function";
 import * as T from "fp-ts/lib/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 
-export const BASE_URL = `http://${process.env.URL ?? "localhost:8080"}`;
-export const LOGIN_URL = `${BASE_URL}/login`;
-
-export const USERNAME = "admin";
-export const PASSWORD = "admin";
-
 export type TES<A> = TE.TaskEither<string, A>;
 
 const rest = <JSON>(
@@ -48,25 +42,6 @@ export const methods = (token: string = "") => {
   const delete1 = <TResult>(url: string) =>
     rest<TResult>(url, { method: "DELETE", headers });
   return { get, post, delete: delete1 };
-};
-
-const { post } = methods();
-
-export const login = (username = USERNAME, password = PASSWORD) =>
-  pipe(post<{ token: string }>(LOGIN_URL, { username, password }));
-
-export const authenticate = (username = USERNAME, password = PASSWORD) =>
-  pipe(
-    login(username, password),
-    TE.map(({ token }) => methods(token))
-  );
-
-export const run = async <A>(test: TES<A>) => {
-  const result = await test();
-  if (E.isLeft(result)) {
-    throw new Error(result.left);
-  }
-  return result.right;
 };
 
 export type Methods = ReturnType<typeof methods>;

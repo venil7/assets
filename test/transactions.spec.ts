@@ -2,34 +2,28 @@ import { beforeAll, expect, test } from "bun:test";
 import { formatISO, startOfDay } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import { type Api, api as getApi } from "./api";
-import { authenticate, run } from "./index";
+import type { Transaction } from "../client/api";
+import { run, testApi, type TestApi } from "./helper";
 
-var api: Api;
-
-var portfolioId = 0,
-  assetId = 0;
-
+var api: TestApi;
 beforeAll(async () => {
-  const methods = await run(authenticate());
-  api = getApi(methods);
-  portfolioId = (await run(api.createPortfolio())).id!;
-  assetId = (await run(api.createAsset(portfolioId!))).id!;
+  api = await run(testApi());
 });
 
+const buyTx: Transaction = {
+  type: "buy",
+  quantity: 10,
+  price: 100,
+  date: formatISO(new Date(), { representation: "date" }),
+};
+
 test("Create transaction", async () => {
-  const { id, asset_id, type, quantity, price, date, created, modified } =
-    await run(
-      api.createTx(
-        assetId,
-        "buy",
-        10,
-        100,
-        formatISO(new Date(), { representation: "date" })
-      )
-    );
+  const {
+    tx: { id, asset_id, type, quantity, price, date, created, modified },
+    asset,
+  } = await run(api.createPortfolioAssetTx(buyTx));
   expect(id).toBeNumber();
-  expect(asset_id).toBe(assetId);
+  expect(asset_id).toBe(asset.id!);
   expect(type).toBe("buy");
   expect(quantity).toBe(10);
   expect(price).toBe(100);
@@ -41,17 +35,21 @@ test("Create transaction", async () => {
 });
 
 test("Get multiple transactions", async () => {
-  const transactions = await run(api.getTxs(assetId));
-  expect(transactions).toSatisfy((a) => Array.isArray(a) && a.length > 0);
+  const { txs, asset } = await run(
+    api.createPortfolioAssetTxs([buyTx, buyTx, buyTx])
+  );
+  const transactions = await run(api.getTxs(asset.id!));
+  expect(transactions).toSatisfy(
+    (a) => Array.isArray(a) && a.length == txs.length
+  );
 });
 
 test("Get single transaction", async () => {
-  const { id: txId } = await run(api.createTx(assetId, "buy"));
+  const { tx, asset } = await run(api.createPortfolioAssetTx(buyTx));
   const { id, asset_id, type, quantity, price, date, created, modified } =
-    await run(api.getTx(assetId, txId!));
-
+    await run(api.getTx(asset.id!, tx.id!));
   expect(id).toBeNumber();
-  expect(asset_id).toBe(assetId);
+  expect(asset_id).toBe(asset.id!);
   expect(type).toBeString();
   expect(quantity).toBeNumber();
   expect(price).toBeNumber();
@@ -61,17 +59,15 @@ test("Get single transaction", async () => {
 });
 
 test("Delete transaction", async () => {
-  const { id: txId } = await run(api.createTx(assetId, "buy"));
-  const deleted = await run(api.deleteTx(assetId, txId!));
+  const { tx, asset } = await run(api.createPortfolioAssetTx(buyTx));
+  const deleted = await run(api.deleteTx(asset.id!, tx.id!));
   expect(deleted).toBeTrue();
 });
 
 test("Insufficient holdings when selling more than own", async () => {
-  const { id: portfolioId } = await run(api.createPortfolio());
-  const { id: assetId } = await run(api.createAsset(portfolioId!));
-  await run(api.createTx(assetId!, "buy", 10, 1));
+  const { asset } = await run(api.createPortfolioAssetTx(buyTx));
   const error = await pipe(
-    api.createTx(assetId!, "sell", 11, 1),
+    api.createTx(asset.id!, "sell", 11, 1),
     TE.orElseW((x) => TE.of(x)),
     run
   );
