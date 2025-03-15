@@ -15,8 +15,8 @@ create table
     assets (
         id integer primary key autoincrement,
         portfolio_id integer not null,
-        name text not null,
         ticker text not null,
+        name text not null,
         created datetime default current_timestamp,
         modified datetime default current_timestamp,
         foreign key (portfolio_id) references portfolios (id),
@@ -42,7 +42,7 @@ create table
         type text not null check (type in ('buy', 'sell')),
         quantity real not null,
         price real not null,
-        date date not null default current_timestamp,
+        date date default current_timestamp,
         created datetime default current_timestamp,
         modified datetime default current_timestamp,
         foreign key (asset_id) references assets (id)

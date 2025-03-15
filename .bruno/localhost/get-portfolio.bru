@@ -5,18 +5,11 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/api/v1/portfolio/2/assets/123
+  url: http://localhost:4020/api/v1/portfolios/2/assets/123
   body: json
   auth: bearer
 }
 
 auth:bearer {
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjoxNzQwODYxNzI3LCJpZCI6MSwib3JpZ19pYXQiOjE3NDA4NTgxMjcsInVzZXJuYW1lIjoiYWRtaW4ifQ.0fk55-AL_hXQRlxD7RPux8ikbbd26AsKAU0IxekR4Wg
-}
-
-body:json {
-  {
-    "name": "some name",
-    "description": "some desc"
-  }
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImFkbWluIjp0cnVlLCJjcmVhdGVkIjoiMjAyNS0wMy0xMlQxOToyODo0Mi4wMDBaIiwibW9kaWZpZWQiOiIyMDI1LTAzLTEyVDE5OjI4OjQyLjAwMFoiLCJpYXQiOjE3NDE5NzQ5MTcsImV4cCI6MTc0MjA2MTMxN30.6s-bv2jTJnPUhDs7hJk4VSOQsMj90VoAYJ4HS4VqIus
 }

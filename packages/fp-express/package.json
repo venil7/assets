@@ -1,0 +1,9 @@
+{
+  "name": "@darkruby/fp-express",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit"
+  }
+}

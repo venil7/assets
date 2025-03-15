@@ -1,0 +1,16 @@
+{
+  "name": "@darkruby/assets-core",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "io-ts": "^2.2.22",
+    "io-ts-reporters": "^2.0.1"
+  }
+}

@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/api/v1/lookup/ticker?term=aapl
+  url: http://localhost:4020/api/v1/lookup/ticker?term=aapl
   body: json
   auth: bearer
 }
@@ -15,12 +15,5 @@ params:query {
 }
 
 auth:bearer {
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjoxNzQwOTQwMDg1LCJpZCI6MSwib3JpZ19pYXQiOjE3NDA5MzY0ODUsInVzZXJuYW1lIjoiYWRtaW4ifQ.bOLcjrmQ2lLuMupzMJZZkF-Z7aCVhBG2lQES5Jwd5rw
-}
-
-body:json {
-  {
-    "name": "some name",
-    "description": "some desc"
-  }
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImFkbWluIjp0cnVlLCJjcmVhdGVkIjoiMjAyNS0wMy0xNFQyMjo0ODo1OC4wMDBaIiwibW9kaWZpZWQiOiIyMDI1LTAzLTE0VDIyOjQ4OjU4LjAwMFoiLCJpYXQiOjE3NDE5OTM1MjcsImV4cCI6MTc0MjA3OTkyN30.WAMvMvXF0b4JmVT-CkR7qTP5XN75sbYt6uvyNSLZxs8
 }

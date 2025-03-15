@@ -1,18 +1,29 @@
 {
-  "name": "assets-test",
-  "module": "index.ts",
+  "name": "@darkruby/assets",
+  "private": true,
+  "version": "0.0.0",
   "type": "module",
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@types/faker": "5"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
   "dependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
     "date-fns": "^4.1.0",
-    "dotenv": "^16.4.7",
-    "faker": "5.5.3",
-    "fp-ts": "^2.16.9"
-  }
+    "fp-ts": "^2.16.9",
+    "io-ts-types": "^0.5.19",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "bun-types": "^1.2.5",
+    "typescript": "~5.8.2"
+  },
+  "scripts": {
+    "backend:dev": "cd packages/backend && bun run dev",
+    "backend:test": "cd packages/backend && bun test",
+    "backend:build": "cd packages/backend && bun run build",
+    "assets-core:check": "cd packages/assets-core && bun run check",
+    "fp-express:check": "cd packages/fp-express && bun run check",
+    "backend:check": "cd packages/backend && bun run check",
+    "check": "bun run assets-core:check && bun run fp-express:check && bun run backend:check"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }
