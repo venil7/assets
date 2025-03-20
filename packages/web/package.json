@@ -6,27 +6,26 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "check": "eslint .",
+    "check": "tsc -noEmit",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@preact/signals-react": "^3.0.1",
     "@darkruby/assets-core": "workspace:*",
+    "@preact/signals-react": "^3.0.1",
+    "bootstrap": "^5.3.3",
     "react": "^19.0.0",
+    "react-bootstrap": "^2.10.9",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.3.0"
+    "react-router": "^7.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
-    "@types/express": "^5.0.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
-    "cors": "^2.8.5",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
-    "express": "^4.21.2",
     "globals": "^15.15.0",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"

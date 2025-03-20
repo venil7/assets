@@ -4,20 +4,12 @@ meta {
   seq: 4
 }
 
-post {
-  url: http://localhost:8080/api/v1/assets/
+get {
+  url: http://localhost:4020/api/v1/assets
   body: json
   auth: bearer
 }
 
 auth:bearer {
   token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjoxNzQwNDMzNDYxLCJpZCI6MSwib3JpZ19pYXQiOjE3NDA0Mjk4NjEsInVzZXJuYW1lIjoiYWRtaW4ifQ.prxdiHw-YYDRcPk3FNbkrvyyeGvMUl46pUHEanZ1AGE
-}
-
-body:json {
-  {
-    "name": "dfg",
-    "ticker": "dfg",
-    "isin": "dfg"
-  }
 }

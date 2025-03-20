@@ -1,6 +1,8 @@
 import {
   api,
+  login,
   type Api,
+  type Credentials,
   type PostAsset,
   type PostPortfolio,
   type PostTransaction,
@@ -11,9 +13,6 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 
 const BASE_URL = `http://${process.env.URL ?? "localhost:4020"}`;
-
-const TEST_USERNAME = "admin";
-const TEST_PASSWORD = "admin";
 
 export const fakePortfolio = (): PostPortfolio => ({
   name: faker.lorem.slug(2),
@@ -93,7 +92,10 @@ export const getExtendedApi = (api: Api) => {
   };
 };
 
-export type TestApi = ReturnType<typeof getExtendedApi>;
+const testCredentials: Credentials = { username: "admin", password: "admin" };
 
+export const testLogin = () => login(BASE_URL)(testCredentials);
 export const testApi = () =>
-  pipe(api(BASE_URL)(TEST_USERNAME, TEST_PASSWORD), TE.map(getExtendedApi));
+  pipe(testLogin(), TE.map(api(BASE_URL)), TE.map(getExtendedApi));
+
+export type TestApi = ReturnType<typeof getExtendedApi>;

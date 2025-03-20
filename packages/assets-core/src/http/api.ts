@@ -1,5 +1,4 @@
 import { pipe } from "fp-ts/lib/function";
-import * as TE from "fp-ts/lib/TaskEither";
 import { YahooTickerSearchResultDecoder } from "../decoders";
 import { GetAssetDecoder, GetAssetsDecoder } from "../decoders/asset";
 import {
@@ -10,6 +9,7 @@ import { TokenDecoder } from "../decoders/token";
 import { GetTxDecoder, GetTxsDecoder } from "../decoders/transaction";
 import { IdDecoder } from "../decoders/util";
 import type {
+  Credentials,
   GetAsset,
   GetPortfolio,
   GetTransaction,
@@ -20,9 +20,10 @@ import type {
 } from "../domain";
 import type { Id } from "../domain/id";
 import type { Token } from "../domain/token";
-import { type Methods, methods as getMethods } from "./rest";
+import type { Action } from "../utils/utils";
+import * as rest from "./rest";
 
-const getApi = (methods: Methods, baseUrl: string) => {
+const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const API_URL = `${baseUrl}/api/v1`;
   const PORTFOLIO_URL = `${API_URL}/portfolios`;
   const ASSETS_URL = (portfolioId: number) =>
@@ -100,22 +101,17 @@ const getApi = (methods: Methods, baseUrl: string) => {
 };
 
 export const login =
-  (baseUrl: string) => (username: string, password: string) => {
+  (baseUrl: string) =>
+  (form: Credentials): Action<Token> => {
     const LOGIN_URL = `${baseUrl}/login`;
-    return pipe(
-      getMethods().post<{ token: string }>(
-        LOGIN_URL,
-        { username, password },
-        TokenDecoder
-      )
-    );
+    return rest
+      .methods()
+      .post<{ token: string }>(LOGIN_URL, form, TokenDecoder);
   };
 
-export const api = (baseUrl: string) => (username: string, password: string) =>
-  pipe(
-    login(baseUrl)(username, password),
-    TE.map(({ token }) => getMethods(token)),
-    TE.map((m) => getApi(m, baseUrl))
-  );
+export const api =
+  (baseUrl: string) =>
+  ({ token }: Token) =>
+    pipe(rest.methods(token), getApi(baseUrl));
 
-export type Api = ReturnType<typeof getApi>;
+export type Api = ReturnType<ReturnType<typeof getApi>>;

@@ -15,10 +15,12 @@
     "@types/bcrypt": "^5.0.2",
     "bcrypt": "^5.1.1",
     "express": "~4.18.3",
-    "io-ts": "~2.2.21"
+    "io-ts": "~2.2.21",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
-    "faker": "5",
-    "@types/faker": "5"
+    "@types/cors": "^2.8.17",
+    "@types/faker": "5",
+    "faker": "5"
   }
 }

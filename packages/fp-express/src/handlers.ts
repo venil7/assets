@@ -12,21 +12,28 @@ type ErrorHandler<Ctx> = (
 
 const errorHandler: ErrorHandler<unknown> =
   (err) =>
-  ({ params: [_, res, next] }) =>
+  ({ params: [{ baseUrl, url, method }, res, next] }) =>
     T.fromIO(() => {
-      console.error([err.type, err.message]);
+      const error = (code: number) =>
+        console.error(
+          `${code}: ${method} ${baseUrl + url} - ${err.type} -  ${err.message}`
+        );
+
       switch (err.type) {
         case WebErrorType.Auth:
+          error(403);
           return res
             .status(403)
             .header("content-type", "application/json")
             .send(err);
         case WebErrorType.BadRequest:
+          error(400);
           return res
             .status(400)
             .header("content-type", "application/json")
             .send(err);
         case WebErrorType.NotFound:
+          error(404);
           return res
             .status(404)
             .header("content-type", "application/json")
@@ -35,6 +42,7 @@ const errorHandler: ErrorHandler<unknown> =
           return next();
         case WebErrorType.General:
         default:
+          error(500);
           return res
             .status(500)
             .header("content-type", "application/json")
@@ -48,10 +56,11 @@ type SuccessHandler<Ctx> = <T>(
 
 const successHandler: SuccessHandler<unknown> =
   <T>(data: T) =>
-  ({ params: [_, res] }) =>
+  ({ params: [{ baseUrl, url, method }, res] }) =>
     T.fromIO(() => {
-      console.info(["ok"]);
-      res.status(200).send(data);
+      const code = method.toLowerCase() === "POST" ? 201 : 200;
+      console.info(`${code}: ${method} ${baseUrl + url}`);
+      res.status(code).send(data);
     });
 
 export type HandlerTask<T, Ctx = unknown> = RTE.ReaderTaskEither<

@@ -1,45 +1,58 @@
+import type { Action, Nullable, Result } from "@darkruby/assets-core";
 import { Signal, signal } from "@preact/signals-react";
-import { chain, chainFirstIOK, fromIO, orElseW } from "fp-ts/lib/TaskEither";
+import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { AppError } from "../../../assets-core/src/domain/error";
-import { Action, Nullable } from "../../../assets-core/src/domain/utils";
+import { type AppError } from "../../../assets-core/src/domain/error";
 
 export type StoreBase<T> = {
   error: Signal<Nullable<AppError>>;
   fetching: Signal<boolean>;
   data: Signal<T>;
 
-  update: (action: Action<T>) => Promise<unknown>;
+  update: (action: Action<T>, force?: boolean) => Promise<Result<T>>;
 };
 
-export const createStoreBase = <T>(data: Signal<T>): StoreBase<T> => {
+export const createStoreBase = <T>(
+  data: Signal<T>,
+  dataPresent: (t: T) => boolean = (t) => !!t
+): StoreBase<T> => {
   const error = signal<Nullable<AppError>>(null);
   const fetching = signal<boolean>(false);
 
-  const update = async (action: Action<T>): Promise<unknown> => {
+  const update = async (
+    action: Action<T>,
+    force = false
+  ): Promise<Result<T>> => {
+    if (!force && dataPresent(data.peek())) {
+      return TE.of(data.value)();
+    }
     return pipe(
-      fromIO(() => {
+      TE.fromIO(() => {
         fetching.value = true;
         error.value = null;
       }),
-      chain(() => action),
-      chainFirstIOK((value) => () => {
+      TE.chain(() => action),
+      TE.chainFirstIOK((value) => () => {
         fetching.value = false;
         data.value = value;
       }),
-      orElseW((err) => {
-        return fromIO(() => {
-          fetching.value = false;
-          error.value = err;
-        });
-      })
+      TE.orElseW((err) =>
+        pipe(
+          TE.fromIO(() => {
+            fetching.value = false;
+            error.value = err;
+            return err;
+          }),
+          TE.swap
+        )
+      )
     )();
   };
 
   return {
+    data,
     error,
     fetching,
-    data,
     update,
   };
 };

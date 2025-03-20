@@ -15,13 +15,15 @@
     "typescript": "~5.8.2"
   },
   "scripts": {
+    "web:dev": "cd packages/web && bun run dev",
     "backend:dev": "cd packages/backend && bun run dev",
     "backend:test": "cd packages/backend && bun test",
     "backend:build": "cd packages/backend && bun run build",
     "assets-core:check": "cd packages/assets-core && bun run check",
     "fp-express:check": "cd packages/fp-express && bun run check",
     "backend:check": "cd packages/backend && bun run check",
-    "check": "bun run assets-core:check && bun run fp-express:check && bun run backend:check"
+    "web:check": "cd packages/web && bun run check",
+    "check": "bun run assets-core:check && bun run fp-express:check && bun run backend:check && bun run web:check"
   },
   "workspaces": [
     "packages/*"

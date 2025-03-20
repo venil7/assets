@@ -1,5 +1,5 @@
 import {
-  LoginDecoder,
+  CredenatialsDecoder,
   ProfileDecoder,
 } from "@darkruby/assets-core/src/decoders/user";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
@@ -22,7 +22,7 @@ export const login: HandlerTask<Token, DatabaseCtx> = ({
 }) =>
   pipe(
     TE.Do,
-    TE.bind("login", () => pipe(req.body, liftTE(LoginDecoder))),
+    TE.bind("login", () => pipe(req.body, liftTE(CredenatialsDecoder))),
     TE.bind("user", ({ login }) => getUserByUsername(db)(login.username)),
     TE.bind("auth", ({ login, user }) => verifyPassword(user, login)),
     TE.chain(({ user }) => createToken(user)),

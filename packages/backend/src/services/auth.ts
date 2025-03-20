@@ -1,7 +1,7 @@
 import { authError, type Action, type Optional } from "@darkruby/assets-core";
 import type { Token } from "@darkruby/assets-core/src/domain/token";
 import {
-  type Login,
+  type Credentials,
   type Profile,
   type User,
 } from "@darkruby/assets-core/src/domain/user";
@@ -13,7 +13,7 @@ import { env } from "./env";
 
 export const verifyPassword = (
   { phash, psalt }: User,
-  { password }: Login
+  { password }: Credentials
 ): Action<any> => {
   return pipe(
     TE.tryCatch(

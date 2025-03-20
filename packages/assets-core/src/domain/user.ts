@@ -1,12 +1,17 @@
 import * as t from "io-ts";
 import type {
-  LoginDecoder,
+  CredenatialsDecoder,
   ProfileDecoder,
   UserDecoder,
 } from "../decoders/user";
 
-export type Login = t.TypeOf<typeof LoginDecoder>;
+export type Credentials = t.TypeOf<typeof CredenatialsDecoder>;
 export type User = t.TypeOf<typeof UserDecoder>;
 export type Profile = t.TypeOf<typeof ProfileDecoder>;
 
 export const profile = ({ phash, psalt, ...profile }: User) => profile;
+
+export const defaultCredentials = (): Credentials => ({
+  username: "",
+  password: "",
+});

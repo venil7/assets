@@ -1,6 +1,7 @@
 import { run, type Action } from "@darkruby/assets-core";
 import { createRequestHandler } from "@darkruby/fp-express";
 import { Database } from "bun:sqlite";
+import cors from "cors";
 import { default as express } from "express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -44,7 +45,10 @@ const server = ({ port }: Config, ctx: Context): Action<Server> => {
 
   return pipe(
     TE.of(express()),
-    TE.tapIO((exp) => () => exp.use(express.json())),
+    TE.tapIO((exp) => () => {
+      exp.use(cors());
+      exp.use(express.json());
+    }),
     TE.tapIO((exp) => () => {
       // routes
       exp.post("/login", pipe(login, expressify));

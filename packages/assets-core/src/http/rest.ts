@@ -11,7 +11,7 @@ const rest = <JSON>(
   { method, body, headers }: RequestInit,
   decoder: Decoder<any, JSON>
 ): Action<JSON> => {
-  console.info(`[${method}] ${url} ${body ?? "-"}`);
+  // console.info(`[${method}] ${url} ${body ?? "-"}`);
   const req = { method, body, headers } as RequestInit;
   return pipe(
     TE.tryCatch(
