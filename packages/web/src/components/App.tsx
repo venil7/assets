@@ -1,29 +1,59 @@
+import * as E from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
 import React from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import "../App.css";
 import { AssetScreen } from "../screens/Asset";
 import { LoginScreen } from "../screens/Login";
 import { PortfolioDetailsScreen } from "../screens/PortfolioDetails";
 import { PortfoliosScreen } from "../screens/Portfolios";
-import { TestScreen } from "../screens/Test";
+import { env } from "../services/env";
 import { store, StoreContext } from "../stores/store";
+import { AuthRouteWrapper } from "./AuthRouteWrapper";
+
+const basename = pipe(
+  env("VITE_ASSET_BASENAME"),
+  E.getOrElse(() => "/app")
+);
+
+export const router = createBrowserRouter(
+  [
+    {
+      element: <AuthRouteWrapper store={store} />,
+      children: [
+        { path: "/portfolios", element: <PortfoliosScreen /> },
+        {
+          path: "/portfolio/:portfolioId",
+          element: <PortfolioDetailsScreen />,
+        },
+        {
+          path: "/portfolio/:portfolioId",
+          element: <PortfolioDetailsScreen />,
+        },
+        {
+          path: "/portfolio/:portfolioId/asset/:assetId",
+          element: <AssetScreen />,
+        },
+      ],
+    },
+    {
+      children: [
+        { path: "/login", element: <LoginScreen /> },
+        { path: "/logout", element: <LoginScreen /> },
+      ],
+    },
+    {
+      path: "*",
+      element: <Navigate to="/portfolios" replace />,
+    },
+  ],
+  { basename }
+);
 
 export const App: React.FC = () => {
   return (
     <StoreContext.Provider value={store}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginScreen />} />
-          <Route path="/portfolios" element={<PortfoliosScreen />} />
-          <Route path="/portfolio/:id" element={<PortfolioDetailsScreen />} />
-          <Route
-            path="/portfolio/:portfolioId/asset/:id"
-            element={<AssetScreen />}
-          />
-          <Route path="/test" element={<TestScreen />} />
-          <Route path="*" element={<Navigate to="/portfolios" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </StoreContext.Provider>
   );
 };

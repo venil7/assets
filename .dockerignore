@@ -1,2 +1,9 @@
-*.db
 node_modules/
+dist/
+Dockerfile
+**/.db
+**/.env
+data/
+.vscode
+.gitea
+.bruno

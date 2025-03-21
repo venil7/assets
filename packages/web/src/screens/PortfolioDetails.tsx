@@ -8,9 +8,9 @@ import { useStore } from "../stores/store";
 const RawPortfoliosDetails: React.FC = () => {
   useSignals();
   const { portfolioDetails } = useStore();
-  const { id } = useParams();
+  const { portfolioId } = useParams<{ portfolioId: string }>();
   useEffect(() => {
-    portfolioDetails.load(+id!);
+    portfolioDetails.load(+portfolioId!);
   }, [portfolioDetails]);
 
   return (

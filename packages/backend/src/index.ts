@@ -6,6 +6,7 @@ import { default as express } from "express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Server } from "node:http";
+import path from "node:path";
 import {
   createAsset,
   deleteAsset,
@@ -25,6 +26,7 @@ import { env, envNumber } from "./services/env";
 
 type Config = {
   database: string;
+  app: string;
   port: number;
 };
 
@@ -32,6 +34,7 @@ const config = (): Action<Config> =>
   pipe(
     TE.Do,
     TE.apS("database", env("ASSETS_DB")),
+    TE.apS("app", env("ASSETS_APP")),
     TE.apS("port", envNumber("ASSETS_PORT"))
   );
 
@@ -40,9 +43,8 @@ const database = (c: Config): Action<Database> =>
 
 type Context = { db: Database };
 
-const server = ({ port }: Config, ctx: Context): Action<Server> => {
+const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
   const expressify = createRequestHandler(ctx);
-
   return pipe(
     TE.of(express()),
     TE.tapIO((exp) => () => {
@@ -51,6 +53,11 @@ const server = ({ port }: Config, ctx: Context): Action<Server> => {
     }),
     TE.tapIO((exp) => () => {
       // routes
+      exp.use("/app", express.static(path.join(process.cwd(), app)));
+      exp.use("/app/*", (_, res) => {
+        res.sendFile(path.join(process.cwd(), app, "index.html"));
+      });
+
       exp.post("/login", pipe(login, expressify));
 
       const api = express();

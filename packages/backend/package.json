@@ -21,6 +21,9 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/faker": "5",
-    "faker": "5"
+    "aws-sdk": "^2.1692.0",
+    "faker": "5",
+    "mock-aws-s3": "^4.0.2",
+    "nock": "^14.0.1"
   }
 }

@@ -1,18 +1,24 @@
 FROM golang:1.23 AS migrate
 RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
-FROM debian:bookworm-slim AS runner
+FROM oven/bun:1 as builder
 WORKDIR /app
-
 COPY . .
-
-COPY --from=migrate /go/bin/migrate /usr/sbin/
-RUN apt update
-RUN apt install -y ca-certificates curl unzip
-RUN curl -fsSL https://bun.sh/install | bash
-RUN ln -s /root/.bun/bin/bun /usr/sbin/bun
-# ENV PATH="/root/.bun/bin:${PATH}"
 RUN bun install
 RUN bun run check
+RUN bun run build
 
-CMD ["sh", "-c", "migrate -verbose -path ./.migrations -database=sqlite3://$ASSETS_DB up && bun run backend:dev"]
+FROM debian:bookworm-slim AS runner
+WORKDIR /app
+COPY --from=migrate /go/bin/migrate /usr/sbin/
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/dist/public /app/public
+COPY --from=builder /app/dist/backend /app/backend
+COPY --from=builder /app/.migrations /app/.migrations
+RUN apt update
+RUN apt install -y ca-certificates
+
+ENV ASSETS_APP="./public"
+ENV ASSETS_PORT=4020
+
+CMD ["sh", "-c", "migrate -verbose -path .migrations -database=sqlite3://$ASSETS_DB up && ./backend"]

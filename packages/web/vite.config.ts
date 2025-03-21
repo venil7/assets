@@ -3,9 +3,10 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
-  base: "./",
+  base: "/app",
   build: {
-    outDir: "./static",
-    assetsDir: "./assets",
+    emptyOutDir: true,
+    outDir: "../../dist/public",
+    assetsDir: "assets",
   },
 });

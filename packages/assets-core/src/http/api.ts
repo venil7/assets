@@ -39,7 +39,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
 
   const createPortfolio = (portfolio: PostPortfolio) =>
     methods.post<GetPortfolio, PostPortfolio>(
-      `${PORTFOLIO_URL}/`,
+      PORTFOLIO_URL,
       portfolio,
       GetPortfolioDecoder
     );

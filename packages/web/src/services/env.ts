@@ -2,15 +2,12 @@ import { generalError, type Nullable } from "@darkruby/assets-core";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 
-export const env = (
-  name: string,
-  defaultValue: Nullable<string> = null
-) /*: Action<string>*/ =>
+export const env = (name: string, defaultValue?: string) =>
   pipe(
     E.tryCatch(
       () => {
         const val = import.meta.env[name] ?? defaultValue;
-        if (val) return val as string;
+        if (val !== undefined) return val;
         throw Error(`${name} is not defined`);
       },
       (e) => generalError((e as Error).message)

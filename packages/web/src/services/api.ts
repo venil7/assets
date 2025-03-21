@@ -5,8 +5,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { env } from "./env";
 import { readToken, writeToken } from "./token";
 
-export const baseUrl = () =>
-  pipe(env("VITE_ASSETS_URL", `http://localhost:4020`), TE.fromEither);
+export const baseUrl = () => pipe(env("VITE_ASSETS_URL", ""), TE.fromEither);
 
 export const login = (form: Credentials): Action<Token> => {
   return pipe(
