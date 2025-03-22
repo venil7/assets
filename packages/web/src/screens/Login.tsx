@@ -36,5 +36,4 @@ const RawLoginScreen: React.FC = () => {
   );
 };
 
-const LoginScreen = RawLoginScreen;
-export { LoginScreen };
+export { RawLoginScreen as LoginScreen };

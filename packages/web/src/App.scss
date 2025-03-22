@@ -1,0 +1,14 @@
+@import "~/bootstrap/scss/_functions";
+@import "~/bootstrap/scss/_variables";
+
+#root {
+  /* max-width: 1280px; */
+  /* margin: 0 auto; */
+  padding-top: 1rem;
+  /* text-align: center; */
+}
+
+a {
+  text-decoration: none;
+  color: $body-color-dark
+}

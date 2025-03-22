@@ -1,8 +1,6 @@
 import { useSignals } from "@preact/signals-react/runtime";
-import { pipe } from "fp-ts/lib/function";
 import { useEffect } from "react";
 import { Link, useParams } from "react-router";
-import { withAuth } from "../decorators/auth";
 import { useStore } from "../stores/store";
 
 const RawPortfoliosDetails: React.FC = () => {
@@ -30,5 +28,4 @@ const RawPortfoliosDetails: React.FC = () => {
   );
 };
 
-const PortfolioDetailsScreen = pipe(RawPortfoliosDetails, withAuth);
-export { PortfolioDetailsScreen };
+export { RawPortfoliosDetails as PortfolioDetailsScreen };

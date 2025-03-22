@@ -1,8 +1,6 @@
 import { useSignals } from "@preact/signals-react/runtime";
-import { pipe } from "fp-ts/lib/function";
 import { use, useEffect } from "react";
 import { useParams } from "react-router";
-import { withAuth } from "../decorators/auth";
 import { StoreContext } from "../stores/store";
 
 const RawAssetScreen: React.FC = () => {
@@ -25,5 +23,4 @@ const RawAssetScreen: React.FC = () => {
   );
 };
 
-const AssetScreen = pipe(RawAssetScreen, withAuth);
-export { AssetScreen };
+export { RawAssetScreen as AssetScreen };

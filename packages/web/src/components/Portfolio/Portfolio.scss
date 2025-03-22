@@ -1,0 +1,9 @@
+@import "~/bootstrap/scss/_functions";
+@import "~/bootstrap/scss/_variables";
+
+
+.portfolio-link {
+  &:hover {
+    background-color: darken($body-secondary-bg-dark, 10%);
+  }
+}

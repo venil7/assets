@@ -1,8 +1,6 @@
 import { useSignals } from "@preact/signals-react/runtime";
-import { pipe } from "fp-ts/lib/function";
 import { useEffect } from "react";
-import { Link } from "react-router";
-import { withAuth } from "../decorators/auth";
+import { Portfolios } from "../components/Portfolio/Portfolios";
 import { useStore } from "../stores/store";
 
 const RawPortfoliosScreen: React.FC = () => {
@@ -14,17 +12,12 @@ const RawPortfoliosScreen: React.FC = () => {
   }, [portfolios]);
 
   return (
-    <ul>
-      {portfolios.data.value.map((port) => (
-        <li key={port.id}>
-          <Link to={`/portfolio/${port.id}`}>
-            {port.name} - £{port.total_invested}
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <Portfolios
+      portfolios={portfolios.data.value}
+      fetching={portfolios.fetching.value}
+      error={portfolios.error.value}
+    />
   );
 };
 
-const PortfoliosScreen = pipe(RawPortfoliosScreen, withAuth);
-export { PortfoliosScreen };
+export { RawPortfoliosScreen as PortfoliosScreen };
