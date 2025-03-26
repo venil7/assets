@@ -1,0 +1,37 @@
+import type Database from "bun:sqlite";
+import * as asset from "./asset";
+import * as portfolio from "./portfolio";
+import * as tx from "./transaction";
+import * as user from "./user";
+
+export type Repository = ReturnType<typeof createRepository>;
+
+export const createRepository = (db: Database) => {
+  return {
+    asset: {
+      get: asset.getAsset(db),
+      getAll: asset.getAssets(db),
+      create: asset.createAsset(db),
+      delete: asset.deleteAsset(db),
+      update: asset.updateAsset(db),
+    },
+    tx: {
+      get: tx.getTx(db),
+      getAll: tx.getTxs(db),
+      create: tx.createTx(db),
+      delete: tx.deleteTx(db),
+      update: tx.updateTx(db),
+    },
+    portfolio: {
+      get: portfolio.getPortfolio(db),
+      getAll: portfolio.getPortfolios(db),
+      create: portfolio.createPortfolio(db),
+      delete: portfolio.deletePortfolio(db),
+      update: portfolio.updatePortfolio(db),
+    },
+    user: {
+      byUsername: user.getUserByUsername(db),
+      create: user.createUser(db),
+    },
+  };
+};

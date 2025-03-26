@@ -62,19 +62,29 @@ export const methods = (token: string = "") => {
     url: string,
     body: TBody,
     decoder: Decoder<any, TResult>
-  ) =>
-    rest<TResult>(
+  ) => {
+    const jsonBody = JSON.stringify(body);
+    return rest<TResult>(
       url,
-      {
-        method: "POST",
-        body: JSON.stringify(body),
-        headers,
-      },
+      { method: "POST", body: jsonBody, headers },
       decoder
     );
+  };
+  const put = <TResult, TBody = {}>(
+    url: string,
+    body: TBody,
+    decoder: Decoder<any, TResult>
+  ) => {
+    const jsonBody = JSON.stringify(body);
+    return rest<TResult>(
+      url,
+      { method: "PUT", body: jsonBody, headers },
+      decoder
+    );
+  };
   const delete1 = <TResult>(url: string, decoder: Decoder<any, TResult>) =>
     rest<TResult>(url, { method: "DELETE", headers }, decoder);
-  return { get, post, delete: delete1 };
+  return { get, post, delete: delete1, put };
 };
 
 export type Methods = ReturnType<typeof methods>;

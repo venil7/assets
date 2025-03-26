@@ -1,13 +1,54 @@
+## Todo
+### backend
+ [x] PUT endpoints
+ [x] update tx checks sufficiend funds
+ [ ] enriched portfolio
+ [ ] create/edit asset checks ticker with yahoo
+ [ ] wire up cache with yahoo calls
+ [ ] summary endoint
+ [ ] user id passed
+
 ## API
 Portfolio API
-* `POST` `/portfolio`: Create a new portfolio
-* `GET` `/portfolio`: Retrieve all portfolios
-* `GET` `/portfolio/:portfolio_id`: Retrieve a portfolio by ID
-* `DELETE` `/portfolio/:portfolio_id`: Delete a portfolio by ID
-* `GET` `/portfolio/:portfolio_id/assets`: Retrieve all assets in a portfolio
-* `POST` `/portfolio/:portfolio_id/assets`: Create a new asset in a portfolio
-* `GET` `/portfolio/:portfolio_id/assets/:asset_id`: Retrieve an asset by ID in a portfolio
-* `DELETE` `/portfolio/:portfolio_id/assets/:asset_id`: Delete an asset by ID in a portfolio
+* `POST` `/login`: get bearer token
+```json
+--> { username, passord }
+<-- { token }
+```
+* `POST` `/portfolios`: Create a new portfolio
+```json
+--> { name, description }
+<-- { id,  user_id,  name, description, created, modified, total_invested, num_assets }
+```
+* `GET` `/portfolios`: Retrieve all portfolios
+```json
+<-- [{ id,  user_id,  name, description, created, modified, total_invested, num_assets }]
+```
+* `GET` `/portfolios/:portfolio_id`: Retrieve a portfolio by ID
+```json
+<-- { id,  user_id,  name, description, created, modified, total_invested, num_assets }
+```
+* `DELETE` `/portfolios/:portfolio_id`: Delete a portfolio by ID
+```json
+<-- { id }
+```
+* `GET` `/portfolios/:portfolio_id/assets`: Retrieve all assets in a portfolio
+```json
+<-- [{ id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }]
+```
+* `POST` `/portfolios/:portfolio_id/assets`: Create a new asset in a portfolio
+```json
+--> { name, ticker }
+<-- { id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }
+```
+* `GET` `/portfolios/:portfolio_id/assets/:asset_id`: Retrieve an asset by ID in a portfolio
+```json
+<-- { id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }
+```
+* `DELETE` `/portfolios/:portfolio_id/assets/:asset_id`: Delete an asset by ID in a portfolio
+```json
+<-- { id }
+```
 
 ### run tests
 

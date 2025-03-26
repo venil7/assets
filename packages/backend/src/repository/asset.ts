@@ -21,8 +21,8 @@ import { execute, queryMany, queryOne, type ExecutionResult } from "./database";
 export const getAssets =
   (db: Database) =>
   (
-    userId: number,
     portfolioId: number,
+    userId: number,
     paging = defaultPaging()
   ): Action<GetAsset[]> =>
     pipe(
@@ -31,10 +31,10 @@ export const getAssets =
         `
       SELECT id,portfolio_id,name,ticker,created,modified,holdings,invested,avg_price,portfolio_contribution
 			FROM assets_contributions A
-			WHERE A.portfolio_id=? AND A.user_id=?
-			LIMIT ? OFFSET ?;
+			WHERE A.portfolio_id=$portfolioId AND A.user_id=$userId
+			LIMIT $limit OFFSET $offset;
       `,
-        [userId, portfolioId, ...paging]
+        { userId, portfolioId, ...paging }
       ),
       TE.chain(liftTE(GetAssetsDecoder))
     );
@@ -71,6 +71,25 @@ export const createAsset =
         VALUES ($name, $ticker, $portfolioId)
       `,
         { ...body, portfolioId }
+      )
+    );
+
+export const updateAsset =
+  (db: Database) =>
+  (
+    assetId: number,
+    body: PostAsset,
+    portfolioId: number
+  ): Action<ExecutionResult> =>
+    pipe(
+      db,
+      execute<unknown[]>(
+        `
+        UPDATE assets
+        SET name = $name, ticker = $ticker, modified = CURRENT_TIMESTAMP
+        WHERE id = $assetId and portfolio_id = $portfolioId
+      `,
+        { ...body, assetId, portfolioId }
       )
     );
 

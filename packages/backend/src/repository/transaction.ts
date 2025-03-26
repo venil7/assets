@@ -1,6 +1,7 @@
 import {
   validationError,
   type Action,
+  type AppError,
   type GetTransaction,
   type Optional,
   type PostTransaction,
@@ -23,8 +24,8 @@ import { execute, queryMany, queryOne, type ExecutionResult } from "./database";
 export const getTxs =
   (db: Database) =>
   (
-    userId: number,
     assetId: number,
+    userId: number,
     paging = defaultPaging()
   ): Action<GetTransaction[]> =>
     pipe(
@@ -33,11 +34,11 @@ export const getTxs =
         `
       select id, asset_id, type, quantity, price, date, created, modified
 		  from asset_transactions at
-		  where at.asset_id=? and at.user_id=?
+		  where at.asset_id=$assetId and at.user_id=$userId
 		  order by at.date desc
-		  limit ? offset ?;
+		  limit $limit offset $offset;
       `,
-        [userId, assetId, ...paging]
+        { userId, assetId, ...paging }
       ),
       TE.chain(liftTE(GetTxsDecoder))
     );
@@ -80,21 +81,31 @@ export const createTx =
       `,
         { assetId, ...PostTxDecoder.encode(tx) } as Record<string, any>
       ),
-      TE.mapLeft((err) => {
-        switch (true) {
-          case err.message.includes("Insufficient holdings"):
-            return validationError(
-              {
-                value: null,
-                context: [],
-                message: err.message,
-              },
-              err.message
-            );
-          default:
-            return err;
-        }
-      })
+      TE.mapLeft(insufficientHoldingCheck)
+    );
+
+export const updateTx =
+  (db: Database) =>
+  (
+    transactionId: number,
+    tx: PostTransaction,
+    assetId: number,
+    userId: number
+  ): Action<ExecutionResult> =>
+    pipe(
+      db,
+      execute<unknown[]>(
+        `
+        UPDATE transactions
+        SET type = $type, quantity = $quantity, price = $price, date = $date, modified = CURRENT_TIMESTAMP
+        WHERE id = $transactionId and asset_id = $assetId
+      `,
+        { assetId, ...PostTxDecoder.encode(tx), transactionId } as Record<
+          string,
+          any
+        >
+      ),
+      TE.mapLeft(insufficientHoldingCheck)
     );
 
 export const deleteTx =
@@ -115,3 +126,19 @@ export const deleteTx =
         { id, userId }
       )
     );
+
+const insufficientHoldingCheck = (err: AppError) => {
+  switch (true) {
+    case err.message.includes("Insufficient holdings"):
+      return validationError(
+        {
+          value: null,
+          context: [],
+          message: err.message,
+        },
+        err.message
+      );
+    default:
+      return err;
+  }
+};

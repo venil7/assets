@@ -5,6 +5,7 @@ import cors from "cors";
 import { default as express } from "express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import { LRUCache } from "lru-cache";
 import { Server } from "node:http";
 import path from "node:path";
 import {
@@ -12,22 +13,39 @@ import {
   deleteAsset,
   getAsset,
   getAssets,
+  updateAsset,
 } from "./handlers/asset";
 import { login, refreshToken, verifyToken } from "./handlers/auth";
+import type { Context } from "./handlers/context";
 import {
   createPortfolio,
   deletePortfolio,
   getPortfolio,
   getPortfolios,
+  updatePortfolio,
 } from "./handlers/portfolio";
-import { createTx, deleteTx, getTx, getTxs } from "./handlers/transaction";
+import {
+  createTx,
+  deleteTx,
+  getTx,
+  getTxs,
+  updateTx,
+} from "./handlers/transaction";
 import { yahooSearch } from "./handlers/yahoo";
+import { createRepository, type Repository } from "./repository";
+import {
+  createCache,
+  type AppCache,
+  type Stringifiable,
+} from "./services/cache";
 import { env, envNumber } from "./services/env";
 
 type Config = {
   database: string;
   app: string;
   port: number;
+  cacheSize: number;
+  cacheTtl: number;
 };
 
 const config = (): Action<Config> =>
@@ -35,13 +53,27 @@ const config = (): Action<Config> =>
     TE.Do,
     TE.apS("database", env("ASSETS_DB")),
     TE.apS("app", env("ASSETS_APP")),
-    TE.apS("port", envNumber("ASSETS_PORT"))
+    TE.apS("port", envNumber("ASSETS_PORT")),
+    TE.apS("cacheSize", envNumber("ASSETS_CACHE_SIZE", 1000)),
+    TE.apS("cacheTtl", envNumber("ASSETS__CACHE_SIZE", 10))
   );
 
-const database = (c: Config): Action<Database> =>
-  TE.of(new Database(c.database, { strict: true }));
+const repository = (c: Config): Action<Repository> =>
+  pipe(
+    TE.of(new Database(c.database, { strict: true })),
+    TE.map(createRepository)
+  );
 
-type Context = { db: Database };
+const cache = ({ cacheSize, cacheTtl }: Config): Action<AppCache> =>
+  pipe(
+    TE.of(
+      new LRUCache<Stringifiable, string, unknown>({
+        max: cacheSize,
+        ttl: cacheTtl,
+      })
+    ),
+    TE.map(createCache)
+  );
 
 const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
   const expressify = createRequestHandler(ctx);
@@ -72,6 +104,7 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       portfolios.get("/", pipe(getPortfolios, expressify));
       portfolios.get("/:id", pipe(getPortfolio, expressify));
       portfolios.delete("/:id", pipe(deletePortfolio, expressify));
+      portfolios.put("/:id", pipe(updatePortfolio, expressify));
       api.use("/portfolios", portfolios);
 
       const assets = express();
@@ -79,6 +112,7 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       assets.get("/:portfolio_id/assets", pipe(getAssets, expressify));
       assets.get("/:portfolio_id/assets/:id", pipe(getAsset, expressify));
       assets.delete("/:portfolio_id/assets/:id", pipe(deleteAsset, expressify));
+      assets.put("/:portfolio_id/assets/:id", pipe(updateAsset, expressify));
       portfolios.use("/", assets);
 
       const transactions = express();
@@ -88,6 +122,10 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       transactions.delete(
         "/:asset_id/transactions/:id",
         pipe(deleteTx, expressify)
+      );
+      transactions.put(
+        "/:asset_id/transactions/:id",
+        pipe(updateTx, expressify)
       );
       api.use("/assets", transactions);
 
@@ -108,8 +146,9 @@ const app = () =>
     TE.bind("config", config),
     TE.bind("context", ({ config }) =>
       pipe(
-        database(config),
-        TE.map<Database, Context>((db) => ({ db }))
+        TE.Do,
+        TE.bind("repo", () => repository(config)),
+        TE.bind("cache", () => cache(config))
       )
     ),
     TE.bind("server", ({ config, context }) => server(config, context))

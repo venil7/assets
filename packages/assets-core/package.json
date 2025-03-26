@@ -4,6 +4,7 @@
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
+    "test": "bun test",
     "check": "tsc --noEmit"
   },
   "devDependencies": {

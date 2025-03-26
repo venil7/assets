@@ -27,10 +27,10 @@ export const getPortfolios =
         `
       select p.*
 			from portfolios_ext p
-			where p.user_id=?
-			limit ? offset ?;
+			where p.user_id=$userId
+			limit $limit offset $offset;
       `,
-        [userId, ...paging]
+        { userId, ...paging }
       ),
       TE.chain(liftTE(GetPortfoliosDecoder))
     );
@@ -51,6 +51,25 @@ export const getPortfolio =
       TE.chain(liftTE(nullableDecoder(GetPortfolioDecoder)))
     );
   };
+
+export const updatePortfolio =
+  (db: Database) =>
+  (
+    portfolioId: number,
+    body: PostPortfolio,
+    userId: number
+  ): Action<ExecutionResult> =>
+    pipe(
+      db,
+      execute<unknown[]>(
+        `
+      UPDATE portfolios
+      SET name = $name, description = $description, modified = CURRENT_TIMESTAMP
+      WHERE id = $portfolioId AND user_id = $userId
+      `,
+        { ...body, portfolioId, userId }
+      )
+    );
 
 export const createPortfolio =
   (db: Database) =>

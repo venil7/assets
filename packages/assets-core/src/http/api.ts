@@ -1,13 +1,13 @@
 import { pipe } from "fp-ts/lib/function";
 import { YahooTickerSearchResultDecoder } from "../decoders";
-import { GetAssetDecoder, GetAssetsDecoder } from "../decoders/asset";
+import { EnrichedAssetDecoder, EnrichedAssetsDecoder } from "../decoders/asset";
+import { IdDecoder } from "../decoders/id";
 import {
-  GetPortfolioDecoder,
-  GetPortfoliosDecoder,
+  EnrichedPortfolioDecoder,
+  EnrichedPortfoliosDecoder,
 } from "../decoders/portfolio";
 import { TokenDecoder } from "../decoders/token";
 import { GetTxDecoder, GetTxsDecoder } from "../decoders/transaction";
-import { IdDecoder } from "../decoders/util";
 import type {
   Credentials,
   GetAsset,
@@ -25,78 +25,121 @@ import * as rest from "./rest";
 
 const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const API_URL = `${baseUrl}/api/v1`;
-  const PORTFOLIO_URL = `${API_URL}/portfolios`;
+  const PORTFOLIOS_URL = `${API_URL}/portfolios`;
+  const PORTFOLIO_URL = (id: number) => `${PORTFOLIOS_URL}/${id}`;
   const ASSETS_URL = (portfolioId: number) =>
-    `${PORTFOLIO_URL}/${portfolioId}/assets`;
+    `${PORTFOLIOS_URL}/${portfolioId}/assets`;
+  const ASSET_URL = (portfolioId: number, assetId: number) =>
+    `${ASSETS_URL(portfolioId)}/${assetId}`;
   const AUTH_URL = `${API_URL}/auth`;
   const REFRESH_TOKEN_URL = `${AUTH_URL}/refresh_token`;
   const TICKER_URL = `${API_URL}/lookup/ticker`;
-  const TX_URL = (assetId: number) =>
+  const TXS_URL = (assetId: number) =>
     `${API_URL}/assets/${assetId}/transactions`;
+  const TX_URL = (assetId: number, txId: number) =>
+    `${TXS_URL(assetId)}/${txId}`;
 
   const getRefreshToken = () =>
     methods.get<Token>(REFRESH_TOKEN_URL, TokenDecoder);
 
   const createPortfolio = (portfolio: PostPortfolio) =>
     methods.post<GetPortfolio, PostPortfolio>(
-      PORTFOLIO_URL,
+      PORTFOLIOS_URL,
       portfolio,
-      GetPortfolioDecoder
+      EnrichedPortfolioDecoder
+    );
+  const updatePortfolio = (id: number, portfolio: PostPortfolio) =>
+    methods.put<GetPortfolio, PostPortfolio>(
+      PORTFOLIO_URL(id),
+      portfolio,
+      EnrichedPortfolioDecoder
     );
   const getPortfolio = (id: number) =>
-    methods.get<GetPortfolio>(`${PORTFOLIO_URL}/${id}`, GetPortfolioDecoder);
+    methods.get<GetPortfolio>(PORTFOLIO_URL(id), EnrichedPortfolioDecoder);
   const deletePortfolio = (id: number) =>
-    methods.delete<Id>(`${PORTFOLIO_URL}/${id}`, IdDecoder);
+    methods.delete<Id>(PORTFOLIO_URL(id), IdDecoder);
   const getPortfolios = () =>
-    methods.get<GetPortfolio[]>(`${PORTFOLIO_URL}/`, GetPortfoliosDecoder);
+    methods.get<GetPortfolio[]>(PORTFOLIOS_URL, EnrichedPortfoliosDecoder);
 
   const createAsset = (portfolioId: number, asset: PostAsset) =>
     methods.post<GetAsset, PostAsset>(
       ASSETS_URL(portfolioId),
       asset,
-      GetAssetDecoder
+      EnrichedAssetDecoder
+    );
+  const updateAsset = (
+    assetId: number,
+    portfolioId: number,
+    asset: PostAsset
+  ) =>
+    methods.put<GetAsset, PostAsset>(
+      ASSET_URL(portfolioId, assetId),
+      asset,
+      EnrichedAssetDecoder
     );
   const getAsset = (portfolioId: number, id: number) =>
-    methods.get<GetAsset>(`${ASSETS_URL(portfolioId)}/${id}`, GetAssetDecoder);
+    methods.get<GetAsset>(ASSET_URL(portfolioId, id), EnrichedAssetDecoder);
   const getAssets = (portfolioId: number) =>
-    methods.get<GetAsset[]>(`${ASSETS_URL(portfolioId)}`, GetAssetsDecoder);
+    methods.get<GetAsset[]>(
+      `${ASSETS_URL(portfolioId)}`,
+      EnrichedAssetsDecoder
+    );
   const deleteAsset = (portfolioId: number, id: number) =>
-    methods.delete<Id>(`${ASSETS_URL(portfolioId)}/${id}`, IdDecoder);
+    methods.delete<Id>(ASSET_URL(portfolioId, id), IdDecoder);
 
   const createTx = (assetId: number, tx: PostTransaction) =>
     methods.post<GetTransaction, PostTransaction>(
-      TX_URL(assetId),
+      TXS_URL(assetId),
+      tx,
+      GetTxDecoder
+    );
+  const updateTx = (txId: number, assetId: number, tx: PostTransaction) =>
+    methods.put<GetTransaction, PostTransaction>(
+      TX_URL(assetId, txId),
       tx,
       GetTxDecoder
     );
   const getTx = (assetId: number, id: number) =>
-    methods.get<GetTransaction>(`${TX_URL(assetId)}/${id}`, GetTxDecoder);
+    methods.get<GetTransaction>(TX_URL(assetId, id), GetTxDecoder);
   const getTxs = (assetId: number) =>
-    methods.get<GetTransaction[]>(TX_URL(assetId), GetTxsDecoder);
+    methods.get<GetTransaction[]>(TXS_URL(assetId), GetTxsDecoder);
   const deleteTx = (assetId: number, id: number) =>
-    methods.delete<Id>(`${TX_URL(assetId)}/${id}`, IdDecoder);
+    methods.delete<Id>(TX_URL(assetId, id), IdDecoder);
 
-  const lookupTicker = (ticker: string = `MSFT`) =>
+  const lookupTicker = (ticker: string) =>
     methods.get<TickerSearchResult>(
       `${TICKER_URL}?term=${ticker}`,
       YahooTickerSearchResultDecoder
     );
 
   return {
-    createPortfolio,
-    getPortfolio,
-    deletePortfolio,
-    getPortfolios,
-    createAsset,
-    getAsset,
-    getAssets,
-    deleteAsset,
-    createTx,
-    getTx,
-    getTxs,
-    deleteTx,
-    getRefreshToken,
-    lookupTicker,
+    portfolio: {
+      get: getPortfolio,
+      getMany: getPortfolios,
+      create: createPortfolio,
+      update: updatePortfolio,
+      delete: deletePortfolio,
+    },
+    asset: {
+      get: getAsset,
+      getMany: getAssets,
+      create: createAsset,
+      update: updateAsset,
+      delete: deleteAsset,
+    },
+    tx: {
+      get: getTx,
+      getMany: getTxs,
+      create: createTx,
+      update: updateTx,
+      delete: deleteTx,
+    },
+    auth: {
+      refreshToken: getRefreshToken,
+    },
+    yahoo: {
+      lookupTicker,
+    },
   };
 };
 

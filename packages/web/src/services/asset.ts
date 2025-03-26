@@ -6,13 +6,13 @@ import { apiFromToken } from "./api";
 export const getAssets = (portfolioId: number): Action<GetAsset[]> => {
   return pipe(
     apiFromToken,
-    TE.chain((a) => a.getAssets(portfolioId))
+    TE.chain(({ asset }) => asset.getMany(portfolioId))
   );
 };
 
 export const getAsset = (portfolioId: number, id: number): Action<GetAsset> => {
   return pipe(
     apiFromToken,
-    TE.chain((a) => a.getAsset(portfolioId, id))
+    TE.chain(({ asset }) => asset.get(portfolioId, id))
   );
 };

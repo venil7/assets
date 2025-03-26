@@ -8,7 +8,7 @@ beforeAll(async () => {
 });
 
 test("Lookup ticker", async () => {
-  const { quotes } = await run(api.lookupTicker("MSFT"));
+  const { quotes } = await run(api.yahoo.lookupTicker("MSFT"));
   expect(quotes).toBeArray();
   expect(quotes[0].symbol).toBe("MSFT");
 });

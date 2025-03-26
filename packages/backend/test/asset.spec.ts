@@ -32,10 +32,10 @@ test("Create asset", async () => {
 });
 
 test("Get multiple assets", async () => {
-  const portfolio = await run(api.createPortfolio(fakePortfolio()));
-  const p1 = await run(api.createAsset(portfolio.id!, fakeAsset("MCD")));
-  const p2 = await run(api.createAsset(portfolio.id!, fakeAsset("MSFT")));
-  const assets = await run(api.getAssets(portfolio.id!));
+  const portfolio = await run(api.portfolio.create(fakePortfolio()));
+  const p1 = await run(api.asset.create(portfolio.id!, fakeAsset("MCD")));
+  const p2 = await run(api.asset.create(portfolio.id!, fakeAsset("MSFT")));
+  const assets = await run(api.asset.getMany(portfolio.id!));
   expect(assets).toSatisfy((a) => Array.isArray(a) && a.length > 0);
 });
 
@@ -43,7 +43,7 @@ test("Get single asset", async () => {
   const asset1 = fakeAsset();
   const { portfolio, asset } = await run(api.createPortfolioAsset(asset1));
   const { id, portfolio_id, name, ticker, created, modified } = await run(
-    api.getAsset(portfolio.id!, asset.id!)
+    api.asset.get(portfolio.id!, asset.id!)
   );
 
   expect(id).toBeNumber();
@@ -56,15 +56,15 @@ test("Get single asset", async () => {
 
 test("Delete asset", async () => {
   const { portfolio, asset } = await run(api.createPortfolioAsset());
-  const { id } = await run(api.deleteAsset(portfolio.id!, asset.id!));
+  const { id } = await run(api.asset.delete(portfolio.id!, asset.id!));
   expect(id).toBe(asset.id);
 });
 
 test("Asset contributions are correct", async () => {
-  const { id } = await run(api.createPortfolio(fakePortfolio()));
-  const a1 = await run(api.createAsset(id!, fakeAsset("MCD")));
-  const a2 = await run(api.createAsset(id!, fakeAsset("MSFT")));
-  const a3 = await run(api.createAsset(id!, fakeAsset("AAPL")));
+  const { id } = await run(api.portfolio.create(fakePortfolio()));
+  const a1 = await run(api.asset.create(id!, fakeAsset("MCD")));
+  const a2 = await run(api.asset.create(id!, fakeAsset("MSFT")));
+  const a3 = await run(api.asset.create(id!, fakeAsset("AAPL")));
   const contributions = await run(
     pipe(
       [
@@ -73,18 +73,20 @@ test("Asset contributions are correct", async () => {
         [a3, 60],
       ] as const,
       TE.traverseArray(([asset, quantity]) =>
-        api.createTx(asset.id!, fakeBuy(quantity, 100))
+        api.tx.create(asset.id!, fakeBuy(quantity, 100))
       ),
-      TE.chain(TE.traverseArray((t) => api.getAsset(id!, t.asset_id!))),
-      TE.map(A.map((a) => a.portfolio_contribution!))
+      TE.chain(TE.traverseArray((t) => api.asset.get(id!, t.asset_id!))),
+      TE.map(A.map((a) => a.portfolio_contribution))
     )
   );
   expect(contributions).toEqual([0.1, 0.3, 0.6]);
 });
 
 test("Calculate holding, invested and avg_price", async () => {
-  const { id: portfolioId } = await run(api.createPortfolio(fakePortfolio()));
-  const { id: assetId } = await run(api.createAsset(portfolioId!, fakeAsset()));
+  const { id: portfolioId } = await run(api.portfolio.create(fakePortfolio()));
+  const { id: assetId } = await run(
+    api.asset.create(portfolioId!, fakeAsset())
+  );
 
   const txs: PostTransaction[] = [
     fakeBuy(10, 100),
@@ -92,10 +94,10 @@ test("Calculate holding, invested and avg_price", async () => {
     fakeBuy(30, 130),
   ];
   for (const tx of txs) {
-    await run(api.createTx(assetId!, tx));
+    await run(api.tx.create(assetId!, tx));
   }
   const { invested, holdings, avg_price } = await run(
-    api.getAsset(portfolioId!, assetId!)
+    api.asset.get(portfolioId!, assetId!)
   );
 
   const actualHoldings = pipe(
@@ -112,4 +114,19 @@ test("Calculate holding, invested and avg_price", async () => {
   expect(holdings).toBe(actualHoldings);
   expect(invested).toBe(actualInvested);
   expect(avg_price).toBe(actualInvested / actualHoldings);
+});
+
+test("Update asset", async () => {
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
+
+  const updateAsset = fakeAsset();
+  const {
+    id: newId,
+    name,
+    ticker,
+  } = await run(api.asset.update(asset.id!, portfolio.id!, updateAsset));
+
+  expect(newId).toBe(asset.id);
+  expect(name).toBe(updateAsset.name);
+  expect(ticker).toBe(updateAsset.ticker);
 });

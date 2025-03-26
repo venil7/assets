@@ -67,8 +67,8 @@ from
 
 drop view if exists asset_holdings;
 
-create view if not exists
-    asset_holdings as
+create view
+    if not exists asset_holdings as
 select
     sub.*,
     case
@@ -136,15 +136,33 @@ create view
     assets_contributions as
 select
     ah.*,
-    invested / coalesce(pt.total_invested, 1) as portfolio_contribution
+    coalesce(ah.invested / coalesce(pt.total_invested, 1), 0) as portfolio_contribution
 from
     asset_holdings ah
     left join portfolios_ext pt on ah.portfolio_id = pt.id;
 
 -- triggers
-drop trigger if exists check_holdings_before_sell;
+drop trigger if exists check_holdings_before_insert_sell;
 
-create trigger check_holdings_before_sell before insert on transactions for each row when new.type = 'sell' begin
+create trigger check_holdings_before_insert_sell before insert on transactions for each row when new.type = 'sell' begin
+select
+    case
+        when (
+            select
+                holdings
+            from
+                asset_holdings a
+            where
+                id = new.asset_id
+        ) < new.quantity then raise (abort, 'Insufficient holdings')
+    end;
+
+end;
+
+drop trigger if exists check_holdings_before_update_sell;
+
+create trigger check_holdings_before_update_sell before
+update on transactions for each row when new.type = 'sell' begin
 select
     case
         when (

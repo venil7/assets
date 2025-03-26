@@ -11,14 +11,14 @@ const profileTypes = {
   id: t.number,
   username: t.string,
   admin: boolean,
-  created: dateDecoder,
-  modified: dateDecoder,
 };
 
 const userTypes = {
   ...profileTypes,
   phash: t.string,
   psalt: t.string,
+  created: dateDecoder,
+  modified: dateDecoder,
 };
 
 export const CredenatialsDecoder = t.type(credentialsTypes);

@@ -13,6 +13,7 @@
     "@darkruby/assets-core": "workspace:*",
     "@preact/signals-react": "^3.0.1",
     "bootstrap": "^5.3.3",
+    "lru-cache": "^11.0.2",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
     "react-dom": "^19.0.0",

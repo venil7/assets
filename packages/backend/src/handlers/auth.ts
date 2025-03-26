@@ -5,31 +5,26 @@ import {
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { Token } from "@darkruby/assets-core/src/domain/token";
 import { next, type HandlerTask } from "@darkruby/fp-express";
-import { Database } from "bun:sqlite";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { toWebError } from "../domain/error";
-import { getUserByUsername } from "../repository/user";
 import { createToken, verifyBearer, verifyPassword } from "../services/auth";
+import type { Context } from "./context";
 
-export type DatabaseCtx = {
-  db: Database;
-};
-
-export const login: HandlerTask<Token, DatabaseCtx> = ({
+export const login: HandlerTask<Token, Context> = ({
   params: [req],
-  context: { db },
+  context: { repo },
 }) =>
   pipe(
     TE.Do,
     TE.bind("login", () => pipe(req.body, liftTE(CredenatialsDecoder))),
-    TE.bind("user", ({ login }) => getUserByUsername(db)(login.username)),
+    TE.bind("user", ({ login }) => repo.user.byUsername(login.username)),
     TE.bind("auth", ({ login, user }) => verifyPassword(user, login)),
     TE.chain(({ user }) => createToken(user)),
     TE.mapLeft(toWebError)
   );
 
-export const refreshToken: HandlerTask<Token, DatabaseCtx> = ({
+export const refreshToken: HandlerTask<Token, Context> = ({
   params: [, res],
 }) =>
   pipe(
@@ -41,7 +36,7 @@ export const refreshToken: HandlerTask<Token, DatabaseCtx> = ({
     TE.mapLeft(toWebError)
   );
 
-export const verifyToken: HandlerTask<void, DatabaseCtx> = ({
+export const verifyToken: HandlerTask<void, Context> = ({
   params: [req, res],
 }) =>
   pipe(

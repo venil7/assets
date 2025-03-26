@@ -9,7 +9,7 @@ export type Credentials = t.TypeOf<typeof CredenatialsDecoder>;
 export type User = t.TypeOf<typeof UserDecoder>;
 export type Profile = t.TypeOf<typeof ProfileDecoder>;
 
-export const profile = ({ phash, psalt, ...profile }: User) => profile;
+export const profile = ({ phash, psalt, ...profile }: User): Profile => profile;
 
 export const defaultCredentials = (): Credentials => ({
   username: "",

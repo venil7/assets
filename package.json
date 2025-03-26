@@ -24,6 +24,7 @@
     "backend:check": "cd packages/backend && bun run check",
     "backend:build": "cd packages/backend && bun run build",
     "assets-core:check": "cd packages/assets-core && bun run check",
+    "assets-core:test": "cd packages/assets-core && bun run test",
     "fp-express:check": "cd packages/fp-express && bun run check",
     "check": "bun run assets-core:check && bun run fp-express:check && bun run backend:check && bun run web:check",
     "build": "bun run web:build && bun run backend:build"

@@ -16,7 +16,7 @@ beforeAll(async () => {
 test("Create portfolio", async () => {
   const portfolio = fakePortfolio();
   const { id, user_id, name, description, created, modified } = await run(
-    api.createPortfolio(portfolio)
+    api.portfolio.create(portfolio)
   );
   expect(id).toBeNumber();
   expect(user_id).toBeNumber();
@@ -27,13 +27,13 @@ test("Create portfolio", async () => {
 });
 
 test("Get multiple portfolios", async () => {
-  const portfolios = await run(api.getPortfolios());
+  const portfolios = await run(api.portfolio.getMany());
   expect(portfolios).toSatisfy((a) => Array.isArray(a) && a.length > 0);
 });
 
 test("Get single portfolio", async () => {
   const { id, user_id, name, description, created, modified } = await run(
-    api.getPortfolio(1)
+    api.portfolio.get(1)
   );
   expect(id).toBe(1);
   expect(user_id).toBeNumber();
@@ -44,14 +44,14 @@ test("Get single portfolio", async () => {
 });
 
 test("Delete portfolio", async () => {
-  const { id } = await run(api.createPortfolio(fakePortfolio()));
-  const { id: deletedId } = await run(api.deletePortfolio(id!));
+  const { id } = await run(api.portfolio.create(fakePortfolio()));
+  const { id: deletedId } = await run(api.portfolio.delete(id!));
   expect(id).toBe(deletedId);
 });
 
 test("Total invested/num assets is zero in new portfolio", async () => {
   const { total_invested, num_assets } = await run(
-    api.createPortfolio(fakePortfolio())
+    api.portfolio.create(fakePortfolio())
   );
 
   expect(total_invested).toBe(0);
@@ -59,18 +59,33 @@ test("Total invested/num assets is zero in new portfolio", async () => {
 });
 
 test("correct amount of invested/assets in portfolio", async () => {
-  const { id } = await run(api.createPortfolio(fakePortfolio()));
+  const { id } = await run(api.portfolio.create(fakePortfolio()));
 
-  const a1 = await run(api.createAsset(id!, fakeAsset("msft")));
-  const a2 = await run(api.createAsset(id!, fakeAsset("mcd")));
-  const a3 = await run(api.createAsset(id!, fakeAsset("aapl")));
+  const a1 = await run(api.asset.create(id!, fakeAsset("msft")));
+  const a2 = await run(api.asset.create(id!, fakeAsset("mcd")));
+  const a3 = await run(api.asset.create(id!, fakeAsset("aapl")));
 
-  await run(api.createTx(a1.id!, fakeBuy(10, 1)));
-  await run(api.createTx(a2.id!, fakeBuy(10, 2)));
-  await run(api.createTx(a3.id!, fakeBuy(10, 3)));
+  await run(api.tx.create(a1.id!, fakeBuy(10, 1)));
+  await run(api.tx.create(a2.id!, fakeBuy(10, 2)));
+  await run(api.tx.create(a3.id!, fakeBuy(10, 3)));
 
-  const { total_invested, num_assets } = await run(api.getPortfolio(id!));
+  const { total_invested, num_assets } = await run(api.portfolio.get(id!));
 
   expect(num_assets).toBe(3);
   expect(total_invested).toBe(60);
+});
+
+test("Update portfolio", async () => {
+  const { id } = await run(api.portfolio.create(fakePortfolio()));
+
+  const updatePortfolio = fakePortfolio();
+  const {
+    id: newId,
+    name,
+    description,
+  } = await run(api.portfolio.update(id!, updatePortfolio));
+
+  expect(newId).toBe(id);
+  expect(name).toBe(updatePortfolio.name);
+  expect(description).toBe(updatePortfolio.description);
 });

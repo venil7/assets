@@ -18,7 +18,7 @@ export const verifyPassword = (
   return pipe(
     TE.tryCatch(
       () => compare(`${password}${psalt}`, phash),
-      (e) => authError(`unabkle to auth ${e}`)
+      (e) => authError(`Unable to auth ${e}`)
     ),
     TE.filterOrElse(identity, (e) => authError("could not authenticate"))
   );

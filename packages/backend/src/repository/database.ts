@@ -10,11 +10,11 @@ import * as TE from "fp-ts/lib/TaskEither";
 export type ExecutionResult = [lastId: number, rows: number];
 
 export const queryMany =
-  <R>(sql: string, bindings: SQLQueryBindings[] = []) =>
+  <R>(sql: string, bindings: SQLQueryBindings = null) =>
   (db: Database): Action<R[]> => {
     return pipe(
       TE.tryCatch(
-        async () => db.query<R, SQLQueryBindings[]>(sql).all(...bindings),
+        async () => db.query<R, SQLQueryBindings>(sql).all(bindings),
         (e) => generalError(`${e}`)
       )
     );
@@ -36,7 +36,7 @@ export const execute =
   (db: Database): Action<ExecutionResult> => {
     return pipe(
       TE.tryCatch(
-        async () => db.query<R, SQLQueryBindings[]>(sql).run(bindings),
+        async () => db.query<R, SQLQueryBindings>(sql).run(bindings),
         (e) => generalError(`${e}`)
       ),
       TE.map(

@@ -8,6 +8,6 @@ beforeAll(async () => {
 });
 
 test("Get refresh token", async () => {
-  const { token } = await run(api.getRefreshToken());
+  const { token } = await run(api.auth.refreshToken());
   expect(token).toBeString();
 });

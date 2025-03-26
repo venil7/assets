@@ -1,5 +1,6 @@
 import * as t from "io-ts";
 import { dateDecoder } from "./util";
+import { PeriodPriceDecoder, PeriodValueDecoder } from "./yahoo/period";
 
 const basePortfolioTypes = {
   name: t.string,
@@ -21,3 +22,11 @@ export const GetPortfolioDecoder = PostPortfolioDecoder.pipe(
   t.type(extPortfolioTypes)
 );
 export const GetPortfoliosDecoder = t.array(GetPortfolioDecoder);
+
+export const EnrichedPortfolioDecoder = t.type({
+  ...extPortfolioTypes,
+  price: PeriodPriceDecoder,
+  value: PeriodValueDecoder,
+});
+
+export const EnrichedPortfoliosDecoder = t.array(EnrichedPortfolioDecoder);

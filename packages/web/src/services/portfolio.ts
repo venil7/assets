@@ -6,7 +6,7 @@ import { apiFromToken } from "./api";
 export const getPortfolios = (): Action<GetPortfolio[]> => {
   return pipe(
     apiFromToken,
-    TE.chain((a) => a.getPortfolios())
+    TE.chain(({ portfolio: p }) => p.getMany())
   );
 };
 
@@ -14,8 +14,8 @@ export const getPortfolioDetails = (id: number) => {
   return pipe(
     apiFromToken,
     TE.bindTo("api"),
-    TE.bind("portfolio", ({ api }) => api.getPortfolio(id)),
-    TE.bind("assets", ({ api }) => api.getAssets(id)),
+    TE.bind("portfolio", ({ api }) => api.portfolio.get(id)),
+    TE.bind("assets", ({ api }) => api.asset.getMany(id)),
     TE.map(({ portfolio, assets }) => ({ ...portfolio, assets }))
   );
 };
