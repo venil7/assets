@@ -8,30 +8,8 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { LRUCache } from "lru-cache";
 import { Server } from "node:http";
 import path from "node:path";
-import {
-  createAsset,
-  deleteAsset,
-  getAsset,
-  getAssets,
-  updateAsset,
-} from "./handlers/asset";
-import { login, refreshToken, verifyToken } from "./handlers/auth";
+import { createHandlers } from "./handlers";
 import type { Context } from "./handlers/context";
-import {
-  createPortfolio,
-  deletePortfolio,
-  getPortfolio,
-  getPortfolios,
-  updatePortfolio,
-} from "./handlers/portfolio";
-import {
-  createTx,
-  deleteTx,
-  getTx,
-  getTxs,
-  updateTx,
-} from "./handlers/transaction";
-import { yahooSearch } from "./handlers/yahoo";
 import { createRepository, type Repository } from "./repository";
 import {
   createCache,
@@ -39,6 +17,7 @@ import {
   type Stringifiable,
 } from "./services/cache";
 import { env, envNumber } from "./services/env";
+import { initializeApp } from "./services/init";
 
 type Config = {
   database: string;
@@ -77,6 +56,8 @@ const cache = ({ cacheSize, cacheTtl }: Config): Action<AppCache> =>
 
 const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
   const expressify = createRequestHandler(ctx);
+  const handlers = createHandlers(expressify);
+
   return pipe(
     TE.of(express()),
     TE.tapIO((exp) => () => {
@@ -90,48 +71,50 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
         res.sendFile(path.join(process.cwd(), app, "index.html"));
       });
 
-      exp.post("/login", pipe(login, expressify));
+      exp.post("/login", handlers.auth.login);
 
       const api = express();
-      api.use(pipe(verifyToken, expressify));
+      api.use(handlers.middleware.authenticate);
 
       const auth = express();
-      auth.get("/refresh_token", pipe(refreshToken, expressify));
+      auth.get("/refresh_token", handlers.auth.refreshToken);
       api.use("/auth", auth);
 
+      const profile = express();
+      profile.get("/", handlers.profile.get);
+      profile.put("/", handlers.profile.update);
+      api.use("/profile", profile);
+
+      const user = express();
+      user.post("/", handlers.user.create);
+      api.use("/user", user);
+
       const portfolios = express();
-      portfolios.post("/", pipe(createPortfolio, expressify));
-      portfolios.get("/", pipe(getPortfolios, expressify));
-      portfolios.get("/:id", pipe(getPortfolio, expressify));
-      portfolios.delete("/:id", pipe(deletePortfolio, expressify));
-      portfolios.put("/:id", pipe(updatePortfolio, expressify));
+      portfolios.post("/", handlers.portfolio.create);
+      portfolios.get("/", handlers.portfolio.getMany);
+      portfolios.get("/:id", handlers.portfolio.get);
+      portfolios.delete("/:id", handlers.portfolio.delete);
+      portfolios.put("/:id", handlers.portfolio.update);
       api.use("/portfolios", portfolios);
 
       const assets = express();
-      assets.post("/:portfolio_id/assets", pipe(createAsset, expressify));
-      assets.get("/:portfolio_id/assets", pipe(getAssets, expressify));
-      assets.get("/:portfolio_id/assets/:id", pipe(getAsset, expressify));
-      assets.delete("/:portfolio_id/assets/:id", pipe(deleteAsset, expressify));
-      assets.put("/:portfolio_id/assets/:id", pipe(updateAsset, expressify));
+      assets.post("/:portfolio_id/assets", handlers.assets.create);
+      assets.get("/:portfolio_id/assets", handlers.assets.getMany);
+      assets.get("/:portfolio_id/assets/:id", handlers.assets.get);
+      assets.delete("/:portfolio_id/assets/:id", handlers.assets.delete);
+      assets.put("/:portfolio_id/assets/:id", handlers.assets.update);
       portfolios.use("/", assets);
 
       const transactions = express();
-      transactions.post("/:asset_id/transactions", pipe(createTx, expressify));
-      transactions.get("/:asset_id/transactions", pipe(getTxs, expressify));
-      transactions.get("/:asset_id/transactions/:id", pipe(getTx, expressify));
-      transactions.delete(
-        "/:asset_id/transactions/:id",
-        pipe(deleteTx, expressify)
-      );
-      transactions.put(
-        "/:asset_id/transactions/:id",
-        pipe(updateTx, expressify)
-      );
+      transactions.post("/:asset_id/tx", handlers.tx.create);
+      transactions.get("/:asset_id/tx", handlers.tx.getMany);
+      transactions.get("/:asset_id/tx/:id", handlers.tx.get);
+      transactions.delete("/:asset_id/tx/:id", handlers.tx.delete);
+      transactions.put("/:asset_id/tx/:id", handlers.tx.update);
       api.use("/assets", transactions);
 
       const lookup = express();
-      lookup.get("/ticker", pipe(yahooSearch, expressify));
-
+      lookup.get("/ticker", handlers.yahoo.search);
       api.use("/lookup", lookup);
 
       exp.use("/api/v1", api);
@@ -151,6 +134,7 @@ const app = () =>
         TE.bind("cache", () => cache(config))
       )
     ),
+    TE.bind("init", ({ context }) => initializeApp(context.repo)),
     TE.bind("server", ({ config, context }) => server(config, context))
   );
 

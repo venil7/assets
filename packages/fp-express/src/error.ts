@@ -32,6 +32,7 @@ export const next = (): WebAppError => ({
   type: WebErrorType.Next,
   message: "",
 });
+
 export const authError = <E = unknown>(reason: E): WebAppError => ({
   type: WebErrorType.Auth,
   message: stringifyUnknownError(reason),

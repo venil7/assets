@@ -30,8 +30,10 @@ export const createRepository = (db: Database) => {
       update: portfolio.updatePortfolio(db),
     },
     user: {
-      byUsername: user.getUserByUsername(db),
+      get: user.getUser(db),
       create: user.createUser(db),
+      update: user.updateUser(db),
+      byUsername: user.getUserByUsername(db),
     },
   };
 };

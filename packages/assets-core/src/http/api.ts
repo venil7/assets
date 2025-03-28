@@ -8,14 +8,16 @@ import {
 } from "../decoders/portfolio";
 import { TokenDecoder } from "../decoders/token";
 import { GetTxDecoder, GetTxsDecoder } from "../decoders/transaction";
+import { ProfileDecoder } from "../decoders/user";
 import type {
   Credentials,
-  GetAsset,
-  GetPortfolio,
+  EnrichedAsset,
+  EnrichedPortfolio,
   GetTransaction,
   PostAsset,
   PostPortfolio,
   PostTransaction,
+  Profile,
   TickerSearchResult,
 } from "../domain";
 import type { Id } from "../domain/id";
@@ -25,7 +27,9 @@ import * as rest from "./rest";
 
 const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const API_URL = `${baseUrl}/api/v1`;
+  const USER_URL = `${API_URL}/user`;
   const PORTFOLIOS_URL = `${API_URL}/portfolios`;
+  const PROFILE_URL = `${API_URL}/profile`;
   const PORTFOLIO_URL = (id: number) => `${PORTFOLIOS_URL}/${id}`;
   const ASSETS_URL = (portfolioId: number) =>
     `${PORTFOLIOS_URL}/${portfolioId}/assets`;
@@ -34,8 +38,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const AUTH_URL = `${API_URL}/auth`;
   const REFRESH_TOKEN_URL = `${AUTH_URL}/refresh_token`;
   const TICKER_URL = `${API_URL}/lookup/ticker`;
-  const TXS_URL = (assetId: number) =>
-    `${API_URL}/assets/${assetId}/transactions`;
+  const TXS_URL = (assetId: number) => `${API_URL}/assets/${assetId}/tx`;
   const TX_URL = (assetId: number, txId: number) =>
     `${TXS_URL(assetId)}/${txId}`;
 
@@ -43,26 +46,26 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     methods.get<Token>(REFRESH_TOKEN_URL, TokenDecoder);
 
   const createPortfolio = (portfolio: PostPortfolio) =>
-    methods.post<GetPortfolio, PostPortfolio>(
+    methods.post<EnrichedPortfolio, PostPortfolio>(
       PORTFOLIOS_URL,
       portfolio,
       EnrichedPortfolioDecoder
     );
   const updatePortfolio = (id: number, portfolio: PostPortfolio) =>
-    methods.put<GetPortfolio, PostPortfolio>(
+    methods.put<EnrichedPortfolio, PostPortfolio>(
       PORTFOLIO_URL(id),
       portfolio,
       EnrichedPortfolioDecoder
     );
   const getPortfolio = (id: number) =>
-    methods.get<GetPortfolio>(PORTFOLIO_URL(id), EnrichedPortfolioDecoder);
+    methods.get<EnrichedPortfolio>(PORTFOLIO_URL(id), EnrichedPortfolioDecoder);
   const deletePortfolio = (id: number) =>
     methods.delete<Id>(PORTFOLIO_URL(id), IdDecoder);
   const getPortfolios = () =>
-    methods.get<GetPortfolio[]>(PORTFOLIOS_URL, EnrichedPortfoliosDecoder);
+    methods.get<EnrichedPortfolio[]>(PORTFOLIOS_URL, EnrichedPortfoliosDecoder);
 
   const createAsset = (portfolioId: number, asset: PostAsset) =>
-    methods.post<GetAsset, PostAsset>(
+    methods.post<EnrichedAsset, PostAsset>(
       ASSETS_URL(portfolioId),
       asset,
       EnrichedAssetDecoder
@@ -72,15 +75,18 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     portfolioId: number,
     asset: PostAsset
   ) =>
-    methods.put<GetAsset, PostAsset>(
+    methods.put<EnrichedAsset, PostAsset>(
       ASSET_URL(portfolioId, assetId),
       asset,
       EnrichedAssetDecoder
     );
   const getAsset = (portfolioId: number, id: number) =>
-    methods.get<GetAsset>(ASSET_URL(portfolioId, id), EnrichedAssetDecoder);
+    methods.get<EnrichedAsset>(
+      ASSET_URL(portfolioId, id),
+      EnrichedAssetDecoder
+    );
   const getAssets = (portfolioId: number) =>
-    methods.get<GetAsset[]>(
+    methods.get<EnrichedAsset[]>(
       `${ASSETS_URL(portfolioId)}`,
       EnrichedAssetsDecoder
     );
@@ -106,6 +112,12 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const deleteTx = (assetId: number, id: number) =>
     methods.delete<Id>(TX_URL(assetId, id), IdDecoder);
 
+  const getProfile = () => methods.get<Profile>(PROFILE_URL, ProfileDecoder);
+  const updateProfile = (body: Credentials) =>
+    methods.put<Profile, Credentials>(PROFILE_URL, body, ProfileDecoder);
+  const createUser = (body: Credentials) =>
+    methods.post<Profile, Credentials>(USER_URL, body, ProfileDecoder);
+
   const lookupTicker = (ticker: string) =>
     methods.get<TickerSearchResult>(
       `${TICKER_URL}?term=${ticker}`,
@@ -113,6 +125,13 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     );
 
   return {
+    user: {
+      create: createUser,
+    },
+    profile: {
+      get: getProfile,
+      update: updateProfile,
+    },
     portfolio: {
       get: getPortfolio,
       getMany: getPortfolios,

@@ -2,18 +2,20 @@ import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
 import { boolean, dateDecoder } from "./util";
 
+const UserId = t.Int;
+
 const credentialsTypes = {
   username: t.string,
   password: t.string,
 };
 
 const profileTypes = {
-  id: t.number,
+  id: UserId,
   username: t.string,
   admin: boolean,
 };
 
-const userTypes = {
+const getUserTypes = {
   ...profileTypes,
   phash: t.string,
   psalt: t.string,
@@ -21,6 +23,14 @@ const userTypes = {
   modified: dateDecoder,
 };
 
+const postUserTypes = {
+  username: t.string,
+  admin: boolean,
+  phash: t.string,
+  psalt: t.string,
+};
+
 export const CredenatialsDecoder = t.type(credentialsTypes);
 export const ProfileDecoder = pipe(t.type(profileTypes), t.exact);
-export const UserDecoder = t.type(userTypes);
+export const GetUserDecoder = t.type(getUserTypes);
+export const PostUserDecoder = t.type(postUserTypes);

@@ -3,6 +3,7 @@ import {
   type GetPortfolio,
   type Optional,
   type PostPortfolio,
+  type UserId,
 } from "@darkruby/assets-core";
 import {
   GetPortfolioDecoder,
@@ -20,7 +21,7 @@ import { execute, queryMany, queryOne, type ExecutionResult } from "./database";
 
 export const getPortfolios =
   (db: Database) =>
-  (userId: number, paging = defaultPaging()): Action<GetPortfolio[]> =>
+  (userId: UserId, paging = defaultPaging()): Action<GetPortfolio[]> =>
     pipe(
       db,
       queryMany<unknown[]>(
@@ -37,7 +38,7 @@ export const getPortfolios =
 
 export const getPortfolio =
   (db: Database) =>
-  (id: number, userId: number): Action<Optional<GetPortfolio>> => {
+  (id: number, userId: UserId): Action<Optional<GetPortfolio>> => {
     return pipe(
       db,
       queryOne(
@@ -57,7 +58,7 @@ export const updatePortfolio =
   (
     portfolioId: number,
     body: PostPortfolio,
-    userId: number
+    userId: UserId
   ): Action<ExecutionResult> =>
     pipe(
       db,
@@ -73,7 +74,7 @@ export const updatePortfolio =
 
 export const createPortfolio =
   (db: Database) =>
-  (body: PostPortfolio, userId: number): Action<ExecutionResult> =>
+  (body: PostPortfolio, userId: UserId): Action<ExecutionResult> =>
     pipe(
       db,
       execute<unknown[]>(
@@ -87,7 +88,7 @@ export const createPortfolio =
 
 export const deletePortfolio =
   (db: Database) =>
-  (id: number, userId: number): Action<ExecutionResult> =>
+  (id: number, userId: UserId): Action<ExecutionResult> =>
     pipe(
       db,
       execute<unknown[]>(

@@ -176,14 +176,3 @@ select
     end;
 
 end;
-
--- seed
-insert into
-    users (username, phash, psalt, admin)
-values
-    (
-        'admin',
-        '$2a$12$UlhYekwyyrFuwSgrT74ZluHb893OB9Pf9UfY15l71DFBTmCIyhqbW',
-        '123',
-        true
-    );

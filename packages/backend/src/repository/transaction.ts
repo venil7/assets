@@ -5,6 +5,7 @@ import {
   type GetTransaction,
   type Optional,
   type PostTransaction,
+  type UserId,
 } from "@darkruby/assets-core";
 import {
   GetTxDecoder,
@@ -25,7 +26,7 @@ export const getTxs =
   (db: Database) =>
   (
     assetId: number,
-    userId: number,
+    userId: UserId,
     paging = defaultPaging()
   ): Action<GetTransaction[]> =>
     pipe(
@@ -48,7 +49,7 @@ export const getTx =
   (
     id: number,
     assetId: number,
-    userId: number
+    userId: UserId
   ): Action<Optional<GetTransaction>> => {
     return pipe(
       db,
@@ -70,7 +71,7 @@ export const createTx =
   (
     tx: PostTransaction,
     assetId: number,
-    userId: number
+    userId: UserId
   ): Action<ExecutionResult> =>
     pipe(
       db,
@@ -90,7 +91,7 @@ export const updateTx =
     transactionId: number,
     tx: PostTransaction,
     assetId: number,
-    userId: number
+    userId: UserId
   ): Action<ExecutionResult> =>
     pipe(
       db,
@@ -110,7 +111,7 @@ export const updateTx =
 
 export const deleteTx =
   (db: Database) =>
-  (id: number, userId: number): Action<ExecutionResult> =>
+  (id: number, userId: UserId): Action<ExecutionResult> =>
     pipe(
       db,
       execute<unknown[]>(

@@ -3,11 +3,11 @@ import { run } from "@darkruby/assets-core";
 import { beforeAll, expect, test } from "bun:test";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import { fakeBuy, fakeSell, testApi, type TestApi } from "./helper";
+import { fakeBuy, fakeSell, nonAdminApi, type TestApi } from "./helper";
 
 let api: TestApi;
 beforeAll(async () => {
-  api = await run(testApi());
+  api = await run(nonAdminApi());
 });
 
 const buyTx: PostTransaction = fakeBuy(10, 100);

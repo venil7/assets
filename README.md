@@ -2,11 +2,14 @@
 ### backend
  [x] PUT endpoints
  [x] update tx checks sufficiend funds
- [ ] enriched portfolio
+ [x] enriched portfolio
+ [x] user id passed,
+ [x] create user, change password
  [ ] create/edit asset checks ticker with yahoo
- [ ] wire up cache with yahoo calls
+ [?] wire up cache with yahoo calls
  [ ] summary endoint
- [ ] user id passed
+ [ ] update tests
+### frontend
 
 ## API
 Portfolio API

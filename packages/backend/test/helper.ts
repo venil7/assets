@@ -14,6 +14,11 @@ import * as TE from "fp-ts/lib/TaskEither";
 
 const BASE_URL = `http://${process.env.URL ?? "localhost:4020"}`;
 
+export const fakeCredentials = (): Credentials => ({
+  username: faker.internet.email(),
+  password: faker.internet.password(),
+});
+
 export const fakePortfolio = (): PostPortfolio => ({
   name: faker.lorem.slug(2),
   description: faker.lorem.slug(2),
@@ -94,10 +99,25 @@ export const getExtendedApi = (api: Api) => {
   };
 };
 
-const testCredentials: Credentials = { username: "admin", password: "admin" };
+const defaultAdminCredentials: Credentials = {
+  username: "admin",
+  password: "admin",
+};
 
-export const testLogin = () => login(BASE_URL)(testCredentials);
-export const testApi = () =>
-  pipe(testLogin(), TE.map(api(BASE_URL)), TE.map(getExtendedApi));
+export const defaultLogin = (creds = defaultAdminCredentials) =>
+  login(BASE_URL)(creds);
+export const defaultApi = (creds = defaultAdminCredentials) =>
+  pipe(defaultLogin(creds), TE.map(api(BASE_URL)), TE.map(getExtendedApi));
+
+export const nonAdminApi = () =>
+  pipe(
+    TE.Do,
+    TE.bind("adminApi", () => defaultApi()),
+    TE.bind("credentials", () => TE.of(fakeCredentials())),
+    TE.bind("user", ({ adminApi, credentials }) =>
+      adminApi.user.create(credentials)
+    ),
+    TE.chain(({ credentials }) => defaultApi(credentials))
+  );
 
 export type TestApi = ReturnType<typeof getExtendedApi>;

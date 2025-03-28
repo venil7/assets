@@ -18,18 +18,21 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { numberFromUrl } from "../decoders/params";
 import { toWebError } from "../domain/error";
+import { getProfile } from "./auth";
 import type { Context } from "./context";
 
 export const getPortfolios: HandlerTask<EnrichedPortfolio[], Context> = ({
+  params: [_, res],
   context: { repo },
 }) =>
   pipe(
     TE.Do,
-    TE.bind("portfolios", () => repo.portfolio.getAll(1)),
-    TE.chain(({ portfolios }) => {
+    TE.bind("profile", () => getProfile(res)),
+    TE.bind("portfolios", ({ profile }) => repo.portfolio.getAll(profile.id)),
+    TE.chain(({ portfolios, profile }) => {
       const f = (p: GetPortfolio) => {
         return pipe(
-          repo.asset.getAll(p.id, 1),
+          repo.asset.getAll(p.id, profile.id),
           TE.chain(TE.traverseArray(enrichAsset))
         ) as Action<EnrichedAsset[]>;
       };
@@ -41,12 +44,15 @@ export const getPortfolios: HandlerTask<EnrichedPortfolio[], Context> = ({
 export const getPortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req], context: { repo } }) =>
+> = ({ params: [req, res], context: { repo } }) =>
   pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("portfolio", ({ id }) => repo.portfolio.get(id, 1)),
-    TE.bind("assets", ({ id }) => repo.asset.getAll(id, 1)),
+    TE.bind("profile", () => getProfile(res)),
+    TE.bind("portfolio", ({ id, profile }) =>
+      repo.portfolio.get(id, profile.id)
+    ),
+    TE.bind("assets", ({ id, profile }) => repo.asset.getAll(id, profile.id)),
     TE.chain(({ portfolio, assets }) => {
       const enrichAssets = () =>
         pipe(assets, TE.traverseArray(enrichAsset)) as Action<EnrichedAsset[]>;
@@ -58,13 +64,20 @@ export const getPortfolio: HandlerTask<
 export const createPortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req], context: { repo } }) =>
+> = ({ params: [req, res], context: { repo } }) =>
   pipe(
     TE.Do,
+    TE.bind("profile", () => getProfile(res)),
     TE.bind("body", () => pipe(req.body, liftTE(PostPortfolioDecoder))),
-    TE.bind("execution", ({ body }) => repo.portfolio.create(body, 1)),
-    TE.bind("portfolio", ({ execution: [id] }) => repo.portfolio.get(id, 1)),
-    TE.bind("assets", ({ execution: [id] }) => repo.asset.getAll(id, 1)),
+    TE.bind("execution", ({ body, profile }) =>
+      repo.portfolio.create(body, profile.id)
+    ),
+    TE.bind("portfolio", ({ execution: [id], profile }) =>
+      repo.portfolio.get(id, profile.id)
+    ),
+    TE.bind("assets", ({ execution: [id], profile }) =>
+      repo.asset.getAll(id, profile.id)
+    ),
     TE.chain(({ portfolio, assets }) => {
       const enrichAssets = () =>
         pipe(assets, TE.traverseArray(enrichAsset)) as Action<EnrichedAsset[]>;
@@ -74,13 +87,16 @@ export const createPortfolio: HandlerTask<
   );
 
 export const deletePortfolio: HandlerTask<Optional<Id>, Context> = ({
-  params: [req],
+  params: [req, res],
   context: { repo },
 }) =>
   pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("delete", ({ id }) => repo.portfolio.delete(id, 1)),
+    TE.bind("profile", () => getProfile(res)),
+    TE.bind("delete", ({ id, profile }) =>
+      repo.portfolio.delete(id, profile.id)
+    ),
     TE.map(({ id, delete: [_, rowsDeleted] }) => (rowsDeleted ? { id } : null)),
     TE.mapLeft(toWebError)
   );
@@ -88,14 +104,21 @@ export const deletePortfolio: HandlerTask<Optional<Id>, Context> = ({
 export const updatePortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req], context: { repo } }) =>
+> = ({ params: [req, res], context: { repo } }) =>
   pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
     TE.bind("body", () => pipe(req.body, liftTE(PostPortfolioDecoder))),
-    TE.bind("execution", ({ id, body }) => repo.portfolio.update(id, body, 1)),
-    TE.bind("portfolio", ({ id }) => repo.portfolio.get(id, 1)),
-    TE.bind("assets", ({ execution: [id] }) => repo.asset.getAll(id, 1)),
+    TE.bind("profile", () => getProfile(res)),
+    TE.bind("execution", ({ id, body, profile }) =>
+      repo.portfolio.update(id, body, profile.id)
+    ),
+    TE.bind("portfolio", ({ id, profile }) =>
+      repo.portfolio.get(id, profile.id)
+    ),
+    TE.bind("assets", ({ profile, execution: [id] }) =>
+      repo.asset.getAll(id, profile.id)
+    ),
     TE.chain(({ portfolio, assets }) => {
       const enrichAssets = () =>
         pipe(assets, TE.traverseArray(enrichAsset)) as Action<EnrichedAsset[]>;

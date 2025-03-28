@@ -3,6 +3,7 @@ import {
   type GetAsset,
   type Optional,
   type PostAsset,
+  type UserId,
 } from "@darkruby/assets-core";
 import {
   GetAssetDecoder,
@@ -22,7 +23,7 @@ export const getAssets =
   (db: Database) =>
   (
     portfolioId: number,
-    userId: number,
+    userId: UserId,
     paging = defaultPaging()
   ): Action<GetAsset[]> =>
     pipe(
@@ -44,7 +45,7 @@ export const getAsset =
   (
     id: number,
     portfolioId: number,
-    userId: number
+    userId: UserId
   ): Action<Optional<GetAsset>> => {
     return pipe(
       db,
@@ -95,7 +96,7 @@ export const updateAsset =
 
 export const deleteAsset =
   (db: Database) =>
-  (id: number, portfolioId: number, userId: number): Action<ExecutionResult> =>
+  (id: number, portfolioId: number, userId: UserId): Action<ExecutionResult> =>
     pipe(
       db,
       execute<unknown>(

@@ -1,10 +1,10 @@
 import { run } from "@darkruby/assets-core";
 import { beforeAll, expect, test } from "bun:test";
-import { testApi, type TestApi } from "./helper";
+import { nonAdminApi, type TestApi } from "./helper";
 
 let api: TestApi;
 beforeAll(async () => {
-  api = await run(testApi());
+  api = await run(nonAdminApi());
 });
 
 test("Get refresh token", async () => {

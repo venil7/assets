@@ -4,13 +4,13 @@ import {
   fakeAsset,
   fakeBuy,
   fakePortfolio,
+  nonAdminApi,
   type TestApi,
-  testApi,
 } from "./helper";
 
 let api: TestApi;
 beforeAll(async () => {
-  api = await run(testApi());
+  api = await run(nonAdminApi());
 });
 
 test("Create portfolio", async () => {
@@ -32,10 +32,11 @@ test("Get multiple portfolios", async () => {
 });
 
 test("Get single portfolio", async () => {
+  const p = await run(api.portfolio.create(fakePortfolio()));
   const { id, user_id, name, description, created, modified } = await run(
-    api.portfolio.get(1)
+    api.portfolio.get(p.id)
   );
-  expect(id).toBe(1);
+  expect(id).toBe(p.id);
   expect(user_id).toBeNumber();
   expect(name).toBeString();
   expect(description).toBeString();

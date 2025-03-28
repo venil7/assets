@@ -1,23 +1,26 @@
 import { authError, type Action, type Optional } from "@darkruby/assets-core";
+import { PostUserDecoder } from "@darkruby/assets-core/src/decoders/user";
+import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { Token } from "@darkruby/assets-core/src/domain/token";
 import {
   type Credentials,
+  type GetUser,
+  type PostUser,
   type Profile,
-  type User,
 } from "@darkruby/assets-core/src/domain/user";
-import { compare } from "bcrypt";
+import { compare, genSaltSync, hashSync } from "bcrypt";
 import { identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { sign, verify, type Jwt } from "jsonwebtoken";
 import { env } from "./env";
 
 export const verifyPassword = (
-  { phash, psalt }: User,
+  { phash }: GetUser,
   { password }: Credentials
 ): Action<any> => {
   return pipe(
     TE.tryCatch(
-      () => compare(`${password}${psalt}`, phash),
+      () => compare(password, phash),
       (e) => authError(`Unable to auth ${e}`)
     ),
     TE.filterOrElse(identity, (e) => authError("could not authenticate"))
@@ -54,3 +57,15 @@ export const verifyBearer = (
     )
   );
 };
+
+export const createUser =
+  (admin: boolean = false) =>
+  ({ username, password }: Credentials): Action<PostUser> => {
+    return pipe(
+      TE.Do,
+      TE.bind("psalt", () => TE.of(genSaltSync())),
+      TE.bind("phash", ({ psalt }) => TE.of(hashSync(password, psalt))),
+      TE.chain(({ phash, psalt }) => TE.of({ phash, psalt, username, admin })),
+      TE.chain(liftTE(PostUserDecoder))
+    );
+  };

@@ -7,13 +7,13 @@ import {
   fakeAsset,
   fakeBuy,
   fakePortfolio,
-  testApi,
+  nonAdminApi,
   type TestApi,
 } from "./helper";
 
 let api: TestApi;
 beforeAll(async () => {
-  api = await run(testApi());
+  api = await run(nonAdminApi());
 });
 
 test("Create asset", async () => {
