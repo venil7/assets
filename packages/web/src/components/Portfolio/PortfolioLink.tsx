@@ -1,12 +1,13 @@
-import type { GetPortfolio } from "@darkruby/assets-core";
-import { Card, Stack } from "react-bootstrap";
+import type { EnrichedPortfolio } from "@darkruby/assets-core";
+import { Badge, Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
 import { money } from "../../util/number";
+import { PctIndicator, ValueIndicator } from "../Badge/Badges";
 import { routes } from "../Router";
 import "./Portfolio.scss";
 
 export type PortfolioLinkProps = {
-  portfolio: GetPortfolio;
+  portfolio: EnrichedPortfolio;
 };
 
 export const PortfolioLink = ({ portfolio }: PortfolioLinkProps) => {
@@ -26,7 +27,11 @@ export const PortfolioLink = ({ portfolio }: PortfolioLinkProps) => {
         </Link>
       </Card.Body>
       <Card.Footer>
-        <span className="float-end">Assets {portfolio.num_assets}</span>
+        <span className="float-end">
+          Profit: <ValueIndicator value={portfolio.value.profitLoss} />
+          Profit: <PctIndicator value={portfolio.price.periodChangePct} />
+          Assets: <Badge bg="secondary">{portfolio.num_assets}</Badge>
+        </span>
       </Card.Footer>
     </Card>
   );

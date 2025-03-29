@@ -131,14 +131,7 @@ export const deleteTx =
 const insufficientHoldingCheck = (err: AppError) => {
   switch (true) {
     case err.message.includes("Insufficient holdings"):
-      return validationError(
-        {
-          value: null,
-          context: [],
-          message: err.message,
-        },
-        err.message
-      );
+      return validationError(err.message);
     default:
       return err;
   }

@@ -12,6 +12,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import { numberFromUrl } from "../decoders/params";
 import { toWebError } from "../domain/error";
+import { checkTickerExists } from "../services/yahoo";
 import { getProfile } from "./auth";
 import type { Context } from "./context";
 
@@ -53,11 +54,12 @@ export const createAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
 }) =>
   pipe(
     TE.Do,
-    TE.bind("body", () => pipe(req.body, liftTE(PostAssetDecoder))),
     TE.bind("profile", () => getProfile(res)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
-    TE.bind("execution", ({ body, portfolioId }) =>
-      repo.asset.create(body, portfolioId)
+    TE.bind("asset", () => pipe(req.body, liftTE(PostAssetDecoder))),
+    TE.bind("yahooCheck", ({ asset }) => checkTickerExists(asset.ticker)),
+    TE.bind("execution", ({ asset, portfolioId }) =>
+      repo.asset.create(asset, portfolioId)
     ),
     TE.chain(({ execution: [id], portfolioId, profile }) =>
       repo.asset.get(id, portfolioId, profile.id)
@@ -89,11 +91,12 @@ export const updateAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
   pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
     TE.bind("profile", () => getProfile(res)),
-    TE.bind("body", () => pipe(req.body, liftTE(PostAssetDecoder))),
-    TE.bind("update", ({ id, portfolioId, body }) =>
-      repo.asset.update(id, body, portfolioId)
+    TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
+    TE.bind("asset", () => pipe(req.body, liftTE(PostAssetDecoder))),
+    TE.bind("yahooCheck", ({ asset }) => checkTickerExists(asset.ticker)),
+    TE.bind("update", ({ id, portfolioId, asset }) =>
+      repo.asset.update(id, asset, portfolioId)
     ),
     TE.chain(({ id, portfolioId, profile }) =>
       repo.asset.get(id, portfolioId, profile.id)

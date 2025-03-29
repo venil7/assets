@@ -3,3 +3,6 @@ export const money = (number: number, currency = "GBP"): string => {
     number
   );
 };
+
+export const float = (number: number, prec = 3): string =>
+  number.toPrecision(prec);

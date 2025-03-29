@@ -1,16 +1,20 @@
-import type { GetPortfolio, Identity, Result } from "@darkruby/assets-core";
+import type {
+  EnrichedPortfolio,
+  Identity,
+  Result,
+} from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
 import { getPortfolios } from "../services/portfolio";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type PortfoliosStore = Identity<
-  StoreBase<GetPortfolio[]> & {
-    load: (force?: boolean) => Promise<Result<GetPortfolio[]>>;
+  StoreBase<EnrichedPortfolio[]> & {
+    load: (force?: boolean) => Promise<Result<EnrichedPortfolio[]>>;
   }
 >;
 
 export const createPortfoliosStore = (): PortfoliosStore => {
-  const data = signal<GetPortfolio[]>([]);
+  const data = signal<EnrichedPortfolio[]>([]);
   const storeBase = createStoreBase(data, (t) => !!t.length);
 
   return {

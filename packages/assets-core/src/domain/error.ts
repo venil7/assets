@@ -1,7 +1,8 @@
+import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import { type ValidationError, type Errors as ValidationErrors } from "io-ts";
-import { formatValidationError } from "io-ts-reporters";
+import { formatValidationErrors } from "io-ts-reporters";
 
 export enum AppErrorType {
   General = "General",
@@ -20,18 +21,24 @@ export const generalError = (message: string): AppError => ({
   type: AppErrorType.General,
 });
 
-export const validationError = (
+export const validationError = (message: string): AppError => ({
+  message,
+  type: AppErrorType.Validation,
+});
+
+export const fromValidationError = (
   val: ValidationError,
   fallbackMessage = "validation error"
 ): AppError => {
   return {
     type: AppErrorType.Validation,
     message: pipe(
-      formatValidationError(val),
+      formatValidationErrors([val]),
+      A.head,
       O.getOrElse(() => fallbackMessage)
     ),
   };
 };
 
 export const validationErrors = (vals: ValidationErrors): AppError =>
-  validationError(vals[0]);
+  fromValidationError(vals[0]);

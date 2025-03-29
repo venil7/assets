@@ -25,7 +25,7 @@ export const router = createBrowserRouter(
           element: <PortfolioDetailsScreen />,
         },
         {
-          path: "/portfolios/:portfolioId/asset/:assetId",
+          path: "/portfolios/:portfolioId/assets/:assetId",
           element: <AssetScreen />,
         },
       ],
@@ -49,7 +49,7 @@ const logout = () => "/logout";
 const portfolios = () => "/portfolios";
 const portfolio = (portfolioId: number) => `/portfolios/${portfolioId}`;
 const asset = (portfolioId: number, assetId: number) =>
-  `${portfolio(portfolioId)}/assets/${assetId}}`;
+  `${portfolio(portfolioId)}/assets/${assetId}`;
 
 export const routes = {
   portfolios,

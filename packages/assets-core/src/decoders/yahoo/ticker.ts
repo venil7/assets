@@ -6,7 +6,6 @@ const tickerTypes = {
   shortname: t.string,
   quoteType: t.string,
   symbol: t.string,
-  longname: t.string,
 };
 
 export const YahooTickerDecoder = pipe(t.type(tickerTypes), t.exact);

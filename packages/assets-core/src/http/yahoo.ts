@@ -10,11 +10,12 @@ export const getYahooApi = (methods: Methods) => {
   const CHART_URL = (symbol: string) =>
     `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
 
-  const search = (term: string) =>
-    methods.get<YahooTickerSearchResult>(
+  const search = (term: string) => {
+    return methods.get<YahooTickerSearchResult>(
       SEARCH_URL(term),
       YahooTickerSearchResultDecoder
     );
+  };
 
   const chart = (symbol: string) =>
     methods.get<YahooChartData>(CHART_URL(symbol), YahooChartDataDecoder);

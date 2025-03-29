@@ -1,10 +1,10 @@
-import type { GetAsset, Identity, Nullable } from "@darkruby/assets-core";
+import type { EnrichedAsset, Identity, Nullable } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
 import { getAsset } from "../services/asset";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type AssetDetailsStore = Identity<
-  StoreBase<Nullable<GetAsset>> & {
+  StoreBase<Nullable<EnrichedAsset>> & {
     load: (
       portfolioId: number,
       id: number,
@@ -14,7 +14,7 @@ export type AssetDetailsStore = Identity<
 >;
 
 export const createAssetDetailsStore = (): AssetDetailsStore => {
-  const data = signal<Nullable<GetAsset>>(null);
+  const data = signal<Nullable<EnrichedAsset>>(null);
   const storeBase = createStoreBase(data);
 
   return {

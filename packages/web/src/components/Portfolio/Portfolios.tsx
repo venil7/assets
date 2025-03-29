@@ -1,4 +1,4 @@
-import type { GetPortfolio } from "@darkruby/assets-core";
+import type { EnrichedPortfolio } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import { Stack } from "react-bootstrap";
 import { withError } from "../../decorators/errors";
@@ -7,7 +7,7 @@ import { withNoData } from "../../decorators/nodata";
 import { PortfolioLink } from "./PortfolioLink";
 
 type PortfoliosProps = {
-  portfolios: GetPortfolio[];
+  portfolios: EnrichedPortfolio[];
 };
 
 const RawPortfolios: React.FC<PortfoliosProps> = ({

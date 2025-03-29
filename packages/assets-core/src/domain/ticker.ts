@@ -1,11 +1,11 @@
-export type Ticker = {
-  exchange: string;
-  shortname: string;
-  quoteType: string;
-  symbol: string;
-  longname: string;
-};
+import * as t from "io-ts";
+import type {
+  YahooTickerDecoder,
+  YahooTickerSearchResultDecoder,
+} from "../decoders";
 
-export type TickerSearchResult = {
-  quotes: Ticker[];
-};
+export type Ticker = t.TypeOf<typeof YahooTickerDecoder>;
+
+export type TickerSearchResult = t.TypeOf<
+  typeof YahooTickerSearchResultDecoder
+>;

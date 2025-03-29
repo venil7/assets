@@ -5,6 +5,9 @@ import * as I from "fp-ts/lib/Identity";
 import * as T from "fp-ts/lib/Task";
 import { pipe } from "fp-ts/lib/function";
 import { WebErrorType, type HandlerContext, type WebAppError } from "./error";
+import { createLogger } from "./log";
+
+const logger = createLogger("express");
 
 type ErrorHandler<Ctx> = (
   err: WebAppError
@@ -15,7 +18,7 @@ const errorHandler: ErrorHandler<unknown> =
   ({ params: [{ baseUrl, url, method }, res, next] }) =>
     T.fromIO(() => {
       const error = (code: number) =>
-        console.error(
+        logger.error(
           `${code}: ${method} ${baseUrl + url} - ${err.type} -  ${err.message}`
         );
 
@@ -59,7 +62,7 @@ const successHandler: SuccessHandler<unknown> =
   ({ params: [{ baseUrl, url, method }, res] }) =>
     T.fromIO(() => {
       const code = method.toLowerCase() === "POST" ? 201 : 200;
-      console.info(`${code}: ${method} ${baseUrl + url}`);
+      logger.info(`${code}: ${method} ${baseUrl + url}`);
       res.status(code).send(data);
     });
 

@@ -6,7 +6,7 @@ import {
   FormEdit,
   FormPassword,
   PrimaryButton,
-} from "../components/FormControl";
+} from "../components/Form/FormControl";
 import { useFormData } from "../hooks/formData";
 import { useStore } from "../stores/store";
 

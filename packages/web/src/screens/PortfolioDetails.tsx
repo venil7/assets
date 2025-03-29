@@ -1,31 +1,24 @@
 import { useSignals } from "@preact/signals-react/runtime";
 import { useEffect } from "react";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
+import { PortfolioDetails } from "../components/Portfolio/PortfolioDetails";
 import { useStore } from "../stores/store";
 
-const RawPortfoliosDetails: React.FC = () => {
+const RawPortfolioDetails: React.FC = () => {
   useSignals();
-  const { portfolioDetails } = useStore();
+  const { portfolioDetails: pd } = useStore();
   const { portfolioId } = useParams<{ portfolioId: string }>();
   useEffect(() => {
-    portfolioDetails.load(+portfolioId!);
-  }, [portfolioDetails]);
+    pd.load(+portfolioId!);
+  }, [pd]);
 
   return (
-    <>
-      <h5>portfolio dtails</h5>
-      <pre>{JSON.stringify(portfolioDetails.data.value, null, 2)}</pre>
-      <ul>
-        {portfolioDetails.data.value?.assets.map((ass) => (
-          <li>
-            <Link to={`/portfolio/${ass.portfolio_id}/asset/${ass.id}`}>
-              {ass.name} - £{ass.avg_price}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </>
+    <PortfolioDetails
+      details={pd.data.value}
+      fetching={pd.fetching.value}
+      error={pd.error.value}
+    />
   );
 };
 
-export { RawPortfoliosDetails as PortfolioDetailsScreen };
+export { RawPortfolioDetails as PortfolioDetailsScreen };

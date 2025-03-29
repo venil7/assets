@@ -1,14 +1,14 @@
 ## Todo
 ### backend
- [x] PUT endpoints
- [x] update tx checks sufficiend funds
- [x] enriched portfolio
- [x] user id passed,
- [x] create user, change password
- [ ] create/edit asset checks ticker with yahoo
- [?] wire up cache with yahoo calls
- [ ] summary endoint
- [ ] update tests
+ - [x] PUT endpoints
+ - [x] update tx checks sufficiend funds
+ - [x] enriched portfolio
+ - [x] user id passed,
+ - [x] create user, change password
+ - [x] create/edit asset checks ticker with yahoo
+ - [?] wire up cache with yahoo calls
+ - [ ] summary endoint
+ - [x] update tests
 ### frontend
 
 ## API

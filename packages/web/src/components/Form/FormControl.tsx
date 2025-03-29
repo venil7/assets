@@ -5,7 +5,7 @@ import {
   type ButtonProps,
   type FormControlProps,
 } from "react-bootstrap";
-import { withOverridenProps, withProps } from "../decorators/props";
+import { withOverridenProps, withProps } from "../../decorators/props";
 
 export const FormControl = pipe(
   Form.Control as React.FC<FormControlProps>,
