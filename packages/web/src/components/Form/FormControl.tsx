@@ -44,6 +44,11 @@ const NonSubmittingButton = pipe(
 );
 
 export const PrimaryButton = pipe(
-  NonSubmittingButton, // as React.FC<React.PropsWithChildren & ButtonProps>,
+  NonSubmittingButton,
   withProps({ variant: "primary", type: "button" })
+) as React.FC<React.PropsWithChildren & ButtonProps>;
+
+export const SecondaryButton = pipe(
+  NonSubmittingButton,
+  withProps({ variant: "secondary", type: "button" })
 ) as React.FC<React.PropsWithChildren & ButtonProps>;

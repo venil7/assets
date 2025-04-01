@@ -2,8 +2,33 @@
 @import "~/bootstrap/scss/_variables";
 
 
-.portfolio-link {
+@mixin flex-container-justify-end {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  align-content: center;
+  column-gap: 1em;
+  .start {
+    margin-right: auto;
+  }
+}
+
+@mixin hover-effect {
   &:hover {
-    background-color: darken($body-secondary-bg-dark, 10%);
+    background-color: darken($body-secondary-bg-dark, 5%);
+  }
+}
+
+.portfolios, .portfolio-details {
+  .top-toolbar {
+    @include flex-container-justify-end;
+    padding: 0.5em 0 0.5em 0;
+  }
+  .portfolio-link, .asset-link {
+    @include hover-effect;
+    .card-footer {
+      @include flex-container-justify-end;
+    }
   }
 }

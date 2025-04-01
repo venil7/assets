@@ -36,7 +36,7 @@ export const createAuthStore = (): AuthStore => {
   return {
     ...storeBase,
     tokenExists,
-    load: () => storeBase.update(getToken),
-    login: (form: Credentials) => storeBase.update(login(form)),
+    load: () => storeBase.run(getToken),
+    login: (form: Credentials) => storeBase.run(login(form)),
   };
 };

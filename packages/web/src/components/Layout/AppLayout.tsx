@@ -7,7 +7,6 @@ export const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <Container>
       <TopNav />
-
       <div className="content">{children}</div>
     </Container>
   );

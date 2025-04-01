@@ -1,3 +1,4 @@
+import type { PostAsset, PostPortfolio } from "@darkruby/assets-core";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useEffect } from "react";
 import { useParams } from "react-router";
@@ -12,11 +13,21 @@ const RawPortfolioDetails: React.FC = () => {
     pd.load(+portfolioId!);
   }, [pd]);
 
+  const handleUpdate = (p: PostPortfolio) => pd.update(+portfolioId!, p);
+  const handleAddAsset = (p: PostAsset) => pd.addAsset(+portfolioId!, p);
+  const handleDeleteAsset = (aid: number) => pd.deleteAsset(+portfolioId!, aid);
+  const handleUpdateAsset = (aid: number, a: PostAsset) =>
+    pd.updateAsset(+portfolioId!, aid, a);
+
   return (
     <PortfolioDetails
-      details={pd.data.value}
-      fetching={pd.fetching.value}
       error={pd.error.value}
+      onUpdate={handleUpdate}
+      details={pd.data.value}
+      onAddAsset={handleAddAsset}
+      fetching={pd.fetching.value}
+      onDeleteAsset={handleDeleteAsset}
+      onUpdateAsset={handleUpdateAsset}
     />
   );
 };

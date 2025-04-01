@@ -5,9 +5,11 @@ import { AssetScreen } from "../screens/Asset";
 import { LoginScreen } from "../screens/Login";
 import { PortfolioDetailsScreen } from "../screens/PortfolioDetails";
 import { PortfoliosScreen } from "../screens/Portfolios";
+import { TestScreen } from "../screens/Test";
 import { env } from "../services/env";
 import { store } from "../stores/store";
-import { AuthRouteWrapper } from "./AuthRouteWrapper";
+import { AuthRouteWrapper } from "./Layout/AuthRouteWrapper";
+import { UnauthRouteWrapper } from "./Layout/UnauthRouteWrapper";
 
 const basename = pipe(
   env("VITE_ASSET_BASENAME"),
@@ -19,6 +21,7 @@ export const router = createBrowserRouter(
     {
       element: <AuthRouteWrapper store={store} />,
       children: [
+        { path: "/test", element: <TestScreen /> },
         { path: "/portfolios", element: <PortfoliosScreen /> },
         {
           path: "/portfolios/:portfolioId",
@@ -31,6 +34,7 @@ export const router = createBrowserRouter(
       ],
     },
     {
+      element: <UnauthRouteWrapper />,
       children: [
         { path: "/login", element: <LoginScreen /> },
         { path: "/logout", element: <LoginScreen /> },

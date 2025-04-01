@@ -9,3 +9,8 @@ export type PostPortfolio = t.TypeOf<typeof PostPortfolioDecoder>;
 export type GetPortfolio = t.TypeOf<typeof GetPortfolioDecoder>;
 
 export type EnrichedPortfolio = t.TypeOf<typeof EnrichedPortfolioDecoder>;
+
+export const defaultPortfolio = (): PostPortfolio => ({
+  name: "",
+  description: "",
+});

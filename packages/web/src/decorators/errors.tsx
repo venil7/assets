@@ -1,6 +1,7 @@
 import type { AppError, Identity, Nullable } from "@darkruby/assets-core";
 import React from "react";
 import { Alert } from "react-bootstrap";
+import { Danger } from "../components/Form/Alert";
 import { type Props } from "./fetching";
 
 export type WithError<TProps extends Props> = Identity<
@@ -13,12 +14,10 @@ export function withError<P extends Props>(
 ): React.FC<WithError<P>> {
   return ({ error, ...rest }: WithError<P>) =>
     error ? (
-      <Alert color="danger">
-        <h4 className="alert-heading">Error</h4>
-        <p>{error.type}</p>
-        <hr />
-        <p className="mb-0">{error.message}</p>
-      </Alert>
+      <Danger>
+        <Alert.Heading>{error.type}</Alert.Heading>
+        <p>{error.message}</p>
+      </Danger>
     ) : (
       <Component {...(rest as unknown as P)} />
     );

@@ -16,3 +16,8 @@ export type PeriodPrice = t.TypeOf<typeof PeriodPriceDecoder>;
 export type PeriodValue = t.TypeOf<typeof PeriodValueDecoder>;
 
 export type EnrichedAsset = t.TypeOf<typeof EnrichedAssetDecoder>;
+
+export const defaultAsset = (): PostAsset => ({
+  name: "",
+  ticker: "",
+});

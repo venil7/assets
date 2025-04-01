@@ -9,12 +9,14 @@ import {
   type PortfolioDetailsStore,
 } from "./portfolioDetails";
 import { createPortfoliosStore, type PortfoliosStore } from "./portfolios";
+import { createProfileStore, type ProfileStore } from "./profile";
 
 export type Store = {
   auth: AuthStore;
   portfolios: PortfoliosStore;
   portfolioDetails: PortfolioDetailsStore;
   assetDetails: AssetDetailsStore;
+  profile: ProfileStore;
 };
 
 export const createStore = (): Store => ({
@@ -22,6 +24,7 @@ export const createStore = (): Store => ({
   portfolios: createPortfoliosStore(),
   portfolioDetails: createPortfolioDetailsStore(),
   assetDetails: createAssetDetailsStore(),
+  profile: createProfileStore(),
 });
 
 export const createStoreContext = (): [Store, React.Context<Store>] => {

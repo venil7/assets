@@ -9,6 +9,7 @@ import type {
   PeriodValue,
 } from "../domain";
 import { yahooApi } from "../http";
+import { changeInValue, changeInValuePct } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
 
 export const enrichedAssets = (assets: GetAsset[]): Action<EnrichedAsset[]> =>
@@ -33,16 +34,21 @@ export const enrichAsset = (asset: GetAsset): Action<EnrichedAsset> => {
         }))
       );
 
-      const assetValue: PeriodValue = (() => {
+      const assetValue = ((): PeriodValue => {
         const periodStartValue = price.periodStartPrice * asset.holdings;
         const periodEndValue = price.periodEndPrice * asset.holdings;
-        const profitLoss = pipe(
+        const periodChange = changeInValue(periodStartValue)(periodEndValue);
+        const periodChangePct =
+          changeInValuePct(periodStartValue)(periodEndValue);
+        const totalProfitLoss = pipe(
           O.fromNullable(asset.avg_price),
           O.map(() => periodEndValue - asset.invested),
           O.getOrElse(() => 0)
         );
         return {
-          profitLoss,
+          periodChange,
+          periodChangePct,
+          totalProfitLoss,
           periodStartValue,
           periodEndValue,
         };

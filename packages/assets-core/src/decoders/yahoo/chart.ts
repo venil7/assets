@@ -48,7 +48,6 @@ type RawChartResponse = t.TypeOf<typeof RawChartResponseDecoder>;
 type RawChartResult = NonNullable<RawChartResponse["chart"]["result"]>[0];
 
 type ArrayElement<A> = A extends Array<infer E> ? E : never;
-type Z = RawChartResult["indicators"]["quote"];
 
 type Timestamps = RawChartResult["timestamp"];
 type Indicators = ArrayElement<RawChartResult["indicators"]["quote"]>;

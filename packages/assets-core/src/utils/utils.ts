@@ -10,6 +10,7 @@ export type Replace<T, K extends keyof T, R> = Identity<
 >;
 
 export type Result<T> = E.Either<AppError, T>;
+export type ActionResult<T> = Promise<E.Either<AppError, T>>;
 export type Action<T> = TE.TaskEither<AppError, T>;
 
 export const run = async <A>(test: Action<A>) => {

@@ -1,12 +1,9 @@
-import { max } from "date-fns";
-import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import type {
   EnrichedAsset,
   EnrichedPortfolio,
   GetPortfolio,
-  PeriodPrice,
   PeriodValue,
 } from "../domain";
 import { changeInValue, changeInValuePct, sum } from "../utils/finance";
@@ -35,7 +32,7 @@ export const enrichPortfolio = (
     TE.apS("portfolio", TE.of(portfolio)),
     TE.bind("assets", getEnrichedAssets),
     TE.map(({ portfolio, assets }) => {
-      const portfolioPrice: PeriodPrice = (() => {
+      /*const portfolioPrice: PeriodPrice = (() => {
         const periodStartPrice = pipe(
           assets,
           sum((a) => a.price.periodStartPrice * a.portfolio_contribution)
@@ -62,7 +59,7 @@ export const enrichPortfolio = (
           periodChange,
           lastUpdated,
         };
-      })();
+      })();*/
 
       const portfolioValue: PeriodValue = (() => {
         const periodStartValue = pipe(
@@ -74,18 +71,24 @@ export const enrichPortfolio = (
           sum((a) => a.value.periodEndValue)
         );
 
-        const profitLoss = periodEndValue - portfolio.total_invested;
+        const periodChangePct =
+          changeInValuePct(periodStartValue)(periodEndValue);
+        const periodChange = changeInValue(periodStartValue)(periodEndValue);
+
+        const totalProfitLoss = periodEndValue - portfolio.total_invested;
 
         return {
-          profitLoss,
+          totalProfitLoss,
           periodStartValue,
           periodEndValue,
+          periodChangePct,
+          periodChange,
         };
       })();
 
       return {
         ...portfolio,
-        price: portfolioPrice,
+        // price: portfolioPrice,
         value: portfolioValue,
       };
     })

@@ -1,38 +1,29 @@
-import { defaultCredentials } from "@darkruby/assets-core";
+import type { Credentials } from "@darkruby/assets-core";
 import { useSignals } from "@preact/signals-react/runtime";
-import { Form } from "react-bootstrap";
+import { Col, Row } from "react-bootstrap";
 import { useNavigate } from "react-router";
-import {
-  FormEdit,
-  FormPassword,
-  PrimaryButton,
-} from "../components/Form/FormControl";
-import { useFormData } from "../hooks/formData";
+import { Login } from "../components/Auth/Login";
 import { useStore } from "../stores/store";
+import { wait } from "../util/promise";
 
 const RawLoginScreen: React.FC = () => {
   useSignals();
   const navigate = useNavigate();
   const { auth } = useStore();
-  const [creds, setField] = useFormData(defaultCredentials());
 
-  const handleSubmit = async () => {
-    await auth.login(creds);
-    navigate(`/portfolios`);
+  const handleLogin = (creds: Credentials) => {
+    auth
+      .login(creds)
+      .then(() => wait(0.2))
+      .then(() => navigate(`/portfolios`));
   };
 
   return (
-    <Form>
-      <Form.Group className="mb-3">
-        <Form.Label>login</Form.Label>
-        <FormEdit value={creds.username} onChange={setField("username")} />
-      </Form.Group>
-      <Form.Group className="mb-3">
-        <Form.Label>password</Form.Label>
-        <FormPassword value={creds.password} onChange={setField("password")} />
-      </Form.Group>
-      <PrimaryButton onClick={handleSubmit}>Submit</PrimaryButton>
-    </Form>
+    <Row>
+      <Col md={{ span: 4, offset: 4 }}>
+        <Login onLogin={handleLogin} />
+      </Col>
+    </Row>
   );
 };
 

@@ -1,23 +1,31 @@
+import { defaultPortfolio } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
-import { withOverridenProps } from "../decorators/props";
-
-type SomeProps = { some: number };
-const SomeComponent: React.FC<SomeProps> = ({ some }) => {
-  return <div>{some}</div>;
-};
-
-const SomeOtherComponent = pipe(
-  SomeComponent,
-  withOverridenProps<SomeProps, "some", { some: (n: number[]) => number }>({
-    some: (n: number[]) => n.reduce((x: number, y: number) => x + y),
-  })
-);
+import * as TE from "fp-ts/lib/TaskEither";
+import { PrimaryButton, SecondaryButton } from "../components/Form/FormControl";
+import { confirmationModal } from "../components/Modals/Confirmation";
+import { PortfolioMenu } from "../components/Portfolio/Menu";
+import { portfolioModal } from "../components/Portfolio/PortfolioModal";
 
 const RawTestScreen: React.FC = () => {
+  const handler1 = () => {
+    return pipe(
+      () => portfolioModal(defaultPortfolio()),
+      TE.tapIO((p) => () => console.log(p))
+    )();
+  };
+
+  const handler2 = () => {
+    return pipe(
+      () => confirmationModal("yes or maybe not"),
+      TE.tapIO((p) => () => console.log(p))
+    )();
+  };
+
   return (
     <>
-      <SomeComponent some={10} />
-      <SomeOtherComponent some={[1, 2, 3, 4, 7]} />
+      <PrimaryButton onClick={handler1}>click</PrimaryButton>
+      <SecondaryButton onClick={handler2}>click</SecondaryButton>
+      <PortfolioMenu onDelete={handler1} onEdit={handler1} />
     </>
   );
 };

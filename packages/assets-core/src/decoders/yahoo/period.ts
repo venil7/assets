@@ -10,9 +10,11 @@ const periodPriceTypes = {
 };
 
 const periodValueTypes = {
-  profitLoss: t.number,
+  periodChange: t.number,
+  periodChangePct: t.number,
   periodStartValue: t.number,
   periodEndValue: t.number,
+  totalProfitLoss: t.number,
 };
 
 export const PeriodPriceDecoder = t.type(periodPriceTypes);

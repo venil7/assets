@@ -9,7 +9,7 @@ export type StoreBase<T> = {
   fetching: Signal<boolean>;
   data: Signal<T>;
 
-  update: (action: Action<T>, force?: boolean) => Promise<Result<T>>;
+  run: (action: Action<T>, force?: boolean) => Promise<Result<T>>;
 };
 
 export const createStoreBase = <T>(
@@ -19,10 +19,7 @@ export const createStoreBase = <T>(
   const error = signal<Nullable<AppError>>(null);
   const fetching = signal<boolean>(false);
 
-  const update = async (
-    action: Action<T>,
-    force = false
-  ): Promise<Result<T>> => {
+  const run = async (action: Action<T>, force = false): Promise<Result<T>> => {
     if (!force && dataPresent(data.peek())) {
       return TE.of(data.value)();
     }
@@ -53,6 +50,6 @@ export const createStoreBase = <T>(
     data,
     error,
     fetching,
-    update,
+    run,
   };
 };

@@ -22,3 +22,32 @@ export function withNoData<P extends Props, K extends keyof P>(
     };
   };
 }
+
+export function withCondition<P extends Props, K extends keyof P>(
+  condition: (p: WithNoData<P, K>) => boolean,
+  onConditions: (p: P) => React.ReactNode
+) {
+  return function (Component: React.FC<P>): React.FC<WithNoData<P, K>> {
+    return (props: WithNoData<P, K>) => {
+      const c = condition(props);
+      if (!c) {
+        return onConditions(props as P);
+      }
+      <Component {...(props as unknown as P)} />;
+    };
+  };
+}
+
+export type WithVisibility<TProps extends Props> = Identity<
+  TProps & { hidden?: boolean }
+>;
+export function withVisibility<P extends Props>() {
+  return function (Component: React.FC<P>): React.FC<WithVisibility<P>> {
+    return ({ hidden, ...props }: WithVisibility<P>) => {
+      if (hidden) {
+        return null;
+      }
+      return <Component {...(props as unknown as P)} />;
+    };
+  };
+}

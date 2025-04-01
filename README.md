@@ -9,7 +9,18 @@
  - [?] wire up cache with yahoo calls
  - [ ] summary endoint
  - [x] update tests
+
 ### frontend
+ - [ ] home screen summary
+ - [ ] portfolio details
+ - [ ] asset details
+ - [ ] breadcrumb
+ - [*] login screen
+ - [x] modal box as promise,
+ - [ ] add/edit everything
+ - [ ] delete everything
+ - [ ] user management
+ - [ ] profile management
 
 ## API
 Portfolio API
