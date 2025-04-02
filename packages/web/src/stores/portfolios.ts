@@ -5,6 +5,8 @@ import type {
   PostPortfolio,
 } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
+import * as TE from "fp-ts/lib/TaskEither";
+import { pipe } from "fp-ts/lib/function";
 import {
   createPortfolio,
   deletePortfolio,
@@ -18,10 +20,10 @@ export type PortfoliosStore = Identity<
     load: (force?: boolean) => ActionResult<EnrichedPortfolio[]>;
     create: (p: PostPortfolio) => ActionResult<EnrichedPortfolio[]>;
     update: (
-      portfolioId: number,
+      pid: number,
       p: PostPortfolio
     ) => ActionResult<EnrichedPortfolio[]>;
-    delete: (portfolioId: number) => ActionResult<EnrichedPortfolio[]>;
+    delete: (pid: number) => ActionResult<EnrichedPortfolio[]>;
   }
 >;
 
@@ -32,10 +34,30 @@ export const createPortfoliosStore = (): PortfoliosStore => {
   return {
     ...storeBase,
     load: (force = false) => storeBase.run(getPortfolios(), force),
-    create: (p: PostPortfolio) => storeBase.run(createPortfolio(p), true),
-    update: (portfolioId: number, p: PostPortfolio) =>
-      storeBase.run(updatePortfolio(portfolioId, p), true),
-    delete: (portfolioId: number) =>
-      storeBase.run(deletePortfolio(portfolioId), true),
+    create: (p: PostPortfolio) =>
+      storeBase.run(
+        pipe(
+          createPortfolio(p),
+          TE.chain(() => getPortfolios())
+        ),
+        true
+      ),
+    update: (pid: number, p: PostPortfolio) =>
+      storeBase.run(
+        pipe(
+          updatePortfolio(pid, p),
+          TE.chain(() => getPortfolios())
+        ),
+
+        true
+      ),
+    delete: (pid: number) =>
+      storeBase.run(
+        pipe(
+          deletePortfolio(pid),
+          TE.chain(() => getPortfolios())
+        ),
+        true
+      ),
   };
 };

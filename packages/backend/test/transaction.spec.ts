@@ -1,4 +1,4 @@
-import type { AppError, PostTransaction } from "@darkruby/assets-core";
+import type { AppError, PostTx } from "@darkruby/assets-core";
 import { run } from "@darkruby/assets-core";
 import { beforeAll, expect, test } from "bun:test";
 import { pipe } from "fp-ts/lib/function";
@@ -10,7 +10,7 @@ beforeAll(async () => {
   api = await run(nonAdminApi());
 });
 
-const buyTx: PostTransaction = fakeBuy(10, 100);
+const buyTx: PostTx = fakeBuy(10, 100);
 
 test("Create transaction", async () => {
   const {

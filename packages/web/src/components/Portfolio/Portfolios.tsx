@@ -3,6 +3,7 @@ import {
   type EnrichedPortfolio,
   type PostPortfolio,
 } from "@darkruby/assets-core";
+import { sum } from "@darkruby/assets-core/src/utils/finance";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Button, Stack, type ButtonProps } from "react-bootstrap";
@@ -10,6 +11,7 @@ import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { withProps } from "../../decorators/props";
+import { money } from "../../util/number";
 import { HorizontalStack } from "../Layout/Stack";
 import { PortfolioLink } from "./PortfolioLink";
 import { portfolioModal } from "./PortfolioModal";
@@ -32,9 +34,21 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
   const handleUpdate = (pid: number) => (p: PostPortfolio) => onUpdate(pid, p);
   const handleDelete = (pid: number) => () => onDelete(pid);
 
+  const total = pipe(
+    portfolios,
+    sum((p) => p.value.periodEndValue)
+  );
+  const totalProfitLoss = pipe(
+    portfolios,
+    sum((p) => p.value.totalProfitLoss)
+  );
+
   return (
     <div className="portfolios">
       <HorizontalStack className="top-toolbar">
+        <h2 className="start">
+          {money(total)} ({money(totalProfitLoss)})
+        </h2>
         <AddBtn onClick={handleAdd} />
       </HorizontalStack>
       <Stack gap={3}>

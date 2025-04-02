@@ -5,20 +5,20 @@ import { StoreContext } from "../stores/store";
 
 const RawAssetScreen: React.FC = () => {
   useSignals();
-  const { assetDetails } = use(StoreContext);
+  const { asset } = use(StoreContext);
   const { assetId, portfolioId } = useParams<{
     assetId: string;
     portfolioId: string;
   }>();
 
   useEffect(() => {
-    assetDetails.load(+portfolioId!, +assetId!);
-  }, [assetDetails]);
+    asset.load(+portfolioId!, +assetId!);
+  }, [asset]);
 
   return (
     <>
-      <h5>{assetDetails.data.value?.name}</h5>
-      <pre>{JSON.stringify(assetDetails.data.value, null, 2)}</pre>
+      <h5>{asset.data.value?.name}</h5>
+      <pre>{JSON.stringify(asset.data.value, null, 2)}</pre>
     </>
   );
 };

@@ -22,13 +22,11 @@ export const PortfolioLink = ({
   onUpdate,
   onDelete,
 }: PortfolioLinkProps) => {
-  const handleUpdate = () =>
-    pipe(() => portfolioModal(portfolio), TE.map(onUpdate))();
-  const handleDelete = () =>
-    pipe(
-      () => confirmationModal(`Delete portfolio ${portfolio.name}?`),
-      TE.map(onDelete)
-    )();
+  const handleUpdate = pipe(() => portfolioModal(portfolio), TE.map(onUpdate));
+  const handleDelete = pipe(
+    () => confirmationModal(`Delete '${portfolio.name}'?`),
+    TE.map(onDelete)
+  );
 
   return (
     <Card className="portfolio-link">
@@ -37,7 +35,10 @@ export const PortfolioLink = ({
           <Card.Title className="name">
             <Stack direction="horizontal">
               <div>{portfolio.name}</div>
-              <div className="ms-auto">{money(portfolio.total_invested)}</div>
+              <div className="ms-auto">
+                {money(portfolio.value.periodEndValue)} (
+                {money(portfolio.value.totalProfitLoss)})
+              </div>
             </Stack>
           </Card.Title>
           <Card.Subtitle className="description">

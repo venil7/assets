@@ -1,17 +1,17 @@
-import type {
-  EnrichedAsset,
-  EnrichedPortfolio,
-  Identity,
-} from "@darkruby/assets-core";
+// import type {
+//   EnrichedAsset,
+//   EnrichedPortfolio,
+//   Identity,
+// } from "@darkruby/assets-core";
 
-export type PortfolioDetails = Identity<
-  EnrichedPortfolio & { assets: EnrichedAsset[] }
->;
+// export type PortfolioDetails = Identity<
+//   EnrichedPortfolio & { assets: EnrichedAsset[] }
+// >;
 
-export const portfolioDetails = (
-  p: EnrichedPortfolio,
-  assets: EnrichedAsset[]
-): PortfolioDetails => ({
-  ...p,
-  assets,
-});
+// export const portfolioDetails = (
+//   p: EnrichedPortfolio,
+//   assets: EnrichedAsset[]
+// ): PortfolioDetails => ({
+//   ...p,
+//   assets,
+// });

@@ -1,7 +1,10 @@
 import {
   defaultAsset,
+  type EnrichedAsset,
+  type EnrichedPortfolio,
   type PostAsset,
   type PostPortfolio,
+  type PostTx,
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -10,7 +13,7 @@ import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { withProps } from "../../decorators/props";
-import type { PortfolioDetails } from "../../domain/portfolioDetails";
+import { money } from "../../util/number";
 import { AssetLink } from "../Asset/AssetLink";
 import { assetModal } from "../Asset/AssetModal";
 import { Info } from "../Form/Alert";
@@ -18,44 +21,53 @@ import { HorizontalStack } from "../Layout/Stack";
 import { portfolioModal } from "./PortfolioModal";
 
 type PortfolioDetailsProps = {
-  details: PortfolioDetails;
+  portfolio: EnrichedPortfolio;
+  assets: EnrichedAsset[];
   onUpdate: (p: PostPortfolio) => void;
 
   onAddAsset: (a: PostAsset) => void;
+  onAddTx: (aid: number, a: PostTx) => void;
   onUpdateAsset: (aid: number, a: PostAsset) => void;
   onDeleteAsset: (aid: number) => void;
 };
 
 const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
-  details,
+  portfolio,
+  assets,
   onUpdate,
   onAddAsset,
   onDeleteAsset,
   onUpdateAsset,
+  onAddTx,
 }: PortfolioDetailsProps) => {
   const handleAddAsset = () =>
     pipe(() => assetModal(defaultAsset()), TE.map(onAddAsset))();
   const handleUpdateAsset = (aid: number) => (a: PostAsset) =>
     onUpdateAsset(aid, a);
+  const handleAddTx = (aid: number) => (t: PostTx) => onAddTx(aid, t);
   const handleDeleteAsset = (aid: number) => () => onDeleteAsset(aid);
 
   const handleUpdate = () =>
-    pipe(() => portfolioModal(details), TE.map(onUpdate));
+    pipe(() => portfolioModal(portfolio), TE.map(onUpdate));
 
   return (
     <div className="portfolio-details">
       <HorizontalStack className="top-toolbar">
-        <h3 className="start">{details.name}</h3>
+        <h3 className="start">
+          {portfolio.name}: {money(portfolio.value.periodEndValue)} (
+          {money(portfolio.value.totalProfitLoss)})
+        </h3>
         <AddBtn onClick={handleAddAsset} />
       </HorizontalStack>
-      <Info hidden={!!details.assets.length}>
+      <Info hidden={!!assets.length}>
         This portfolio doesn have any assets yet
       </Info>
       <Stack gap={3}>
-        {details.assets.map((asset) => (
+        {assets.map((asset) => (
           <AssetLink
             key={asset.id}
             asset={asset}
+            onAddTx={handleAddTx(asset.id)}
             onUpdate={handleUpdateAsset(asset.id)}
             onDelete={handleDeleteAsset(asset.id)}
           />
@@ -67,7 +79,7 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
 
 const DecoratedPortfolioDetails = pipe(
   RawPortfolioDetails,
-  withNoData<PortfolioDetailsProps, "details">((p) => p.details),
+  withNoData<PortfolioDetailsProps, "portfolio">((p) => p.portfolio),
   withFetching,
   withError
 );

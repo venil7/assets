@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      # - master
+      - master
       - release
 
 jobs:
@@ -27,3 +27,8 @@ jobs:
         with:
           push: true
           tags: raspi4:6363/${{ vars.CONTAINER_REGISTRY_USERNAME }}/assets #${{ env.BUILD_TAG }}
+      - name: ALSO PUSH TO GITHUB
+        run: |
+          echo secrets.GTHB_CR_TOKEN | docker login ghcr.io -u venil7 --password-stdin
+          docker tag raspi4:6363/darkruby/assets:latest ghcr.io/venil7/assets:latest
+          docker push ghcr.io/venil7/assets:latest

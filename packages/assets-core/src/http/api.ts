@@ -13,10 +13,10 @@ import type {
   Credentials,
   EnrichedAsset,
   EnrichedPortfolio,
-  GetTransaction,
+  GetTx,
   PostAsset,
   PostPortfolio,
-  PostTransaction,
+  PostTx,
   Profile,
   TickerSearchResult,
 } from "../domain";
@@ -93,22 +93,14 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const deleteAsset = (portfolioId: number, id: number) =>
     methods.delete<Id>(ASSET_URL(portfolioId, id), IdDecoder);
 
-  const createTx = (assetId: number, tx: PostTransaction) =>
-    methods.post<GetTransaction, PostTransaction>(
-      TXS_URL(assetId),
-      tx,
-      GetTxDecoder
-    );
-  const updateTx = (txId: number, assetId: number, tx: PostTransaction) =>
-    methods.put<GetTransaction, PostTransaction>(
-      TX_URL(assetId, txId),
-      tx,
-      GetTxDecoder
-    );
+  const createTx = (assetId: number, tx: PostTx) =>
+    methods.post<GetTx, PostTx>(TXS_URL(assetId), tx, GetTxDecoder);
+  const updateTx = (txId: number, assetId: number, tx: PostTx) =>
+    methods.put<GetTx, PostTx>(TX_URL(assetId, txId), tx, GetTxDecoder);
   const getTx = (assetId: number, id: number) =>
-    methods.get<GetTransaction>(TX_URL(assetId, id), GetTxDecoder);
+    methods.get<GetTx>(TX_URL(assetId, id), GetTxDecoder);
   const getTxs = (assetId: number) =>
-    methods.get<GetTransaction[]>(TXS_URL(assetId), GetTxsDecoder);
+    methods.get<GetTx[]>(TXS_URL(assetId), GetTxsDecoder);
   const deleteTx = (assetId: number, id: number) =>
     methods.delete<Id>(TX_URL(assetId, id), IdDecoder);
 

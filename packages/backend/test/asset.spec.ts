@@ -1,4 +1,4 @@
-import { run, type PostTransaction } from "@darkruby/assets-core";
+import { run, type PostTx } from "@darkruby/assets-core";
 import { beforeAll, expect, test } from "bun:test";
 import { pipe } from "fp-ts/lib/function";
 import * as A from "fp-ts/lib/ReadonlyArray";
@@ -88,11 +88,7 @@ test("Calculate holding, invested and avg_price", async () => {
     api.asset.create(portfolioId!, fakeAsset())
   );
 
-  const txs: PostTransaction[] = [
-    fakeBuy(10, 100),
-    fakeBuy(20, 110),
-    fakeBuy(30, 130),
-  ];
+  const txs: PostTx[] = [fakeBuy(10, 100), fakeBuy(20, 110), fakeBuy(30, 130)];
   for (const tx of txs) {
     await run(api.tx.create(assetId!, tx));
   }

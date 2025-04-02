@@ -1,5 +1,7 @@
-import type { PostAsset, PostPortfolio } from "@darkruby/assets-core";
+import type { PostAsset, PostPortfolio, PostTx } from "@darkruby/assets-core";
 import { useSignals } from "@preact/signals-react/runtime";
+import { pipe } from "fp-ts/lib/function";
+import * as TE from "fp-ts/lib/TaskEither";
 import { useEffect } from "react";
 import { useParams } from "react-router";
 import { PortfolioDetails } from "../components/Portfolio/PortfolioDetails";
@@ -7,27 +9,35 @@ import { useStore } from "../stores/store";
 
 const RawPortfolioDetails: React.FC = () => {
   useSignals();
-  const { portfolioDetails: pd } = useStore();
+  const { portfolio, assets, txs } = useStore();
   const { portfolioId } = useParams<{ portfolioId: string }>();
   useEffect(() => {
-    pd.load(+portfolioId!);
-  }, [pd]);
+    portfolio.load(+portfolioId!);
+    assets.load(+portfolioId!);
+  }, [portfolio]);
 
-  const handleUpdate = (p: PostPortfolio) => pd.update(+portfolioId!, p);
-  const handleAddAsset = (p: PostAsset) => pd.addAsset(+portfolioId!, p);
-  const handleDeleteAsset = (aid: number) => pd.deleteAsset(+portfolioId!, aid);
+  const handleUpdate = (p: PostPortfolio) => portfolio.update(+portfolioId!, p);
+  const handleAddAsset = (p: PostAsset) => assets.create(+portfolioId!, p);
+  const handleDeleteAsset = (aid: number) => assets.delete(+portfolioId!, aid);
   const handleUpdateAsset = (aid: number, a: PostAsset) =>
-    pd.updateAsset(+portfolioId!, aid, a);
+    assets.update(+portfolioId!, aid, a);
+  const handleAddTx = (aid: number, t: PostTx) =>
+    pipe(
+      () => txs.create(aid, t),
+      TE.chain(() => () => portfolio.load(+portfolioId!))
+    )();
 
   return (
     <PortfolioDetails
-      error={pd.error.value}
+      onAddTx={handleAddTx}
       onUpdate={handleUpdate}
-      details={pd.data.value}
+      assets={assets.data.value}
       onAddAsset={handleAddAsset}
-      fetching={pd.fetching.value}
+      portfolio={portfolio.data.value}
       onDeleteAsset={handleDeleteAsset}
       onUpdateAsset={handleUpdateAsset}
+      fetching={portfolio.fetching.value}
+      error={portfolio.error.value || assets.error.value}
     />
   );
 };

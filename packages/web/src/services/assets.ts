@@ -8,37 +8,34 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
 
-export const getAssets = (portfolioId: number): Action<EnrichedAsset[]> => {
+export const getAssets = (pid: number): Action<EnrichedAsset[]> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ asset }) => asset.getMany(portfolioId))
+    TE.chain(({ asset }) => asset.getMany(pid))
   );
 };
 
-export const getAsset = (
-  portfolioId: number,
-  id: number
-): Action<EnrichedAsset> => {
+export const getAsset = (pid: number, aid: number): Action<EnrichedAsset> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ asset }) => asset.get(portfolioId, id))
+    TE.chain(({ asset }) => asset.get(pid, aid))
   );
 };
 
-export const deleteAsset = (portfolioId: number, id: number): Action<Id> => {
+export const deleteAsset = (pid: number, aid: number): Action<Id> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ asset }) => asset.delete(portfolioId, id))
+    TE.chain(({ asset }) => asset.delete(pid, aid))
   );
 };
 
 export const createAsset = (
-  portfolioId: number,
+  pid: number,
   a: PostAsset
 ): Action<EnrichedAsset> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ asset }) => asset.create(portfolioId, a))
+    TE.chain(({ asset }) => asset.create(pid, a))
   );
 };
 
@@ -49,6 +46,6 @@ export const updateAsset = (
 ): Action<EnrichedAsset> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ asset }) => asset.update(pid, aid, a))
+    TE.chain(({ asset }) => asset.update(aid, pid, a))
   );
 };

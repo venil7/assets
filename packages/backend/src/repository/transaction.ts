@@ -2,9 +2,9 @@ import {
   validationError,
   type Action,
   type AppError,
-  type GetTransaction,
+  type GetTx,
   type Optional,
-  type PostTransaction,
+  type PostTx,
   type UserId,
 } from "@darkruby/assets-core";
 import {
@@ -28,7 +28,7 @@ export const getTxs =
     assetId: number,
     userId: UserId,
     paging = defaultPaging()
-  ): Action<GetTransaction[]> =>
+  ): Action<GetTx[]> =>
     pipe(
       db,
       queryMany<unknown[]>(
@@ -46,11 +46,7 @@ export const getTxs =
 
 export const getTx =
   (db: Database) =>
-  (
-    id: number,
-    assetId: number,
-    userId: UserId
-  ): Action<Optional<GetTransaction>> => {
+  (id: number, assetId: number, userId: UserId): Action<Optional<GetTx>> => {
     return pipe(
       db,
       queryOne(
@@ -68,11 +64,7 @@ export const getTx =
 
 export const createTx =
   (db: Database) =>
-  (
-    tx: PostTransaction,
-    assetId: number,
-    userId: UserId
-  ): Action<ExecutionResult> =>
+  (tx: PostTx, assetId: number, userId: UserId): Action<ExecutionResult> =>
     pipe(
       db,
       execute<unknown[]>(
@@ -89,7 +81,7 @@ export const updateTx =
   (db: Database) =>
   (
     transactionId: number,
-    tx: PostTransaction,
+    tx: PostTx,
     assetId: number,
     userId: UserId
   ): Action<ExecutionResult> =>

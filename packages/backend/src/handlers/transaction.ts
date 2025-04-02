@@ -1,4 +1,4 @@
-import type { GetTransaction, Optional } from "@darkruby/assets-core";
+import type { GetTx, Optional } from "@darkruby/assets-core";
 import { PostTxDecoder } from "@darkruby/assets-core/src/decoders/transaction";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { Id } from "@darkruby/assets-core/src/domain/id";
@@ -10,7 +10,7 @@ import { toWebError } from "../domain/error";
 import { getProfile } from "./auth";
 import type { Context } from "./context";
 
-export const getTxs: HandlerTask<GetTransaction[], Context> = ({
+export const getTxs: HandlerTask<GetTx[], Context> = ({
   params: [req, res],
   context: { repo },
 }) =>
@@ -25,7 +25,7 @@ export const getTxs: HandlerTask<GetTransaction[], Context> = ({
     TE.mapLeft(toWebError)
   );
 
-export const getTx: HandlerTask<Optional<GetTransaction>, Context> = ({
+export const getTx: HandlerTask<Optional<GetTx>, Context> = ({
   params: [req, res],
   context: { repo },
 }) =>
@@ -40,7 +40,7 @@ export const getTx: HandlerTask<Optional<GetTransaction>, Context> = ({
     TE.mapLeft(toWebError)
   );
 
-export const createTx: HandlerTask<Optional<GetTransaction>, Context> = ({
+export const createTx: HandlerTask<Optional<GetTx>, Context> = ({
   params: [req, res],
   context: { repo },
 }) =>
@@ -71,7 +71,7 @@ export const deleteTx: HandlerTask<Optional<Id>, Context> = ({
     TE.mapLeft(toWebError)
   );
 
-export const updateTx: HandlerTask<Optional<GetTransaction>, Context> = ({
+export const updateTx: HandlerTask<Optional<GetTx>, Context> = ({
   params: [req, res],
   context: { repo },
 }) =>

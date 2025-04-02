@@ -17,12 +17,13 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   text,
   open,
   onSubmit,
+  onClose,
 }) => {
   const handleOk = () => onSubmit(true);
-  const handleCancel = () => onSubmit(false);
+  const handleCancel = () => onClose();
   return (
     <Modal show={open}>
-      <ModalHeader>confimration</ModalHeader>
+      <ModalHeader>Confirm</ModalHeader>
       <ModalBody>{text}</ModalBody>
       <ConfirmationModalFooter onOk={handleOk} onCancel={handleCancel} />
     </Modal>

@@ -5,8 +5,8 @@ import {
   type Credentials,
   type PostAsset,
   type PostPortfolio,
-  type PostTransaction,
-  type TransactionType,
+  type PostTx,
+  type TxType,
 } from "@darkruby/assets-core";
 import faker from "faker";
 import { pipe } from "fp-ts/lib/function";
@@ -32,10 +32,10 @@ export const fakeAsset = (
 });
 
 export const fakeTx = (
-  type: TransactionType,
+  type: TxType,
   quantity = faker.datatype.number(100),
   price = faker.datatype.number(100)
-): PostTransaction => ({
+): PostTx => ({
   type,
   quantity,
   price,
@@ -67,11 +67,7 @@ const createPortfolioAsset =
 
 const createPortfolioAssetTx =
   (api: Api) =>
-  (
-    tx: PostTransaction,
-    asset: PostAsset = fakeAsset(),
-    portfolio = fakePortfolio()
-  ) =>
+  (tx: PostTx, asset: PostAsset = fakeAsset(), portfolio = fakePortfolio()) =>
     pipe(
       createPortfolioAsset(api)(asset, portfolio),
       TE.bind("tx", ({ asset }) => api.tx.create(asset.id!, tx))
@@ -79,7 +75,7 @@ const createPortfolioAssetTx =
 
 const createPortfolioAssetTxs =
   (api: Api) =>
-  (txs: PostTransaction[], portfolio = fakePortfolio(), asset = fakeAsset()) =>
+  (txs: PostTx[], portfolio = fakePortfolio(), asset = fakeAsset()) =>
     pipe(
       createPortfolioAsset(api)(asset, portfolio),
       TE.bind("txs", ({ asset }) =>

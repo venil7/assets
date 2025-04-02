@@ -25,6 +25,7 @@ export const FormControl = pipe(
 );
 
 export const FormEdit = pipe(FormControl, withProps({ type: "text" }));
+export const TextArea = pipe(FormControl, withProps({ type: "textarea" }));
 export const FormPassword = pipe(FormControl, withProps({ type: "password" }));
 
 const NonSubmittingButton = pipe(

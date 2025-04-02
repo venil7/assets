@@ -46,10 +46,5 @@ export const createStoreBase = <T>(
     )();
   };
 
-  return {
-    data,
-    error,
-    fetching,
-    run,
-  };
+  return { data, error, fetching, run };
 };
