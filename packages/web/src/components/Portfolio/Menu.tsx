@@ -11,12 +11,7 @@ export const PortfolioMenu: React.FC<PortfolioMenuProps> = ({
   onEdit,
 }: PortfolioMenuProps) => {
   return (
-    <DropdownButton
-      variant="outline-primary"
-      size="sm"
-      // as={ButtonGroup}
-      title={<></>}
-    >
+    <DropdownButton variant="outline-primary" size="sm" title={<></>}>
       <Dropdown.Item onClick={onEdit} eventKey="1">
         Edit
       </Dropdown.Item>

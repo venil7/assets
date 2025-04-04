@@ -1,0 +1,31 @@
+// <div class="react-select-container">
+//   <div class="react-select__control">
+//     <div class="react-select__value-container">...</div>
+//     <div class="react-select__indicators">...</div>
+//   </div>
+//   <div class="react-select__menu">
+//     <div class="react-select__menu-list">
+//       <div class="react-select__option">...</div>
+//     </div>
+//   </div>
+// </div>
+
+@import "~/bootstrap/scss/_functions";
+@import "~/bootstrap/scss/_variables";
+
+
+.ticker-lookup-container {
+  .ticker-lookup__control {
+    .ticker-lookup__input-container, .ticker-lookup__single-value {
+      color: lightgray;
+    }
+    background-color: $dropdown-dark-bg;
+  }
+  .ticker-lookup__option {
+    background-color: $dropdown-dark-bg;
+    &:hover {
+      background-color: lighten($dropdown-dark-bg, 15%);
+    }
+    color: $dropdown-dark-color;
+  }
+}

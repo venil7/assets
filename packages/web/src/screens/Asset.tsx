@@ -1,11 +1,13 @@
+import type { PostAsset, PostTx } from "@darkruby/assets-core";
 import { useSignals } from "@preact/signals-react/runtime";
 import { use, useEffect } from "react";
 import { useParams } from "react-router";
+import { Asset } from "../components/Asset/Asset";
 import { StoreContext } from "../stores/store";
 
 const RawAssetScreen: React.FC = () => {
   useSignals();
-  const { asset } = use(StoreContext);
+  const { asset, txs } = use(StoreContext);
   const { assetId, portfolioId } = useParams<{
     assetId: string;
     portfolioId: string;
@@ -13,12 +15,28 @@ const RawAssetScreen: React.FC = () => {
 
   useEffect(() => {
     asset.load(+portfolioId!, +assetId!);
+    txs.load(+assetId!);
   }, [asset]);
+
+  const handleEdit = (a: PostAsset) =>
+    asset.update(+portfolioId!, +assetId!, a);
+  const handleAddTx = (tx: PostTx) => txs.create(+assetId!, tx);
+  const handleEditTx = (txid: number, tx: PostTx) =>
+    txs.update(+assetId!, txid, tx);
+  const handleDeleteTx = (txid: number) => txs.delete(+assetId!, txid);
 
   return (
     <>
-      <h5>{asset.data.value?.name}</h5>
-      <pre>{JSON.stringify(asset.data.value, null, 2)}</pre>
+      <Asset
+        onEdit={handleEdit}
+        txs={txs.data.value}
+        onAddTx={handleAddTx}
+        onEditTx={handleEditTx}
+        asset={asset.data.value}
+        error={asset.error.value}
+        onDeleteTx={handleDeleteTx}
+        fetching={asset.fetching.value}
+      />
     </>
   );
 };

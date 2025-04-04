@@ -11,14 +11,16 @@
  - [x] update tests
 
 ### frontend
+ - non epmty string decoder
+ - select<T> based on react-select
  - [ ] home screen summary
- - [ ] portfolio details
- - [ ] asset details
+ - [x] portfolio details
+ - [x] asset details
  - [ ] breadcrumb
  - [*] login screen
  - [x] modal box as promise,
- - [ ] add/edit everything
- - [ ] delete everything
+ - [*] add/edit everything
+ - [x] delete everything
  - [ ] user management
  - [ ] profile management
 

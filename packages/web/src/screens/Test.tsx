@@ -5,6 +5,7 @@ import { PrimaryButton, SecondaryButton } from "../components/Form/FormControl";
 import { confirmationModal } from "../components/Modals/Confirmation";
 import { PortfolioMenu } from "../components/Portfolio/Menu";
 import { portfolioModal } from "../components/Portfolio/PortfolioModal";
+import { TickerLookup } from "../components/Tx/TickerLookup";
 
 const RawTestScreen: React.FC = () => {
   const handler1 = () => {
@@ -26,6 +27,7 @@ const RawTestScreen: React.FC = () => {
       <PrimaryButton onClick={handler1}>click</PrimaryButton>
       <SecondaryButton onClick={handler2}>click</SecondaryButton>
       <PortfolioMenu onDelete={handler1} onEdit={handler1} />
+      <TickerLookup onSelect={console.log} />
     </>
   );
 };

@@ -1,7 +1,8 @@
-import { type PostAsset } from "@darkruby/assets-core";
+import { type PostAsset, type Ticker } from "@darkruby/assets-core";
 import { Form } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
 import { FormEdit } from "../Form/FormControl";
+import { TickerLookup } from "../Tx/TickerLookup";
 
 export type AssetFormProps = {
   asset: PostAsset;
@@ -11,8 +12,15 @@ export type AssetFormProps = {
 export const AssetForm: React.FC<AssetFormProps> = ({ asset, onChange }) => {
   const setField = usePartialChange(asset, onChange);
 
+  const handeSelect = ({ shortname: name, symbol: ticker }: Ticker) =>
+    onChange({ ticker, name });
+
   return (
     <Form>
+      <Form.Group className="mb-3">
+        <Form.Label>Lookup</Form.Label>
+        <TickerLookup onSelect={handeSelect} />
+      </Form.Group>
       <Form.Group className="mb-3">
         <Form.Label>Name</Form.Label>
         <FormEdit value={asset.name} onChange={setField("name")} />

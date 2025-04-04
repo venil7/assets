@@ -35,7 +35,7 @@ export const updateTx = (
 ): Action<GetTx> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ tx }) => tx.update(aid, tid, t))
+    TE.chain(({ tx }) => tx.update(tid, aid, t))
   );
 };
 

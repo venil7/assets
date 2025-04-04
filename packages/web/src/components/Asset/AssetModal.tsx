@@ -6,6 +6,7 @@ import {
   createDialog,
   type DialogDrivenComponentProps,
 } from "../../util/modal";
+import { assetValidator } from "../../validation/asset";
 import { ConfirmationModalFooter } from "../Modals/Footer";
 import { AssetForm } from "./AssetForm";
 
@@ -19,13 +20,20 @@ export const AssetModal: React.FC<AssetModalProps> = ({
 }) => {
   const [asset, setPortfolio] = useState<PostAsset>(value!);
   const handleOk = () => onSubmit(asset);
+
+  const { valid } = assetValidator(asset);
+
   return (
     <Modal show={open}>
       <ModalHeader>Portfolio</ModalHeader>
       <ModalBody>
         <AssetForm asset={asset} onChange={setPortfolio} />
       </ModalBody>
-      <ConfirmationModalFooter onOk={handleOk} onCancel={onClose} />
+      <ConfirmationModalFooter
+        disabled={!valid}
+        onOk={handleOk}
+        onCancel={onClose}
+      />
     </Modal>
   );
 };

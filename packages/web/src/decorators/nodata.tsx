@@ -23,17 +23,17 @@ export function withNoData<P extends Props, K extends keyof P>(
   };
 }
 
-export function withCondition<P extends Props, K extends keyof P>(
-  condition: (p: WithNoData<P, K>) => boolean,
+export function withCondition<P extends Props>(
+  condition: (p: P) => boolean,
   onConditions: (p: P) => React.ReactNode
 ) {
-  return function (Component: React.FC<P>): React.FC<WithNoData<P, K>> {
-    return (props: WithNoData<P, K>) => {
+  return function (Component: React.FC<P>): React.FC<P> {
+    return (props: P) => {
       const c = condition(props);
       if (!c) {
         return onConditions(props as P);
       }
-      <Component {...(props as unknown as P)} />;
+      return <Component {...(props as unknown as P)} />;
     };
   };
 }

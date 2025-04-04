@@ -10,11 +10,13 @@ type ConfirmationModalFooterProps = {
 
 export const ConfirmationModalFooter: React.FC<
   ConfirmationModalFooterProps
-> = ({ onOk, onCancel }) => {
+> = ({ onOk, onCancel, disabled }) => {
   return (
     <ModalFooter>
+      <PrimaryButton disabled={disabled} onClick={onOk}>
+        OK
+      </PrimaryButton>
       <SecondaryButton onClick={onCancel}>Cancel</SecondaryButton>
-      <PrimaryButton onClick={onOk}>OK</PrimaryButton>
     </ModalFooter>
   );
 };
