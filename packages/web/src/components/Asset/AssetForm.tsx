@@ -13,7 +13,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onChange }) => {
   const setField = usePartialChange(asset, onChange);
 
   const handeSelect = ({ shortname: name, symbol: ticker }: Ticker) =>
-    onChange({ ticker, name });
+    onChange({ ticker, name: name ?? ticker });
 
   return (
     <Form>

@@ -5,19 +5,16 @@ import type {
   PostAssetDecoder,
 } from "../decoders/asset";
 import type {
-  PeriodPriceDecoder,
-  PeriodValueDecoder,
+  PeriodChangesDecoder,
+  TotalsDecoder,
 } from "../decoders/yahoo/period";
 
 export type PostAsset = t.TypeOf<typeof PostAssetDecoder>;
 export type GetAsset = t.TypeOf<typeof GetAssetDecoder>;
 
-export type PeriodPrice = t.TypeOf<typeof PeriodPriceDecoder>;
-export type PeriodValue = t.TypeOf<typeof PeriodValueDecoder>;
+export type PeriodChanges = t.TypeOf<typeof PeriodChangesDecoder>;
+export type Totals = t.TypeOf<typeof TotalsDecoder>;
 
 export type EnrichedAsset = t.TypeOf<typeof EnrichedAssetDecoder>;
 
-export const defaultAsset = (): PostAsset => ({
-  name: "",
-  ticker: "",
-});
+export const defaultAsset = (): PostAsset => ({ name: "", ticker: "" });

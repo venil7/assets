@@ -5,13 +5,18 @@ import { float, money } from "../../util/number";
 
 type ChangeIndicatorPros = {
   value: number;
+  info?: boolean;
   formatter: (n: number) => string;
 };
 export const ChangeIndicator: React.FC<ChangeIndicatorPros> = ({
   value,
   formatter,
+  info = false,
 }) => {
-  const color = value < 0 ? "danger" : value > 0 ? "success" : "secondary";
+  const color = (() => {
+    if (info) return "info";
+    return value < 0 ? "danger" : value > 0 ? "success" : "secondary";
+  })();
   return <Badge bg={color}>{formatter(value)}</Badge>;
 };
 

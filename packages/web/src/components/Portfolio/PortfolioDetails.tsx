@@ -54,8 +54,8 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
     <div className="portfolio-details">
       <HorizontalStack className="top-toolbar">
         <h3 className="start">
-          {portfolio.name}: {money(portfolio.value.periodEndValue)} (
-          {money(portfolio.value.totalProfitLoss)})
+          {portfolio.name}: {money(portfolio.value.current)} (
+          {money(portfolio.totals.profitLoss)})
         </h3>
         <AddBtn onClick={handleAddAsset} />
       </HorizontalStack>

@@ -1,9 +1,10 @@
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
+import { nullableDecoder } from "../util";
 
 const tickerTypes = {
   exchange: t.string,
-  shortname: t.string,
+  shortname: nullableDecoder(t.string),
   quoteType: t.string,
   symbol: t.string,
 };

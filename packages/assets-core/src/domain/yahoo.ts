@@ -13,10 +13,3 @@ export type YahooTickerSearchResult = t.TypeOf<
 export type YahooChartData = t.TypeOf<typeof YahooChartDataDecoder>;
 export type ChartMeta = YahooChartData["meta"];
 export type ChartData = YahooChartData["chart"];
-// export type PeriodPriceData = YahooChartData["price"];
-
-// export type PeriodValueData = {
-//   profitLoss: number;
-//   periodStartValue: number;
-//   periodEndValue: number;
-// };

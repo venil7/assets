@@ -3,10 +3,10 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Badge, Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
-import { money } from "../../util/number";
 import { PctIndicator, ValueIndicator } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
+import { Totals } from "../Totals/Totals";
 import { PortfolioMenu } from "./Menu";
 import "./Portfolio.scss";
 import { portfolioModal } from "./PortfolioModal";
@@ -36,8 +36,7 @@ export const PortfolioLink = ({
             <Stack direction="horizontal">
               <div>{portfolio.name}</div>
               <div className="ms-auto">
-                {money(portfolio.value.periodEndValue)} (
-                {money(portfolio.value.totalProfitLoss)})
+                <Totals value={portfolio.value} totals={portfolio.totals} />
               </div>
             </Stack>
           </Card.Title>
@@ -51,11 +50,11 @@ export const PortfolioLink = ({
           Assets: <Badge bg="secondary">{portfolio.num_assets}</Badge>
         </span>
         <span>
-          Profit: <ValueIndicator value={portfolio.value.totalProfitLoss} />
+          Profit: <ValueIndicator value={portfolio.totals.profitLoss} />
         </span>
         <span>
           Period Change:
-          <PctIndicator value={portfolio.value.periodChangePct} />
+          <PctIndicator value={portfolio.value.changePct} />
         </span>
         <span>
           <PortfolioMenu onDelete={handleDelete} onEdit={handleUpdate} />

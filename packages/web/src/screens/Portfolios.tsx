@@ -16,7 +16,6 @@ const RawPortfoliosScreen: React.FC = () => {
   const handleUpdate = (pid: number, p: PostPortfolio) =>
     portfolios.update(pid, p);
   const handleDelete = (pid: number) => portfolios.delete(pid);
-
   return (
     <Portfolios
       onAdd={handleAdd}

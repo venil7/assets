@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import * as E from "fp-ts/lib/Either";
+import { formatValidationErrors } from "io-ts-reporters";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { YahooChartDataDecoder } from "../src/decoders/yahoo/chart";
@@ -23,6 +24,21 @@ test("Decode MSFT chart", async () => {
 
 test("Decode VUSA.L chart", async () => {
   const rawData = readJson("./data/VUSA.L.json");
+  const result = YahooChartDataDecoder.decode(rawData);
+  expect(E.isRight(result)).toBe(true);
+});
+
+test("Decode FUND chart", async () => {
+  const rawData = readJson("./data/FUND.json");
+  const result = YahooChartDataDecoder.decode(rawData);
+  if (E.isLeft(result)) {
+    console.error("--------->", formatValidationErrors(result.left));
+  }
+  expect(E.isRight(result)).toBe(true);
+});
+
+test("Decode GBPUSD chart", async () => {
+  const rawData = readJson("./data/GBPUSD.json");
   const result = YahooChartDataDecoder.decode(rawData);
   expect(E.isRight(result)).toBe(true);
 });

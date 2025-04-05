@@ -3,7 +3,7 @@ import { dateDecoder, nonEmptyArray, nullableDecoder } from "./util";
 
 import { ChartDataPointDecoder } from "./yahoo/chart";
 import { ChartMetaDecoder } from "./yahoo/meta";
-import { PeriodPriceDecoder, PeriodValueDecoder } from "./yahoo/period";
+import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
 const baseAssetTypes = {
   ticker: t.string,
@@ -30,8 +30,14 @@ export const EnrichedAssetDecoder = t.type({
   ...extAssetTypes,
   meta: ChartMetaDecoder,
   chart: nonEmptyArray(ChartDataPointDecoder),
-  price: PeriodPriceDecoder,
-  value: PeriodValueDecoder,
+  value: t.type({
+    ccy: PeriodChangesDecoder,
+    base: PeriodChangesDecoder,
+  }),
+  totals: t.type({
+    ccy: TotalsDecoder,
+    base: TotalsDecoder,
+  }),
 });
 
 export const EnrichedAssetsDecoder = t.array(EnrichedAssetDecoder);

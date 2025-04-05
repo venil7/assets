@@ -11,14 +11,20 @@ export const getYahooApi = (methods: Methods) => {
     `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
 
   const search = (term: string) => {
+    // console.debug(SEARCH_URL(term));
     return methods.get<YahooTickerSearchResult>(
       SEARCH_URL(term),
       YahooTickerSearchResultDecoder
     );
   };
 
-  const chart = (symbol: string) =>
-    methods.get<YahooChartData>(CHART_URL(symbol), YahooChartDataDecoder);
+  const chart = (symbol: string) => {
+    // console.debug(CHART_URL(symbol));
+    return methods.get<YahooChartData>(
+      CHART_URL(symbol),
+      YahooChartDataDecoder
+    );
+  };
 
   return { search, chart };
 };

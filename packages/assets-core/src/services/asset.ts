@@ -6,11 +6,13 @@ import type {
   ChartData,
   EnrichedAsset,
   GetAsset,
-  PeriodValue,
+  PeriodChanges,
+  Totals,
 } from "../domain";
 import { yahooApi } from "../http";
 import { changeInValue, changeInValuePct } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
+import { baseCcyConversionRate } from "./yahoo";
 
 export const enrichedAssets = (assets: GetAsset[]): Action<EnrichedAsset[]> =>
   pipe(assets, TE.traverseArray(enrichAsset)) as Action<EnrichedAsset[]>;
@@ -24,43 +26,90 @@ export const enrichAsset = (asset: GetAsset): Action<EnrichedAsset> => {
     TE.Do,
     TE.apS("asset", TE.of(asset)),
     TE.bind("enrich", ({ asset }) => yahooApi.chart(asset.ticker)),
-    TE.map(({ asset, enrich: { chart, price, meta } }) => {
-      const assetChart: ChartData = pipe(
-        chart,
-        NeA.map((dp) => ({
-          ...dp,
-          // if no holdings, keep price per unit
-          price: dp.price * (asset.holdings || 1),
-        }))
-      );
-
-      const assetValue = ((): PeriodValue => {
-        const periodStartValue = price.periodStartPrice * asset.holdings;
-        const periodEndValue = price.periodEndPrice * asset.holdings;
-        const periodChange = changeInValue(periodStartValue)(periodEndValue);
-        const periodChangePct =
-          changeInValuePct(periodStartValue)(periodEndValue);
-        const totalProfitLoss = pipe(
-          O.fromNullable(asset.avg_price),
-          O.map(() => periodEndValue - asset.invested),
-          O.getOrElse(() => 0)
+    TE.bind("conversionRate", ({ enrich }) =>
+      baseCcyConversionRate(enrich.meta.currency)
+    ),
+    TE.map(
+      ({
+        asset,
+        enrich: { chart: origChart, price, meta },
+        conversionRate,
+      }) => {
+        const chart: ChartData = pipe(
+          origChart,
+          NeA.map((dp) => ({
+            ...dp,
+            // if no holdings, keep price per unit
+            price: dp.price * (asset.holdings || 1),
+          }))
         );
-        return {
-          periodChange,
-          periodChangePct,
-          totalProfitLoss,
-          periodStartValue,
-          periodEndValue,
-        };
-      })();
 
-      return {
-        ...asset,
-        meta,
-        price,
-        chart: assetChart,
-        value: assetValue,
-      };
-    })
+        const base = (n: number) => n / conversionRate;
+
+        const valueCcy: PeriodChanges = {
+          beginning: price.beginning * asset.holdings,
+          current: price.current * asset.holdings,
+          change: price.change,
+          changePct: price.changePct,
+          date: price.date,
+        };
+
+        const valueBase: PeriodChanges = {
+          beginning: base(valueCcy.beginning),
+          current: base(valueCcy.current),
+          change: changeInValue(base(valueCcy.beginning))(
+            base(valueCcy.current)
+          ),
+          changePct: changeInValuePct(base(valueCcy.beginning))(
+            base(valueCcy.current)
+          ),
+          date: price.date,
+        };
+
+        const totalsCcy = ((): Totals => {
+          const profitLoss = pipe(
+            O.fromNullable(asset.avg_price),
+            O.map(() => changeInValue(asset.invested)(valueCcy.current)),
+            O.getOrElse(() => 0)
+          );
+          const profitLossPct = pipe(
+            O.fromNullable(asset.avg_price),
+            O.map(() => changeInValuePct(asset.invested)(valueCcy.current)),
+            O.getOrElse(() => 0)
+          );
+          return { profitLoss, profitLossPct };
+        })();
+
+        const totalsBase = ((): Totals => {
+          const profitLoss = pipe(
+            O.fromNullable(asset.avg_price),
+            O.map(() => changeInValue(base(asset.invested))(valueBase.current)),
+            O.getOrElse(() => 0)
+          );
+          const profitLossPct = pipe(
+            O.fromNullable(asset.avg_price),
+            O.map(() =>
+              changeInValuePct(base(asset.invested))(valueBase.current)
+            ),
+            O.getOrElse(() => 0)
+          );
+          return { profitLoss, profitLossPct };
+        })();
+
+        return {
+          ...asset,
+          meta,
+          chart,
+          value: {
+            ccy: valueCcy,
+            base: valueBase,
+          },
+          totals: {
+            ccy: totalsCcy,
+            base: totalsBase,
+          },
+        };
+      }
+    )
   );
 };

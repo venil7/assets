@@ -12,7 +12,7 @@ import {
   validationErr,
 } from "../util";
 import { ChartMetaDecoder } from "./meta";
-import type { PeriodPriceDecoder } from "./period";
+import type { PeriodChangesDecoder } from "./period";
 
 const QuoteDecoder = t.type({
   open: t.array(nullableDecoder(t.number)),
@@ -80,7 +80,7 @@ export const YahooChartDataDecoder = mapDecoder<
   {
     meta: t.TypeOf<typeof ChartMetaDecoder>;
     chart: NonEmptyArray<ChartDataPoint>;
-    price: t.TypeOf<typeof PeriodPriceDecoder>;
+    price: t.TypeOf<typeof PeriodChangesDecoder>;
   }
 >(RawChartResponseDecoder, ({ chart }) => {
   return pipe(
@@ -93,7 +93,7 @@ export const YahooChartDataDecoder = mapDecoder<
       if (chart.result && chart.result.length > 0) {
         const { meta, timestamp, indicators } = chart.result[0];
         const prevClose: ChartDataPoint = {
-          price: meta.previousClose,
+          price: meta.previousClose ?? meta.chartPreviousClose,
           volume: 0,
           timestamp: timestamp[0] - 5 * 60,
         };
@@ -108,35 +108,22 @@ export const YahooChartDataDecoder = mapDecoder<
       }
       return E.left([validationErr(`chart contains no data`)]);
     }),
-    E.bind("latest", ({ chart }) => {
-      const { timestamp, price } = pipe(
-        chart.chart,
-        A.findLast((x) => x.price !== null),
-        O.getOrElseW(() => ({
-          price: chart.meta.previousClose,
-          timestamp: 0,
-        }))
-      );
-      return pipe(
-        dateDecoder.decode(timestamp),
-        E.map((lastUpdated) => ({ lastUpdated, periodEndPrice: price }))
-      );
+    E.bind("date", ({ chart }) => {
+      return dateDecoder.decode(chart.meta.regularMarketTime);
     }),
-    E.map(
-      ({
-        chart: { meta, chart },
-        latest: { lastUpdated, periodEndPrice },
-      }) => ({
+    E.map(({ chart: { meta, chart }, date }) => {
+      const beginning = meta.previousClose ?? meta.chartPreviousClose;
+      return {
         meta,
         chart,
         price: {
-          lastUpdated,
-          periodEndPrice,
-          periodStartPrice: meta.previousClose,
-          periodChangePct: changeInValuePct(meta.previousClose)(periodEndPrice),
-          periodChange: changeInValue(meta.previousClose)(periodEndPrice),
+          date,
+          beginning,
+          current: meta.regularMarketPrice,
+          changePct: changeInValuePct(beginning)(meta.regularMarketPrice),
+          change: changeInValue(beginning)(meta.regularMarketPrice),
         },
-      })
-    )
+      };
+    })
   );
 });

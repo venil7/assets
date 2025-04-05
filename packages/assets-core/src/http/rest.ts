@@ -30,7 +30,8 @@ const rest = <JSON>(
       }
       return pipe(
         toJson,
-        TE.chain(liftTE(ErrorDecoder as unknown as Decoder<any, JSON>)),
+        TE.chain(liftTE(ErrorDecoder)),
+        TE.chain(TE.left),
         TE.orElse(() => {
           const toText = TE.tryCatch(
             () => clone.text(),

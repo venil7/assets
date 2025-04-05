@@ -7,7 +7,7 @@ import { sum } from "@darkruby/assets-core/src/utils/finance";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Button, Stack, type ButtonProps } from "react-bootstrap";
-import { withError } from "../../decorators/errors";
+import { withError, type WithError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { withProps } from "../../decorators/props";
@@ -36,11 +36,11 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
 
   const total = pipe(
     portfolios,
-    sum((p) => p.value.periodEndValue)
+    sum((p) => p.value.current)
   );
   const totalProfitLoss = pipe(
     portfolios,
-    sum((p) => p.value.totalProfitLoss)
+    sum((p) => p.totals.profitLoss)
   );
 
   return (
@@ -67,9 +67,11 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
 
 export const Portfolios = pipe(
   RawPortfolios,
-  withNoData<PortfoliosProps, "portfolios">((p) => p.portfolios?.length),
-  withFetching,
-  withError
+  withError<PortfoliosProps>,
+  withNoData<WithError<PortfoliosProps>, "portfolios">(
+    (p) => p.portfolios?.length
+  ),
+  withFetching
 );
 
 const AddBtn = pipe(

@@ -1,0 +1,43 @@
+{
+  "currency": "GBP",
+  "symbol": "0P0001I2A0.L",
+  "exchangeName": "LSE",
+  "fullExchangeName": "LSE",
+  "instrumentType": "MUTUALFUND",
+  "firstTradeDate": 1563346800,
+  "regularMarketTime": 1743796800,
+  "hasPrePostMarketData": false,
+  "gmtoffset": 3600,
+  "timezone": "BST",
+  "exchangeTimezoneName": "Europe/London",
+  "regularMarketPrice": 1.0004,
+  "fiftyTwoWeekHigh": 1.004,
+  "fiftyTwoWeekLow": 0.9998,
+  "longName": "Vanguard Stlg S/T Mny Mkts A GBP Inc",
+  "shortName": "Vanguard Investments Money Mark",
+  "chartPreviousClose": 1.0001,
+  "priceHint": 4,
+  "currentTradingPeriod": {
+    "pre": {
+      "timezone": "BST",
+      "start": 1743747300,
+      "end": 1743750000,
+      "gmtoffset": 3600
+    },
+    "regular": {
+      "timezone": "BST",
+      "start": 1743750000,
+      "end": 1743780600,
+      "gmtoffset": 3600
+    },
+    "post": {
+      "timezone": "BST",
+      "start": 1743780600,
+      "end": 1743783300,
+      "gmtoffset": 3600
+    }
+  },
+  "dataGranularity": "1d",
+  "range": "1d",
+  "validRanges": ["1mo", "3mo", "6mo", "ytd", "1y", "2y", "5y", "10y", "max"]
+}

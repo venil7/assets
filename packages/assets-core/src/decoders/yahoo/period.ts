@@ -1,21 +1,19 @@
 import * as t from "io-ts";
-import { dateDecoder, nullableDecoder } from "../util";
+import { dateDecoder } from "../util";
 
-const periodPriceTypes = {
-  periodStartPrice: t.number,
-  periodEndPrice: t.number,
-  periodChangePct: t.number,
-  periodChange: t.number,
-  lastUpdated: nullableDecoder(dateDecoder),
+const periodChangesTypes = {
+  beginning: t.number,
+  current: t.number,
+  change: t.number,
+  changePct: t.number,
+  date: dateDecoder,
+  // date: nullableDecoder(dateDecoder),
 };
 
-const periodValueTypes = {
-  periodChange: t.number,
-  periodChangePct: t.number,
-  periodStartValue: t.number,
-  periodEndValue: t.number,
-  totalProfitLoss: t.number,
+const totalsTypes = {
+  profitLoss: t.number,
+  profitLossPct: t.number,
 };
 
-export const PeriodPriceDecoder = t.type(periodPriceTypes);
-export const PeriodValueDecoder = t.type(periodValueTypes);
+export const PeriodChangesDecoder = t.type(periodChangesTypes);
+export const TotalsDecoder = t.type(totalsTypes);

@@ -8,10 +8,10 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
-import { money } from "../../util/number";
-import { PctIndicator, ValueIndicator } from "../Badge/Badges";
+import { PctIndicator } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
+import { Totals } from "../Totals/Totals";
 import { txModal } from "../Tx/TxModal";
 import "./Asset.scss";
 import { assetModal } from "./AssetModal";
@@ -44,18 +44,20 @@ export const AssetLink = ({
           <Card.Title className="name">
             <Stack direction="horizontal">
               <div>{asset.name}</div>
-              <div className="ms-auto">{money(asset.invested)}</div>
+              <div className="ms-auto">
+                {/* {money(asset.value.base.current)}(
+                {money(asset.totals.base.profitLoss)}) */}
+                <Totals value={asset.value.base} totals={asset.totals.base} />
+              </div>
             </Stack>
           </Card.Title>
           <Card.Subtitle className="description">{asset.ticker}</Card.Subtitle>
         </Link>
       </Card.Body>
       <Card.Footer>
-        <div>
-          Profit: <ValueIndicator value={asset.value.totalProfitLoss} />
-        </div>
-        <div>
-          Period change: <PctIndicator value={asset.price.periodChangePct} />
+        <div className="start">
+          Contribution:
+          <PctIndicator info value={asset.portfolio_contribution * 100} />
         </div>
         <span>
           <AssetMenu

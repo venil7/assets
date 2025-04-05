@@ -1,10 +1,13 @@
+import { max } from "date-fns";
+import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import type {
   EnrichedAsset,
   EnrichedPortfolio,
   GetPortfolio,
-  PeriodValue,
+  PeriodChanges,
+  Totals,
 } from "../domain";
 import { changeInValue, changeInValuePct, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
@@ -32,65 +35,51 @@ export const enrichPortfolio = (
     TE.apS("portfolio", TE.of(portfolio)),
     TE.bind("assets", getEnrichedAssets),
     TE.map(({ portfolio, assets }) => {
-      /*const portfolioPrice: PeriodPrice = (() => {
-        const periodStartPrice = pipe(
+      const value: PeriodChanges = (() => {
+        const beginning = pipe(
           assets,
-          sum((a) => a.price.periodStartPrice * a.portfolio_contribution)
+          sum(({ value }) => value.base.beginning)
         );
-        const periodEndPrice = pipe(
+        const current = pipe(
           assets,
-          sum((a) => a.price.periodEndPrice * a.portfolio_contribution)
+          sum(({ value }) => value.base.current)
         );
 
-        const periodChangePct =
-          changeInValuePct(periodStartPrice)(periodEndPrice);
-        const periodChange = changeInValue(periodStartPrice)(periodEndPrice);
-
-        const lastUpdated = pipe(
-          assets,
-          A.map((a) => a.price.lastUpdated ?? new Date(0)),
-          max
-        );
+        const change = changeInValue(beginning)(current);
+        const changePct = changeInValuePct(beginning)(current);
+        const date = assets.length
+          ? pipe(
+              assets,
+              A.map(({ value }) => value.ccy.date),
+              max
+            )
+          : new Date();
 
         return {
-          periodStartPrice,
-          periodEndPrice,
-          periodChangePct,
-          periodChange,
-          lastUpdated,
-        };
-      })();*/
-
-      const portfolioValue: PeriodValue = (() => {
-        const periodStartValue = pipe(
-          assets,
-          sum((a) => a.value.periodStartValue)
-        );
-        const periodEndValue = pipe(
-          assets,
-          sum((a) => a.value.periodEndValue)
-        );
-
-        const periodChangePct =
-          changeInValuePct(periodStartValue)(periodEndValue);
-        const periodChange = changeInValue(periodStartValue)(periodEndValue);
-
-        const totalProfitLoss = periodEndValue - portfolio.total_invested;
-
-        return {
-          totalProfitLoss,
-          periodStartValue,
-          periodEndValue,
-          periodChangePct,
-          periodChange,
+          beginning,
+          current,
+          change,
+          changePct,
+          date,
         };
       })();
 
-      return {
-        ...portfolio,
-        // price: portfolioPrice,
-        value: portfolioValue,
-      };
+      const totals = ((): Totals => {
+        const profitLoss = pipe(
+          assets,
+          sum(({ totals }) => totals.base.profitLoss)
+        );
+        const profitLossPct = pipe(
+          assets,
+          sum(
+            ({ totals, portfolio_contribution }) =>
+              totals.base.profitLossPct * portfolio_contribution
+          )
+        );
+        return { profitLoss, profitLossPct };
+      })();
+
+      return { ...portfolio, value, totals };
     })
   );
 };
