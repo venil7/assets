@@ -1,0 +1,63 @@
+{
+  "chart": {
+    "result": [
+      {
+        "meta": {
+          "currency": "GBP",
+          "symbol": "0P0000KSPA.L",
+          "exchangeName": "LSE",
+          "fullExchangeName": "LSE",
+          "instrumentType": "MUTUALFUND",
+          "firstTradeDate": 1388649600,
+          "regularMarketTime": 1743710400,
+          "hasPrePostMarketData": false,
+          "gmtoffset": 3600,
+          "timezone": "BST",
+          "exchangeTimezoneName": "Europe/London",
+          "regularMarketPrice": 908.01,
+          "fiftyTwoWeekHigh": 1108.192,
+          "fiftyTwoWeekLow": 883.902,
+          "longName": "Vanguard U.S. Eq Idx £ Acc",
+          "shortName": "Vanguard U.S. Equity Index Fund",
+          "chartPreviousClose": 971.705,
+          "priceHint": 2,
+          "currentTradingPeriod": {
+            "pre": {
+              "timezone": "BST",
+              "start": 1743747300,
+              "end": 1743750000,
+              "gmtoffset": 3600
+            },
+            "regular": {
+              "timezone": "BST",
+              "start": 1743750000,
+              "end": 1743780600,
+              "gmtoffset": 3600
+            },
+            "post": {
+              "timezone": "BST",
+              "start": 1743780600,
+              "end": 1743783300,
+              "gmtoffset": 3600
+            }
+          },
+          "dataGranularity": "1d",
+          "range": "1d",
+          "validRanges": [
+            "1mo",
+            "3mo",
+            "6mo",
+            "ytd",
+            "1y",
+            "2y",
+            "5y",
+            "10y",
+            "max"
+          ]
+        },
+        "indicators": { "quote": [{}], "adjclose": [{}] }
+      }
+    ],
+    "error": null
+  }
+}

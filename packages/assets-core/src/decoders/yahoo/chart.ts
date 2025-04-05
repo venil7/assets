@@ -4,6 +4,7 @@ import { pipe } from "fp-ts/lib/function";
 import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
+import { withFallback } from "io-ts-types";
 import { changeInValue, changeInValuePct } from "../../utils/finance";
 import {
   dateDecoder,
@@ -23,12 +24,12 @@ const QuoteDecoder = t.type({
 });
 
 const IndicatorsDecoder = t.type({
-  quote: t.array(QuoteDecoder),
+  quote: withFallback(t.array(QuoteDecoder), []),
 });
 
 export const ChartDecoder = t.type({
   meta: ChartMetaDecoder,
-  timestamp: t.array(t.number),
+  timestamp: withFallback(t.array(t.number), []), // may not be present
   indicators: IndicatorsDecoder,
 });
 
@@ -95,13 +96,18 @@ export const YahooChartDataDecoder = mapDecoder<
         const prevClose: ChartDataPoint = {
           price: meta.previousClose ?? meta.chartPreviousClose,
           volume: 0,
-          timestamp: timestamp[0] - 5 * 60,
+          timestamp: timestamp.length
+            ? timestamp[0] - 5 * 60
+            : meta.regularMarketTime,
         };
         const res = {
           meta,
           chart: [
             prevClose,
-            ...combineIndicators(timestamp, indicators.quote[0]),
+            // indicators quote is not always present
+            ...(indicators.quote.length
+              ? combineIndicators(timestamp, indicators.quote[0])
+              : []),
           ] as NonEmptyArray<ChartDataPoint>,
         };
         return E.of(res);

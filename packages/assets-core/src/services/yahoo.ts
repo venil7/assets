@@ -10,7 +10,7 @@ export const baseCcyConversionRate = (
   ccy: string,
   base: string = "GBP"
 ): Action<number> => {
-  if (ccy === "GBp") return TE.of(0.01);
+  if (ccy === "GBp") return TE.of(100);
   if (ccy === "GBP") return TE.of(1);
   const term = `${base}/${ccy}`;
   return pipe(
