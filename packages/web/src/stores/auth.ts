@@ -1,23 +1,27 @@
 import type {
   Action,
+  ActionResult,
   Credentials,
   Identity,
   Nullable,
-  Result,
   Token,
 } from "@darkruby/assets-core";
 import { computed, type ReadonlySignal, signal } from "@preact/signals-react";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import { login } from "../services/api";
+import { login, logout } from "../services/api";
 import { readToken } from "../services/token";
 import { createStoreBase, type StoreBase } from "./base";
 
 export type AuthStore = Identity<
   StoreBase<Nullable<Token>> & {
-    load: () => Promise<Result<Nullable<Token>>>;
+    load: () => ActionResult<Nullable<Token>>;
+    login: (
+      creds: Credentials,
+      onSuccess: Action<void>
+    ) => ActionResult<Nullable<Token>>;
+    logout: () => ActionResult<Nullable<Token>>;
     tokenExists: ReadonlySignal<boolean>;
-    login: (form: Credentials) => Promise<unknown>;
   }
 >;
 
@@ -37,6 +41,13 @@ export const createAuthStore = (): AuthStore => {
     ...storeBase,
     tokenExists,
     load: () => storeBase.run(getToken),
-    login: (form: Credentials) => storeBase.run(login(form)),
+    logout: () => storeBase.run(logout()),
+    login: (creds, onSuccess) =>
+      storeBase.run(
+        pipe(
+          login(creds),
+          TE.tap(() => onSuccess)
+        )
+      ),
   };
 };

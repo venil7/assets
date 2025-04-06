@@ -42,19 +42,16 @@ export const createAssetStore = (): AssetStore => {
 
   return {
     ...storeBase,
-    load: (pid: number, id: number, force = true) =>
-      storeBase.run(getAsset(pid, id), force),
-    create: (pid: number, a: PostAsset) =>
-      storeBase.run(createAsset(pid, a), true),
+    load: (pid: number, id: number) => storeBase.run(getAsset(pid, id)),
+    create: (pid: number, a: PostAsset) => storeBase.run(createAsset(pid, a)),
     update: (pid: number, aid: number, a: PostAsset) =>
-      storeBase.run(updateAsset(pid, aid, a), true),
+      storeBase.run(updateAsset(pid, aid, a)),
     delete: (pid: number, aid: number) =>
       storeBase.run(
         pipe(
           deleteAsset(pid, aid),
           TE.map(() => null)
-        ),
-        true
+        )
       ),
   };
 };

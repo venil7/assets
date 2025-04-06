@@ -156,11 +156,12 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
 
 export const login =
   (baseUrl: string) =>
-  (form: Credentials): Action<Token> => {
+  (creds: Credentials): Action<Token> => {
     const LOGIN_URL = `${baseUrl}/login`;
+    // console.log("core login", creds, LOGIN_URL);
     return rest
       .methods()
-      .post<{ token: string }>(LOGIN_URL, form, TokenDecoder);
+      .post<{ token: string }>(LOGIN_URL, creds, TokenDecoder);
   };
 
 export const api =

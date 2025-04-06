@@ -9,7 +9,7 @@ export type StoreBase<T> = {
   fetching: Signal<boolean>;
   data: Signal<T>;
 
-  run: (action: Action<T>, force?: boolean) => Promise<Result<T>>;
+  run: (action: Action<T>) => Promise<Result<T>>;
 };
 
 export const createStoreBase = <T>(
@@ -19,10 +19,10 @@ export const createStoreBase = <T>(
   const error = signal<Nullable<AppError>>(null);
   const fetching = signal<boolean>(false);
 
-  const run = async (action: Action<T>, force = false): Promise<Result<T>> => {
-    if (!force && dataPresent(data.peek())) {
-      return TE.of(data.value)();
-    }
+  const run = async (action: Action<T>): Promise<Result<T>> => {
+    // if (!force && dataPresent(data.peek())) {
+    //   return TE.of(data.value)();
+    // }
     return pipe(
       TE.fromIO(() => {
         fetching.value = true;
@@ -30,12 +30,12 @@ export const createStoreBase = <T>(
       }),
       TE.chain(() => action),
       TE.chainFirstIOK((value) => () => {
-        console.info("ok", value);
+        // console.info("ok", value);
         fetching.value = false;
         data.value = value;
       }),
-      TE.orElseW((err) => {
-        console.error(err);
+      TE.orElseW((err: AppError) => {
+        // console.error(err);
         return pipe(
           TE.fromIO(() => {
             fetching.value = false;

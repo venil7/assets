@@ -1,7 +1,10 @@
+import type { Profile } from "@darkruby/assets-core";
 import { useSignals } from "@preact/signals-react/runtime";
+import { pipe } from "fp-ts/lib/function";
 import { useEffect } from "react";
-import { Container, Navbar } from "react-bootstrap";
+import { Container, Dropdown, DropdownButton, Navbar } from "react-bootstrap";
 import { Link } from "react-router";
+import { withNoData } from "../decorators/nodata";
 import { useStore } from "../stores/store";
 
 export const TopNav = () => {
@@ -20,11 +23,28 @@ export const TopNav = () => {
         </Link>
         <Navbar.Toggle />
         <Navbar.Collapse className="justify-content-end">
-          <Navbar.Text>
-            @<Link to="/logout">{profile.data.value?.username}</Link>
-          </Navbar.Text>
+          <ProfileLink profile={profile.data.value} />
         </Navbar.Collapse>
       </Container>
     </Navbar>
   );
 };
+
+const RawProfileLink: React.FC<{ profile: Profile }> = ({ profile }) => {
+  return (
+    <DropdownButton variant="dark" title={`@${profile.username}`}>
+      <Dropdown.Item>
+        <Link to="/profile">Profile</Link>
+      </Dropdown.Item>
+      <Dropdown.Divider />
+      <Dropdown.Item>
+        <Link to="/logout">Logout</Link>
+      </Dropdown.Item>
+    </DropdownButton>
+  );
+};
+
+const ProfileLink = pipe(
+  RawProfileLink,
+  withNoData((p) => p.profile)
+);

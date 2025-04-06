@@ -1,10 +1,11 @@
-import type { Credentials } from "@darkruby/assets-core";
+import type { Action, Credentials } from "@darkruby/assets-core";
 import { useSignals } from "@preact/signals-react/runtime";
+import * as TE from "fp-ts/lib/TaskEither";
 import { Col, Row } from "react-bootstrap";
 import { useNavigate } from "react-router";
 import { Login } from "../components/Auth/Login";
+import { Error } from "../decorators/errors";
 import { useStore } from "../stores/store";
-import { wait } from "../util/promise";
 
 const RawLoginScreen: React.FC = () => {
   useSignals();
@@ -12,18 +13,24 @@ const RawLoginScreen: React.FC = () => {
   const { auth } = useStore();
 
   const handleLogin = (creds: Credentials) => {
-    auth
-      .login(creds)
-      .then(() => wait(0.2))
-      .then(() => navigate(`/portfolios`));
+    const onSuccess: Action<void> = TE.fromTask<void>(() => {
+      console.log("redirecting");
+      return navigate(`/portfolios`, { replace: true }) as Promise<void>;
+    });
+    auth.login(creds, onSuccess);
   };
 
   return (
-    <Row>
-      <Col md={{ span: 4, offset: 4 }}>
-        <Login onLogin={handleLogin} />
-      </Col>
-    </Row>
+    <>
+      <Row>
+        <Col md={{ span: 4, offset: 4 }}>
+          <Error error={auth.error.value} />
+        </Col>
+        <Col md={{ span: 4, offset: 4 }}>
+          <Login onLogin={handleLogin} />
+        </Col>
+      </Row>
+    </>
   );
 };
 

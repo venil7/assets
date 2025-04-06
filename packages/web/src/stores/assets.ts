@@ -17,7 +17,7 @@ import { type StoreBase, createStoreBase } from "./base";
 
 export type AssetsStore = Identity<
   StoreBase<EnrichedAsset[]> & {
-    load: (pid: number, force?: boolean) => ActionResult<EnrichedAsset[]>;
+    load: (pid: number) => ActionResult<EnrichedAsset[]>;
     create: (pid: number, a: PostAsset) => ActionResult<EnrichedAsset[]>;
     update: (
       pid: number,
@@ -34,31 +34,27 @@ export const createAssetsStore = (): AssetsStore => {
 
   return {
     ...storeBase,
-    load: (pid: number, force = true) => storeBase.run(getAssets(pid), force),
+    load: (pid: number) => storeBase.run(getAssets(pid)),
     create: (pid: number, a: PostAsset) =>
       storeBase.run(
         pipe(
           createAsset(pid, a),
           TE.chain(() => getAssets(pid))
-        ),
-
-        true
+        )
       ),
     update: (pid: number, aid: number, a: PostAsset) =>
       storeBase.run(
         pipe(
           updateAsset(pid, aid, a),
           TE.chain(() => getAssets(pid))
-        ),
-        true
+        )
       ),
     delete: (pid: number, aid: number) =>
       storeBase.run(
         pipe(
           deleteAsset(pid, aid),
           TE.chain(() => getAssets(pid))
-        ),
-        true
+        )
       ),
   };
 };

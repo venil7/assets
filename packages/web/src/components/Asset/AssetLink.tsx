@@ -59,6 +59,10 @@ export const AssetLink = ({
           Contribution:
           <PctIndicator info value={asset.portfolio_contribution * 100} />
         </div>
+        <div>
+          {asset.meta.range}:
+          <PctIndicator value={asset.value.ccy.changePct} />
+        </div>
         <span>
           <AssetMenu
             onDelete={handleDelete}

@@ -26,9 +26,18 @@ const writer =
       )
     );
 
+const remover = (key: string): Result<void> =>
+  pipe(
+    E.tryCatch(
+      () => localStorage.removeItem(key),
+      (e) => generalError((e as Error).message)
+    )
+  );
+
 export const storage = <T extends Json>(decoder: t.Type<any, T>) => {
   const dec = JsonFromString.pipe(decoder);
   const read = reader<T>(dec);
   const write = writer<T>(dec);
-  return { read, write };
+  const remove = remover;
+  return { read, write, remove };
 };

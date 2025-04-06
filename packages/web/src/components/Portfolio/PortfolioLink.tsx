@@ -3,7 +3,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Badge, Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
-import { PctIndicator, ValueIndicator } from "../Badge/Badges";
+import { PctIndicator } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
 import { Totals } from "../Totals/Totals";
@@ -49,11 +49,10 @@ export const PortfolioLink = ({
         <span className="start">
           Assets: <Badge bg="secondary">{portfolio.num_assets}</Badge>
         </span>
-        <span>
+        {/* <span>
           Profit: <ValueIndicator value={portfolio.totals.profitLoss} />
-        </span>
+        </span> */}
         <span>
-          Period Change:
           <PctIndicator value={portfolio.value.changePct} />
         </span>
         <span>

@@ -17,7 +17,7 @@ import { type StoreBase, createStoreBase } from "./base";
 
 export type PortfoliosStore = Identity<
   StoreBase<EnrichedPortfolio[]> & {
-    load: (force?: boolean) => ActionResult<EnrichedPortfolio[]>;
+    load: () => ActionResult<EnrichedPortfolio[]>;
     create: (p: PostPortfolio) => ActionResult<EnrichedPortfolio[]>;
     update: (
       pid: number,
@@ -33,31 +33,27 @@ export const createPortfoliosStore = (): PortfoliosStore => {
 
   return {
     ...storeBase,
-    load: (force = false) => storeBase.run(getPortfolios(), force),
+    load: () => storeBase.run(getPortfolios()),
     create: (p: PostPortfolio) =>
       storeBase.run(
         pipe(
           createPortfolio(p),
           TE.chain(() => getPortfolios())
-        ),
-        true
+        )
       ),
     update: (pid: number, p: PostPortfolio) =>
       storeBase.run(
         pipe(
           updatePortfolio(pid, p),
           TE.chain(() => getPortfolios())
-        ),
-
-        true
+        )
       ),
     delete: (pid: number) =>
       storeBase.run(
         pipe(
           deletePortfolio(pid),
           TE.chain(() => getPortfolios())
-        ),
-        true
+        )
       ),
   };
 };

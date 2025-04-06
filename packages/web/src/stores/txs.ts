@@ -12,7 +12,7 @@ import { type StoreBase, createStoreBase } from "./base";
 
 export type TxsStore = Identity<
   StoreBase<GetTx[]> & {
-    load: (aid: number, force?: boolean) => ActionResult<GetTx[]>;
+    load: (aid: number) => ActionResult<GetTx[]>;
     create: (aid: number, p: PostTx) => ActionResult<GetTx[]>;
     update: (aid: number, tid: number, p: PostTx) => ActionResult<GetTx[]>;
     delete: (aid: number, tid: number) => ActionResult<GetTx[]>;
@@ -25,30 +25,27 @@ export const createTxsStore = (): TxsStore => {
 
   return {
     ...storeBase,
-    load: (aid: number, force = false) => storeBase.run(getTxs(aid), force),
+    load: (aid: number) => storeBase.run(getTxs(aid)),
     create: (aid: number, p: PostTx) =>
       storeBase.run(
         pipe(
           createTx(aid, p),
           TE.chain(() => getTxs(aid))
-        ),
-        true
+        )
       ),
     update: (aid: number, tid: number, p: PostTx) =>
       storeBase.run(
         pipe(
           updateTx(aid, tid, p),
           TE.chain(() => getTxs(aid))
-        ),
-        true
+        )
       ),
     delete: (aid: number, tid: number) =>
       storeBase.run(
         pipe(
           deleteTx(aid, tid),
           TE.chain(() => getTxs(aid))
-        ),
-        true
+        )
       ),
   };
 };

@@ -13,11 +13,7 @@ import { type StoreBase, createStoreBase } from "./base";
 
 export type TxStore = Identity<
   StoreBase<Nullable<GetTx>> & {
-    load: (
-      aid: number,
-      tid: number,
-      force?: boolean
-    ) => ActionResult<Nullable<GetTx>>;
+    load: (aid: number, tid: number) => ActionResult<Nullable<GetTx>>;
     create: (aid: number, t: PostTx) => ActionResult<Nullable<GetTx>>;
     update: (
       aid: number,
@@ -34,18 +30,16 @@ export const createTxStore = (): TxStore => {
 
   return {
     ...storeBase,
-    load: (aid: number, tid: number, force = false) =>
-      storeBase.run(getTx(aid, tid), force),
-    create: (aid: number, t: PostTx) => storeBase.run(createTx(aid, t), true),
+    load: (aid: number, tid: number) => storeBase.run(getTx(aid, tid)),
+    create: (aid: number, t: PostTx) => storeBase.run(createTx(aid, t)),
     update: (aid: number, tid: number, p: PostTx) =>
-      storeBase.run(updateTx(aid, tid, p), true),
+      storeBase.run(updateTx(aid, tid, p)),
     delete: (aid: number, tid: number) =>
       storeBase.run(
         pipe(
           deleteTx(aid, tid),
           TE.map(() => null)
-        ),
-        true
+        )
       ),
   };
 };

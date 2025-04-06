@@ -5,7 +5,7 @@ import { type StoreBase, createStoreBase } from "./base";
 
 export type ProfileStore = Identity<
   StoreBase<Nullable<Profile>> & {
-    load: (force?: boolean) => Promise<unknown>;
+    load: () => Promise<unknown>;
   }
 >;
 
@@ -15,6 +15,6 @@ export const createProfileStore = (): ProfileStore => {
 
   return {
     ...storeBase,
-    load: (force = true) => storeBase.run(getProfile(), force),
+    load: () => storeBase.run(getProfile()),
   };
 };

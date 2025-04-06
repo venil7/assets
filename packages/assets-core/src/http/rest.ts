@@ -25,28 +25,28 @@ const rest = <JSON>(
         () => resp.json(),
         (e) => generalError(`JSON failed: ${e}`)
       );
+      const toText = TE.tryCatch(
+        () => clone.text(),
+        (e) => generalError(`TEXT failed: ${e}`)
+      );
       if (resp.status >= 200 && resp.status < 300) {
         return pipe(toJson, TE.chain(liftTE(decoder)));
       }
       return pipe(
         toJson,
         TE.chain(liftTE(ErrorDecoder)),
-        TE.chain(TE.left),
-        TE.orElse(() => {
-          const toText = TE.tryCatch(
-            () => clone.text(),
-            (e) => generalError(`TEXT failed: ${e}`)
-          );
+        TE.orElseW(() => {
           return pipe(
             toText,
             TE.chain((message) =>
-              TE.left<AppError, JSON>(
+              TE.of<AppError, AppError>(
                 generalError(`${resp.status}:${resp.statusText} - ${message}`)
               )
             )
           );
-        })
-      );
+        }),
+        TE.chain(TE.left)
+      ) as Action<JSON>;
     })
   );
 };

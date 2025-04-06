@@ -3,6 +3,7 @@ import { pipe } from "fp-ts/lib/function";
 import { createBrowserRouter, Navigate } from "react-router";
 import { AssetScreen } from "../screens/Asset";
 import { LoginScreen } from "../screens/Login";
+import { LogoutScreen } from "../screens/Logout";
 import { PortfolioDetailsScreen } from "../screens/PortfolioDetails";
 import { PortfoliosScreen } from "../screens/Portfolios";
 import { TestScreen } from "../screens/Test";
@@ -37,7 +38,7 @@ export const router = createBrowserRouter(
       element: <UnauthRouteWrapper />,
       children: [
         { path: "/login", element: <LoginScreen /> },
-        { path: "/logout", element: <LoginScreen /> },
+        { path: "/logout", element: <LogoutScreen /> },
       ],
     },
     {
