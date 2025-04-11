@@ -5,6 +5,7 @@ import { nullableDecoder } from "../util";
 const tickerTypes = {
   exchange: t.string,
   shortname: nullableDecoder(t.string),
+  longname: nullableDecoder(t.string),
   quoteType: t.string,
   symbol: t.string,
 };

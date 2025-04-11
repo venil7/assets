@@ -1,6 +1,7 @@
-import { type PostTx, type TxType } from "@darkruby/assets-core";
+import { type Nullable, type PostTx, type TxType } from "@darkruby/assets-core";
 import { Button, ButtonGroup, Form } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
+import { TextArea } from "../Form/FormControl";
 import { FormNumber } from "../Form/NumberEdit";
 
 export type TxFormProps = {
@@ -10,6 +11,8 @@ export type TxFormProps = {
 
 export const TxForm: React.FC<TxFormProps> = ({ tx, onChange }) => {
   const setField = usePartialChange(tx, onChange);
+  const setPrice = setField("price") as (n: Nullable<number>) => void;
+  const setQuantity = setField("quantity") as (n: Nullable<number>) => void;
 
   return (
     <Form>
@@ -18,15 +21,15 @@ export const TxForm: React.FC<TxFormProps> = ({ tx, onChange }) => {
       </Form.Group>
       <Form.Group className="mb-3">
         <Form.Label>Quantity</Form.Label>
-        <FormNumber value={tx.quantity} onChange={setField("quantity")} />
+        <FormNumber value={tx.quantity} onChange={setQuantity} />
       </Form.Group>
       <Form.Group className="mb-3">
         <Form.Label>Price</Form.Label>
-        <FormNumber value={tx.price} onChange={setField("price")} />
+        <FormNumber value={tx.price} onChange={setPrice} />
       </Form.Group>
       <Form.Group className="mb-3">
-        {/* <Form.Label>Date</Form.Label>
-        <FormNumber value={tx.date} onChange={setField("date")} /> */}
+        <Form.Label>Comment</Form.Label>
+        <TextArea value={tx.comments} onChange={setField("comments")} />
       </Form.Group>
     </Form>
   );

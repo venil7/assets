@@ -11,6 +11,7 @@ import type {
 } from "../domain";
 import { changeInValue, changeInValuePct, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
+import { calcWeights } from "./asset";
 
 export const enrichedPortfolios = (
   portfolios: GetPortfolio[],
@@ -33,7 +34,7 @@ export const enrichPortfolio = (
   return pipe(
     TE.Do,
     TE.apS("portfolio", TE.of(portfolio)),
-    TE.bind("assets", getEnrichedAssets),
+    TE.bind("assets", () => pipe(getEnrichedAssets(), TE.map(calcWeights))),
     TE.map(({ portfolio, assets }) => {
       const value: PeriodChanges = (() => {
         const beginning = pipe(
@@ -71,10 +72,9 @@ export const enrichPortfolio = (
         );
         const profitLossPct = pipe(
           assets,
-          sum(
-            ({ totals, portfolio_contribution }) =>
-              totals.base.profitLossPct * portfolio_contribution
-          )
+          sum(({ totals, value }) => {
+            return totals.base.profitLossPct * (value.weight ?? 1);
+          })
         );
         return { profitLoss, profitLossPct };
       })();

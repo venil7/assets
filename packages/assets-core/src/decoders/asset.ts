@@ -33,6 +33,7 @@ export const EnrichedAssetDecoder = t.type({
   value: t.type({
     ccy: PeriodChangesDecoder,
     base: PeriodChangesDecoder,
+    weight: nullableDecoder(t.number),
   }),
   totals: t.type({
     ccy: TotalsDecoder,

@@ -7,13 +7,14 @@ import { StoreContext } from "../stores/store";
 
 const RawAssetScreen: React.FC = () => {
   useSignals();
-  const { asset, txs } = use(StoreContext);
+  const { asset, txs, portfolio } = use(StoreContext);
   const { assetId, portfolioId } = useParams<{
     assetId: string;
     portfolioId: string;
   }>();
 
   useEffect(() => {
+    portfolio.load(+portfolioId!);
     asset.load(+portfolioId!, +assetId!);
     txs.load(+assetId!);
   }, [asset]);

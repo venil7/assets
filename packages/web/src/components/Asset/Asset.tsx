@@ -36,19 +36,18 @@ const RawAsset: React.FC<AssetProps> = ({
   const handleAddTx = pipe(() => txModal(defaultBuyTx()), TE.map(onAddTx));
 
   return (
-    <>
-      <h3 className="start">{asset.name}</h3>
+    <div className="asset-details">
+      <HorizontalStack className="top-toolbar">
+        <AddBtn onClick={handleAddTx} />
+      </HorizontalStack>
 
-      <Tabs tabs={["transactions", "yello"]}>
+      <Tabs tabs={["Transactions", "Details"]}>
         <TabContent tab={0}>
-          <HorizontalStack className="top-toolbar">
-            <AddBtn onClick={handleAddTx} />
-          </HorizontalStack>
           <TxList txs={txs} onEdit={onEditTx} onDelete={onDeleteTx} />
         </TabContent>
         <TabContent tab={1}>kkksjdksjsdj</TabContent>
       </Tabs>
-    </>
+    </div>
   );
 };
 

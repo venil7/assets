@@ -33,7 +33,7 @@ export const getTxs =
       db,
       queryMany<unknown[]>(
         `
-      select id, asset_id, type, quantity, price, date, created, modified
+      select id, asset_id, type, quantity, price, date, created, modified, comments
 		  from asset_transactions at
 		  where at.asset_id=$assetId and at.user_id=$userId
 		  order by at.date desc
@@ -51,7 +51,7 @@ export const getTx =
       db,
       queryOne(
         `
-      select id, asset_id, type, quantity, price, date, created, modified
+      select id, asset_id, type, quantity, price, date, created, modified, comments
 		  from asset_transactions at
 		  where at.id=$id and at.asset_id=$assetId and at.user_id=$userId
 		  order by at.date desc
@@ -69,10 +69,14 @@ export const createTx =
       db,
       execute<unknown[]>(
         `
-        insert into transactions (asset_id, type, quantity, price, date)
-			  values ($assetId, $type, $quantity, $price, $date)
+        insert into transactions (asset_id, type, quantity, price, comments, date)
+			  values ($assetId, $type, $quantity, $price, $comments, $date)
       `,
-        { assetId, ...PostTxDecoder.encode(tx) } as Record<string, any>
+        {
+          assetId,
+          ...PostTxDecoder.encode(tx),
+          date: tx.date.toISOString(),
+        } as Record<string, any>
       ),
       TE.mapLeft(insufficientHoldingCheck)
     );
@@ -90,13 +94,16 @@ export const updateTx =
       execute<unknown[]>(
         `
         UPDATE transactions
-        SET type = $type, quantity = $quantity, price = $price, date = $date, modified = CURRENT_TIMESTAMP
+        SET type = $type, quantity = $quantity, price = $price,
+            comments = $comments, date = $date, modified = CURRENT_TIMESTAMP
         WHERE id = $transactionId and asset_id = $assetId
       `,
-        { assetId, ...PostTxDecoder.encode(tx), transactionId } as Record<
-          string,
-          any
-        >
+        {
+          assetId,
+          ...PostTxDecoder.encode(tx),
+          transactionId,
+          date: tx.date.toISOString(),
+        } as Record<string, any>
       ),
       TE.mapLeft(insufficientHoldingCheck)
     );

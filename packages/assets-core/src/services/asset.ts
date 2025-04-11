@@ -1,3 +1,4 @@
+import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as NeA from "fp-ts/lib/NonEmptyArray";
 import * as O from "fp-ts/lib/Option";
@@ -10,12 +11,16 @@ import type {
   Totals,
 } from "../domain";
 import { yahooApi } from "../http";
-import { changeInValue, changeInValuePct } from "../utils/finance";
+import { changeInValue, changeInValuePct, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
 import { baseCcyConversionRate } from "./yahoo";
 
 export const enrichedAssets = (assets: GetAsset[]): Action<EnrichedAsset[]> =>
-  pipe(assets, TE.traverseArray(enrichAsset)) as Action<EnrichedAsset[]>;
+  pipe(
+    assets,
+    TE.traverseArray(enrichAsset),
+    TE.map((assets) => calcWeights(assets as EnrichedAsset[]))
+  ) as Action<EnrichedAsset[]>;
 
 export const enrichOptionalAsset = (
   a: Optional<GetAsset>
@@ -103,6 +108,7 @@ export const enrichAsset = (asset: GetAsset): Action<EnrichedAsset> => {
           value: {
             ccy: valueCcy,
             base: valueBase,
+            weight: null,
           },
           totals: {
             ccy: totalsCcy,
@@ -111,5 +117,21 @@ export const enrichAsset = (asset: GetAsset): Action<EnrichedAsset> => {
         };
       }
     )
+  );
+};
+
+export const calcWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
+  const total = pipe(
+    assets,
+    sum(({ value }) => value.base.beginning)
+  );
+  return pipe(
+    assets,
+    A.map((a) => {
+      if (total > 0) {
+        a.value.weight = a.value.base.current / total;
+      }
+      return a;
+    })
   );
 };

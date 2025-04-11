@@ -10,19 +10,21 @@ export type StoreBase<T> = {
   data: Signal<T>;
 
   run: (action: Action<T>) => Promise<Result<T>>;
+  reset: () => void;
 };
 
 export const createStoreBase = <T>(
   data: Signal<T>,
-  dataPresent: (t: T) => boolean = (t) => !!t
+  defaultValue: () => T = () => null as T
 ): StoreBase<T> => {
   const error = signal<Nullable<AppError>>(null);
   const fetching = signal<boolean>(false);
 
+  const reset = (): void => {
+    data.value = defaultValue();
+  };
+
   const run = async (action: Action<T>): Promise<Result<T>> => {
-    // if (!force && dataPresent(data.peek())) {
-    //   return TE.of(data.value)();
-    // }
     return pipe(
       TE.fromIO(() => {
         fetching.value = true;
@@ -48,5 +50,5 @@ export const createStoreBase = <T>(
     )();
   };
 
-  return { data, error, fetching, run };
+  return { data, error, fetching, run, reset };
 };

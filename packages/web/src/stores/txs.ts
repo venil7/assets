@@ -21,7 +21,7 @@ export type TxsStore = Identity<
 
 export const createTxsStore = (): TxsStore => {
   const data = signal<GetTx[]>([]);
-  const storeBase = createStoreBase(data, (t) => !!t.length);
+  const storeBase = createStoreBase(data, () => []);
 
   return {
     ...storeBase,

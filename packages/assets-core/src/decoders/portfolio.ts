@@ -15,6 +15,7 @@ const extPortfolioTypes = {
   modified: dateDecoder,
   total_invested: t.number,
   num_assets: t.number,
+  contribution: t.number,
 };
 
 export const PostPortfolioDecoder = t.type(basePortfolioTypes);

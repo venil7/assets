@@ -4,13 +4,13 @@
   align-items: center;
   gap: 0.5em;
   .value {
-    align-self: flex-end;
+    align-self: flex-start;
   }
   .change {
     display: flex;
     flex-direction: column;
     .value,.pct {
-      align-self: flex-start
+      align-self: flex-end;
     }
   }
 }

@@ -11,6 +11,7 @@ import {
   DateFromISOString,
   DateFromNumber,
   DateFromUnixTime,
+  date,
 } from "io-ts-types";
 import { validationErrors, type AppError } from "../domain";
 import type { Optional } from "../utils/utils";
@@ -44,6 +45,7 @@ export const nullableDecoder = <T>(
 };
 
 export const dateDecoder: t.Type<Date, any> = t.union([
+  date,
   DateFromISOString,
   DateFromUnixTime,
   DateFromNumber,

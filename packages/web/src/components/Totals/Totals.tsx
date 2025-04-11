@@ -1,14 +1,11 @@
-import type {
-  PeriodChanges,
-  Totals as TotalsData,
-} from "@darkruby/assets-core";
+import type { Totals as TotalsData } from "@darkruby/assets-core";
 import * as React from "react";
 import { money } from "../../util/number";
-import { PctIndicator, ValueIndicator } from "../Badge/Badges";
+import { MoneyChangeIndicator, PctChangeIndicator } from "../Badge/Badges";
 import "./Totals.scss";
 
 type TotalsProps = {
-  value: PeriodChanges;
+  value: number;
   totals: TotalsData;
 };
 
@@ -18,13 +15,13 @@ export const Totals: React.FC<TotalsProps> = ({
 }: TotalsProps) => {
   return (
     <div className="totals">
-      <h3 className="value">{money(value.current)}</h3>
+      <h4 className="value">{money(value)}</h4>
       <div className="change">
         <h6 className="value">
-          <ValueIndicator value={totals.profitLoss} />
+          <MoneyChangeIndicator value={totals.profitLoss} />
         </h6>
         <h6 className="pct">
-          <PctIndicator value={totals.profitLossPct} />
+          <PctChangeIndicator value={totals.profitLossPct} />
         </h6>
       </div>
     </div>

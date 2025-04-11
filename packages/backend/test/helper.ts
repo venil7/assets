@@ -40,6 +40,7 @@ export const fakeTx = (
   quantity,
   price,
   date: faker.date.past(),
+  comments: "",
 });
 
 export const fakeBuy = (

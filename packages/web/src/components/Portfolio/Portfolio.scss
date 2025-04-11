@@ -1,34 +1,23 @@
 @import "~/bootstrap/scss/_functions";
 @import "~/bootstrap/scss/_variables";
 
-
-@mixin flex-container-justify-end {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: center;
-  align-content: center;
-  column-gap: 1em;
-  .start {
-    margin-right: auto;
-  }
-}
-
 @mixin hover-effect {
   &:hover {
     background-color: darken($body-secondary-bg-dark, 5%);
   }
 }
 
-.portfolios, .portfolio-details {
+.portfolios,
+.portfolio-details,
+.asset-details {
   .top-toolbar {
-    @include flex-container-justify-end;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
     padding: 0.5em 0 0.5em 0;
   }
-  .portfolio-link, .asset-link {
+  .portfolio-link,
+  .asset-link {
     @include hover-effect;
-    .card-footer {
-      @include flex-container-justify-end;
-    }
   }
 }

@@ -29,7 +29,7 @@ export type PortfoliosStore = Identity<
 
 export const createPortfoliosStore = (): PortfoliosStore => {
   const data = signal<EnrichedPortfolio[]>([]);
-  const storeBase = createStoreBase(data, (t) => !!t.length);
+  const storeBase = createStoreBase(data, () => []);
 
   return {
     ...storeBase,

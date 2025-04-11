@@ -6,10 +6,11 @@ import { Container, Dropdown, DropdownButton, Navbar } from "react-bootstrap";
 import { Link } from "react-router";
 import { withNoData } from "../decorators/nodata";
 import { useStore } from "../stores/store";
+import { NavCrumb } from "./Breadcrumb/Breadcrumb";
 
 export const TopNav = () => {
   useSignals();
-  const { profile } = useStore();
+  const { profile, portfolio, asset } = useStore();
 
   useEffect(() => {
     profile.load();
@@ -18,10 +19,7 @@ export const TopNav = () => {
   return (
     <Navbar className="bg-body-tertiary">
       <Container>
-        <Link to="/">
-          <Navbar.Brand>Asset mgmt.</Navbar.Brand>
-        </Link>
-        <Navbar.Toggle />
+        <NavCrumb portfolio={portfolio.data.value} asset={asset.data.value} />
         <Navbar.Collapse className="justify-content-end">
           <ProfileLink profile={profile.data.value} />
         </Navbar.Collapse>
@@ -46,5 +44,5 @@ const RawProfileLink: React.FC<{ profile: Profile }> = ({ profile }) => {
 
 const ProfileLink = pipe(
   RawProfileLink,
-  withNoData((p) => p.profile)
+  withNoData((p) => p.profile, null)
 );

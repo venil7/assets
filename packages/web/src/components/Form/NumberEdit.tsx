@@ -18,7 +18,7 @@ export const numberToString = (
 
 export type NumberInputProps = Omit<FormControlProps, "value" | "onChange"> & {
   value?: Nullable<number>;
-  onChange: (n: number) => void;
+  onChange: (n: Nullable<number>) => void;
   decimalPoints?: Nullable<number>;
   disableNegative?: boolean;
   disableFractional?: boolean;
@@ -58,12 +58,6 @@ export const RawNumberInput = ({
     [disableNegative, disableFractional]
   );
 
-  // const handleBlur = (newValue: string) => {
-  //   const parsedValue = parseFloat(newValue);
-  //   setValueString(numberToString(parsedValue, decimalPoints, ""));
-  //   onBlur?.(isNaN(parsedValue) ? "" : parsedValue);
-  // };
-
   const handleChange = (newValue: string) => {
     if (!regex.test(newValue)) return;
     const newValuePayload = newValue === "." ? "0." : newValue;
@@ -71,17 +65,10 @@ export const RawNumberInput = ({
     setValueString(newValuePayload);
     if (!isNaN(parsedValue)) {
       onChange?.(parsedValue);
-    }
+    } else onChange?.(null);
   };
 
-  return (
-    <FormEdit
-      {...props}
-      value={valueString}
-      // onBlur={handleBlur}
-      onChange={handleChange}
-    />
-  );
+  return <FormEdit {...props} value={valueString} onChange={handleChange} />;
 };
 
 export const FormNumber = pipe(RawNumberInput, withVisibility());

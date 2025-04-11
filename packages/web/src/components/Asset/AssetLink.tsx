@@ -8,7 +8,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
-import { PctIndicator } from "../Badge/Badges";
+import { PctChangeIndicator, WeightIndicator } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
 import { Totals } from "../Totals/Totals";
@@ -45,31 +45,28 @@ export const AssetLink = ({
             <Stack direction="horizontal">
               <div>{asset.name}</div>
               <div className="ms-auto">
-                {/* {money(asset.value.base.current)}(
-                {money(asset.totals.base.profitLoss)}) */}
-                <Totals value={asset.value.base} totals={asset.totals.base} />
+                <Totals
+                  value={asset.value.base.current}
+                  totals={asset.totals.base}
+                />
               </div>
             </Stack>
           </Card.Title>
           <Card.Subtitle className="description">{asset.ticker}</Card.Subtitle>
         </Link>
       </Card.Body>
-      <Card.Footer>
-        <div className="start">
-          Contribution:
-          <PctIndicator info value={asset.portfolio_contribution * 100} />
+      <Card.Footer className="spread-container">
+        <div className="stick-left">
+          <WeightIndicator value={asset.value.weight!} />
         </div>
-        <div>
-          {asset.meta.range}:
-          <PctIndicator value={asset.value.ccy.changePct} />
-        </div>
-        <span>
+        <div className="stick-right">
+          <PctChangeIndicator value={asset.value.ccy.changePct} />
           <AssetMenu
             onDelete={handleDelete}
             onEdit={handleUpdate}
             onAddTx={handleAddTx}
           />
-        </span>
+        </div>
       </Card.Footer>
     </Card>
   );

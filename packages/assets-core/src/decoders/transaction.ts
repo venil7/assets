@@ -1,4 +1,5 @@
 import * as t from "io-ts";
+import { withFallback } from "io-ts-types";
 import { dateDecoder } from "./util";
 
 const baseTxTypes = {
@@ -6,6 +7,7 @@ const baseTxTypes = {
   quantity: t.number,
   price: t.number,
   date: dateDecoder,
+  comments: withFallback(t.string, ""),
 };
 
 const extTxTypes = {

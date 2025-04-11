@@ -9,5 +9,6 @@ export const defaultBuyTx = (): PostTx => ({
   date: new Date(),
   quantity: 0,
   price: 0,
+  comments: "",
   type: "buy",
 });

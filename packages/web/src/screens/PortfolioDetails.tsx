@@ -9,9 +9,10 @@ import { useStore } from "../stores/store";
 
 const RawPortfolioDetails: React.FC = () => {
   useSignals();
-  const { portfolio, assets, txs } = useStore();
+  const { portfolio, assets, asset, txs } = useStore();
   const { portfolioId } = useParams<{ portfolioId: string }>();
   useEffect(() => {
+    asset.reset();
     portfolio.load(+portfolioId!);
     assets.load(+portfolioId!);
   }, [portfolio]);

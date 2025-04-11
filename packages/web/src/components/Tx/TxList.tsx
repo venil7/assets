@@ -40,6 +40,7 @@ const TxList: React.FC<TxListProps> = ({
           <th>Type</th>
           <th>Quantity</th>
           <th>Price</th>
+          <th>Comments</th>
           <th>Date</th>
           <th>^</th>
         </tr>
@@ -51,6 +52,7 @@ const TxList: React.FC<TxListProps> = ({
             <td>{tx.type}</td>
             <td>{float(tx.quantity)}</td>
             <td>{money(tx.price)}</td>
+            <td>{tx.comments}</td>
             <td>{iso(tx.date)}</td>
             <td>
               <PortfolioMenu

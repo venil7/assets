@@ -6,10 +6,12 @@ import { useStore } from "../stores/store";
 
 const RawPortfoliosScreen: React.FC = () => {
   useSignals();
-  const { portfolios } = useStore();
+  const { portfolios, portfolio, asset } = useStore();
 
   useEffect(() => {
     portfolios.load();
+    portfolio.reset();
+    asset.reset();
   }, [portfolios]);
 
   const handleAdd = (p: PostPortfolio) => portfolios.create(p);

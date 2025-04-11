@@ -11,8 +11,8 @@ import { withError, type WithError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { withProps } from "../../decorators/props";
-import { money } from "../../util/number";
 import { HorizontalStack } from "../Layout/Stack";
+import { Totals } from "../Totals/Totals";
 import { PortfolioLink } from "./PortfolioLink";
 import { portfolioModal } from "./PortfolioModal";
 
@@ -34,7 +34,7 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
   const handleUpdate = (pid: number) => (p: PostPortfolio) => onUpdate(pid, p);
   const handleDelete = (pid: number) => () => onDelete(pid);
 
-  const total = pipe(
+  const totalValue = pipe(
     portfolios,
     sum((p) => p.value.current)
   );
@@ -46,10 +46,14 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
   return (
     <div className="portfolios">
       <HorizontalStack className="top-toolbar">
-        <h2 className="start">
-          {money(total)} ({money(totalProfitLoss)})
-        </h2>
         <AddBtn onClick={handleAdd} />
+        <Totals
+          value={totalValue}
+          totals={{
+            profitLoss: totalProfitLoss,
+            profitLossPct: 0,
+          }}
+        />
       </HorizontalStack>
       <Stack gap={3}>
         {portfolios.map((port) => (

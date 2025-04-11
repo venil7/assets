@@ -6,6 +6,7 @@ import {
   createDialog,
   type DialogDrivenComponentProps,
 } from "../../util/modal";
+import { txValidator } from "../../validation/tx";
 import { ConfirmationModalFooter } from "../Modals/Footer";
 import { TxForm } from "./TxForm";
 
@@ -17,15 +18,22 @@ export const TxModal: React.FC<TxModalProps> = ({
   onSubmit,
   onClose,
 }) => {
-  const [portfolio, setTx] = useState<PostTx>(value!);
-  const handleOk = () => onSubmit(portfolio);
+  const [tx, setTx] = useState<PostTx>(value!);
+  const handleOk = () => onSubmit(tx);
+
+  const { valid, errors } = txValidator(tx);
+
   return (
     <Modal show={open}>
       <ModalHeader>Transaction</ModalHeader>
       <ModalBody>
-        <TxForm tx={portfolio} onChange={setTx} />
+        <TxForm tx={tx} onChange={setTx} />
       </ModalBody>
-      <ConfirmationModalFooter onOk={handleOk} onCancel={onClose} />
+      <ConfirmationModalFooter
+        disabled={!valid}
+        onOk={handleOk}
+        onCancel={onClose}
+      />
     </Modal>
   );
 };

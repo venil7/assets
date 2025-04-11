@@ -26,7 +26,7 @@ export type TxStore = Identity<
 
 export const createTxStore = (): TxStore => {
   const data = signal<Nullable<GetTx>>(null);
-  const storeBase = createStoreBase(data, (x) => !!x);
+  const storeBase = createStoreBase(data);
 
   return {
     ...storeBase,

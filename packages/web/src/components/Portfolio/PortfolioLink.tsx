@@ -1,9 +1,13 @@
 import type { EnrichedPortfolio, PostPortfolio } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import { Badge, Card, Stack } from "react-bootstrap";
+import { Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
-import { PctIndicator } from "../Badge/Badges";
+import {
+  AssetCountIndicator,
+  PortfolioPeriodChange,
+  PortfolioWeightIndicator,
+} from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
 import { Totals } from "../Totals/Totals";
@@ -36,7 +40,10 @@ export const PortfolioLink = ({
             <Stack direction="horizontal">
               <div>{portfolio.name}</div>
               <div className="ms-auto">
-                <Totals value={portfolio.value} totals={portfolio.totals} />
+                <Totals
+                  value={portfolio.value.current}
+                  totals={portfolio.totals}
+                />
               </div>
             </Stack>
           </Card.Title>
@@ -45,19 +52,15 @@ export const PortfolioLink = ({
           </Card.Subtitle>
         </Link>
       </Card.Body>
-      <Card.Footer>
-        <span className="start">
-          Assets: <Badge bg="secondary">{portfolio.num_assets}</Badge>
-        </span>
-        {/* <span>
-          Profit: <ValueIndicator value={portfolio.totals.profitLoss} />
-        </span> */}
-        <span>
-          <PctIndicator value={portfolio.value.changePct} />
-        </span>
-        <span>
+      <Card.Footer className="spread-container">
+        <div className="stick-left">
+          <AssetCountIndicator value={portfolio} />
+          <PortfolioWeightIndicator value={portfolio} />
+        </div>
+        <div className="stick-right">
+          <PortfolioPeriodChange value={portfolio} />
           <PortfolioMenu onDelete={handleDelete} onEdit={handleUpdate} />
-        </span>
+        </div>
       </Card.Footer>
     </Card>
   );

@@ -4,5 +4,4 @@ export const money = (number: number, currency = "GBP"): string => {
   );
 };
 
-export const float = (number: number, prec = 3): string =>
-  number.toPrecision(prec);
+export const float = (number: number, prec = 2): string => number.toFixed(prec);

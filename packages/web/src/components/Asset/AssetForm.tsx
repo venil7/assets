@@ -12,8 +12,8 @@ export type AssetFormProps = {
 export const AssetForm: React.FC<AssetFormProps> = ({ asset, onChange }) => {
   const setField = usePartialChange(asset, onChange);
 
-  const handeSelect = ({ shortname: name, symbol: ticker }: Ticker) =>
-    onChange({ ticker, name: name ?? ticker });
+  const handeSelect = ({ shortname, longname, symbol: ticker }: Ticker) =>
+    onChange({ ticker, name: longname ?? shortname ?? ticker });
 
   return (
     <Form>
