@@ -35,11 +35,11 @@ export const TickerLookup: React.FC<TickerLookupProps> = ({
 }) => {
   return (
     <AsyncSelect
-      isDisabled={disabled}
-      className="ticker-lookup-container"
-      classNamePrefix="ticker-lookup"
       cacheOptions
       loadOptions={lookup}
+      isDisabled={disabled}
+      classNamePrefix="ticker-lookup"
+      className="ticker-lookup-container"
       onChange={(x) => onSelect(x?.value as Ticker)}
     />
   );

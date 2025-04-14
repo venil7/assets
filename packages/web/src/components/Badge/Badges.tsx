@@ -1,12 +1,12 @@
-import type {
-  EnrichedAsset,
-  EnrichedPortfolio,
-  GetPortfolio,
+import {
+  type EnrichedAsset,
+  type EnrichedPortfolio,
+  type GetPortfolio,
 } from "@darkruby/assets-core";
 import { identity, pipe } from "fp-ts/lib/function";
 import { Badge, type BadgeProps } from "react-bootstrap";
 import { withProps } from "../../decorators/props";
-import { float, money } from "../../util/number";
+import { money, percent } from "../../util/number";
 
 type ChnageBadgeProps<T> = {
   value: T;
@@ -36,7 +36,7 @@ export const MoneyChangeIndicator = pipe(
 
 export const PctChangeIndicator = pipe(
   ChangeIndicator<number>,
-  withProps({ formatter: (n) => `${float(n)}%`, numeric: identity })
+  withProps({ formatter: (n) => percent(n), numeric: identity })
 );
 
 export const WeightIndicator = pipe(
@@ -44,25 +44,7 @@ export const WeightIndicator = pipe(
   withProps({
     color: "dark",
     numeric: identity,
-    formatter: (n) => `Weight: ${float(n * 100)}%`,
-  })
-);
-
-export const AssetWeightIndicator = pipe(
-  ChangeIndicator<EnrichedAsset>,
-  withProps({
-    color: "dark",
-    numeric: (p) => p.value.weight ?? 0,
-    formatter: (p) => `Weight: ${float((p.value.weight ?? 0) * 100)}%`,
-  })
-);
-
-export const PortfolioWeightIndicator = pipe(
-  ChangeIndicator<EnrichedPortfolio>,
-  withProps({
-    color: "dark",
-    numeric: (p) => p.contribution,
-    formatter: (p) => `Weight: ${float(p.contribution * 100)}%`,
+    formatter: (n) => `Weight: ${percent(n)}`,
   })
 );
 
@@ -70,7 +52,7 @@ export const PortfolioPeriodChange = pipe(
   ChangeIndicator<EnrichedPortfolio>,
   withProps({
     numeric: (p) => p.value.changePct,
-    formatter: (p) => `1d: ${float(p.value.changePct)}%`,
+    formatter: (p) => `1d: ${percent(p.value.changePct)}`,
   })
 );
 
@@ -83,10 +65,19 @@ export const AssetCountIndicator = pipe(
   })
 );
 
+// export const TxCountIndicator = pipe(
+//   ChangeIndicator<EnrichedAsset>,
+//   withProps({
+//     color: "dark",
+//     numeric: (a) => a.num_txs,
+//     formatter: (p) => `Txs: ${p.num_txs}`,
+//   })
+// );
+
 export const AssetPeriodChange = pipe(
   ChangeIndicator<EnrichedAsset>,
   withProps({
     numeric: (a) => a.value.ccy.changePct,
-    formatter: (a) => `${a.meta.range}: ${float(a.value.ccy.changePct)}%`,
+    formatter: (a) => `${a.meta.range}: ${percent(a.value.ccy.changePct)}`,
   })
 );

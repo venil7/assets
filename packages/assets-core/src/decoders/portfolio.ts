@@ -1,5 +1,6 @@
 import * as t from "io-ts";
-import { dateDecoder } from "./util";
+import { dateDecoder, nonEmptyArray } from "./util";
+import { ChartDataPointDecoder } from "./yahoo/chart";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
 const basePortfolioTypes = {
@@ -26,7 +27,9 @@ export const GetPortfoliosDecoder = t.array(GetPortfolioDecoder);
 
 export const EnrichedPortfolioDecoder = t.type({
   ...extPortfolioTypes,
+  chart: nonEmptyArray(ChartDataPointDecoder), //change later to nonEmptyArray
   value: PeriodChangesDecoder,
+  weight: t.number,
   totals: TotalsDecoder,
 });
 

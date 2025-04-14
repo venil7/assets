@@ -8,7 +8,8 @@
     "date-fns": "^4.1.0",
     "fp-ts": "^2.16.9",
     "io-ts-types": "^0.5.19",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "recharts": "^2.15.2"
   },
   "devDependencies": {
     "bun-types": "^1.2.5",

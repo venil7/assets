@@ -1,28 +1,34 @@
 ## Todo
 ### backend
+ - [x] wire up cache with yahoo calls
+ - [ ] portfolio chart
+ - [ ] summary endoint (also chart)
+ - [ ] num_transactions
+ - [ ] chart?range=1d
+ - [x] enriched asset - base ratio
  - [x] PUT endpoints
  - [x] update tx checks sufficiend funds
  - [x] enriched portfolio
  - [x] user id passed,
  - [x] create user, change password
  - [x] create/edit asset checks ticker with yahoo
- - [?] wire up cache with yahoo calls
- - [ ] summary endoint
  - [x] update tests
 
 ### frontend
- - non epmty string decoder
- - select<T> based on react-select
  - [ ] home screen summary
- - [x] portfolio details
- - [x] asset details
- - [ ] breadcrumb
- - [*] login screen
- - [x] modal box as promise,
- - [*] add/edit everything
- - [x] delete everything
  - [ ] user management
  - [ ] profile management
+ - [x] basic chart
+ - [x] currency symbol asset/tx
+ - [x] non epmty string decoder
+ - [x] select<T> based on react-select
+ - [x] portfolio details
+ - [x] asset details
+ - [x] breadcrumb
+ - [x] login screen
+ - [x] modal box as promise,
+ - [x] add/edit everything
+ - [x] delete everything
 
 ## API
 Portfolio API

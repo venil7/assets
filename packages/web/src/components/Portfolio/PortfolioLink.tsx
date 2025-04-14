@@ -6,7 +6,7 @@ import { Link } from "react-router";
 import {
   AssetCountIndicator,
   PortfolioPeriodChange,
-  PortfolioWeightIndicator,
+  WeightIndicator,
 } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
@@ -54,8 +54,8 @@ export const PortfolioLink = ({
       </Card.Body>
       <Card.Footer className="spread-container">
         <div className="stick-left">
+          <WeightIndicator value={portfolio.weight} />
           <AssetCountIndicator value={portfolio} />
-          <PortfolioWeightIndicator value={portfolio} />
         </div>
         <div className="stick-right">
           <PortfolioPeriodChange value={portfolio} />

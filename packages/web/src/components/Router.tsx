@@ -6,6 +6,7 @@ import { LoginScreen } from "../screens/Login";
 import { LogoutScreen } from "../screens/Logout";
 import { PortfolioDetailsScreen } from "../screens/PortfolioDetails";
 import { PortfoliosScreen } from "../screens/Portfolios";
+import { ProfileScreen } from "../screens/Profile";
 import { TestScreen } from "../screens/Test";
 import { env } from "../services/env";
 import { store } from "../stores/store";
@@ -23,6 +24,7 @@ export const router = createBrowserRouter(
       element: <AuthRouteWrapper store={store} />,
       children: [
         { path: "/test", element: <TestScreen /> },
+        { path: "/profile", element: <ProfileScreen /> },
         { path: "/portfolios", element: <PortfoliosScreen /> },
         {
           path: "/portfolios/:portfolioId",

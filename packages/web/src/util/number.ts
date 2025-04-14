@@ -5,3 +5,5 @@ export const money = (number: number, currency = "GBP"): string => {
 };
 
 export const float = (number: number, prec = 2): string => number.toFixed(prec);
+export const percent = (number: number, prec = 2): string =>
+  `${float(number * 100, prec)}%`;

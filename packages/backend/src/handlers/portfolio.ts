@@ -23,7 +23,7 @@ import type { Context } from "./context";
 
 export const getPortfolios: HandlerTask<EnrichedPortfolio[], Context> = ({
   params: [_, res],
-  context: { repo },
+  context: { repo, yahooApi },
 }) =>
   pipe(
     TE.Do,
@@ -33,7 +33,7 @@ export const getPortfolios: HandlerTask<EnrichedPortfolio[], Context> = ({
       const f = (p: GetPortfolio) => {
         return pipe(
           repo.asset.getAll(p.id, profile.id),
-          TE.chain(TE.traverseArray(enrichAsset))
+          TE.chain(TE.traverseArray(enrichAsset(yahooApi)))
         ) as Action<EnrichedAsset[]>;
       };
       return enrichedPortfolios(portfolios, f);
@@ -44,7 +44,7 @@ export const getPortfolios: HandlerTask<EnrichedPortfolio[], Context> = ({
 export const getPortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req, res], context: { repo } }) =>
+> = ({ params: [req, res], context: { repo, yahooApi } }) =>
   pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
@@ -55,7 +55,9 @@ export const getPortfolio: HandlerTask<
     TE.bind("assets", ({ id, profile }) => repo.asset.getAll(id, profile.id)),
     TE.chain(({ portfolio, assets }) => {
       const enrichAssets = () =>
-        pipe(assets, TE.traverseArray(enrichAsset)) as Action<EnrichedAsset[]>;
+        pipe(assets, TE.traverseArray(enrichAsset(yahooApi))) as Action<
+          EnrichedAsset[]
+        >;
       return enrichedOptionalPortfolio(portfolio, enrichAssets);
     }),
     TE.mapLeft(toWebError)
@@ -64,7 +66,7 @@ export const getPortfolio: HandlerTask<
 export const createPortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req, res], context: { repo } }) =>
+> = ({ params: [req, res], context: { repo, yahooApi } }) =>
   pipe(
     TE.Do,
     TE.bind("profile", () => getProfile(res)),
@@ -80,7 +82,9 @@ export const createPortfolio: HandlerTask<
     ),
     TE.chain(({ portfolio, assets }) => {
       const enrichAssets = () =>
-        pipe(assets, TE.traverseArray(enrichAsset)) as Action<EnrichedAsset[]>;
+        pipe(assets, TE.traverseArray(enrichAsset(yahooApi))) as Action<
+          EnrichedAsset[]
+        >;
       return enrichedOptionalPortfolio(portfolio, enrichAssets);
     }),
     TE.mapLeft(toWebError)
@@ -104,7 +108,7 @@ export const deletePortfolio: HandlerTask<Optional<Id>, Context> = ({
 export const updatePortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req, res], context: { repo } }) =>
+> = ({ params: [req, res], context: { repo, yahooApi } }) =>
   pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
@@ -121,7 +125,9 @@ export const updatePortfolio: HandlerTask<
     ),
     TE.chain(({ portfolio, assets }) => {
       const enrichAssets = () =>
-        pipe(assets, TE.traverseArray(enrichAsset)) as Action<EnrichedAsset[]>;
+        pipe(assets, TE.traverseArray(enrichAsset(yahooApi))) as Action<
+          EnrichedAsset[]
+        >;
       return enrichedOptionalPortfolio(portfolio, enrichAssets);
     }),
     TE.mapLeft(toWebError)

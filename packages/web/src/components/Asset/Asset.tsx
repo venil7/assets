@@ -1,25 +1,22 @@
 import {
-  defaultBuyTx,
+  type EnrichedAsset,
   type GetAsset,
   type GetTx,
   type PostTx,
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
-import * as TE from "fp-ts/lib/TaskEither";
 import * as React from "react";
-import { Button, type ButtonProps } from "react-bootstrap";
 import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
-import { withProps } from "../../decorators/props";
+import { money } from "../../util/number";
+import { Chart } from "../Charts/Chart";
 import { TabContent, Tabs } from "../Form/Tabs";
-import { HorizontalStack } from "../Layout/Stack";
 import { TxList } from "../Tx/TxList";
-import { txModal } from "../Tx/TxModal";
 
 type AssetProps = {
-  asset: GetAsset;
   txs: GetTx[];
+  asset: EnrichedAsset;
   onEdit: (a: GetAsset) => void;
   onAddTx: (tx: PostTx) => void;
   onEditTx: (txid: number, tx: PostTx) => void;
@@ -33,19 +30,24 @@ const RawAsset: React.FC<AssetProps> = ({
   onDeleteTx,
   onAddTx,
 }: AssetProps) => {
-  const handleAddTx = pipe(() => txModal(defaultBuyTx()), TE.map(onAddTx));
-
+  const currencyMoney = (n: number) => money(n, asset.meta.currency);
+  const baseMoney = (n: number) => money(n);
   return (
     <div className="asset-details">
-      <HorizontalStack className="top-toolbar">
-        <AddBtn onClick={handleAddTx} />
-      </HorizontalStack>
-
-      <Tabs tabs={["Transactions", "Details"]}>
+      <Tabs tabs={["Details", "Transactions"]}>
         <TabContent tab={0}>
-          <TxList txs={txs} onEdit={onEditTx} onDelete={onDeleteTx} />
+          <Chart data={asset.chart.base} priceFormatter={baseMoney} />
+          <Chart data={asset.chart.ccy} priceFormatter={currencyMoney} />
         </TabContent>
-        <TabContent tab={1}>kkksjdksjsdj</TabContent>
+        <TabContent tab={1}>
+          <TxList
+            txs={txs}
+            asset={asset}
+            onAdd={onAddTx}
+            onEdit={onEditTx}
+            onDelete={onDeleteTx}
+          />
+        </TabContent>
       </Tabs>
     </div>
   );
@@ -57,12 +59,3 @@ export const Asset = pipe(
   withFetching,
   withError
 );
-
-const AddBtn = pipe(
-  Button,
-  withProps({
-    size: "sm",
-    variant: "outline-primary",
-    children: "[+] Add Tx",
-  })
-) as React.FC<ButtonProps>;

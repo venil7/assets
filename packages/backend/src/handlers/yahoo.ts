@@ -1,4 +1,4 @@
-import { yahooApi, type YahooTickerSearchResult } from "@darkruby/assets-core";
+import { type YahooTickerSearchResult } from "@darkruby/assets-core";
 import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
@@ -8,6 +8,7 @@ import type { Context } from "./context";
 
 export const yahooSearch: HandlerTask<YahooTickerSearchResult, Context> = ({
   params: [req],
+  context: { yahooApi },
 }) =>
   pipe(
     TE.Do,

@@ -6,12 +6,7 @@ import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
 import { changeInValue, changeInValuePct } from "../../utils/finance";
-import {
-  dateDecoder,
-  mapDecoder,
-  nullableDecoder,
-  validationErr,
-} from "../util";
+import { mapDecoder, nullableDecoder, validationErr } from "../util";
 import { ChartMetaDecoder } from "./meta";
 import type { PeriodChangesDecoder } from "./period";
 
@@ -61,7 +56,7 @@ const chartDataPointTypes = {
 
 export const ChartDataPointDecoder = t.type(chartDataPointTypes);
 
-type ChartDataPoint = t.TypeOf<typeof ChartDataPointDecoder>;
+export type ChartDataPoint = t.TypeOf<typeof ChartDataPointDecoder>;
 
 const combineIndicators = (
   timestamps: Timestamps,
@@ -114,16 +109,23 @@ export const YahooChartDataDecoder = mapDecoder<
       }
       return E.left([validationErr(`chart contains no data`)]);
     }),
-    E.bind("date", ({ chart }) => {
-      return dateDecoder.decode(chart.meta.regularMarketTime);
+    E.bind("start", ({ chart }) => {
+      return withFallback(
+        t.number,
+        Math.floor(new Date().getTime() / 1000)
+      ).decode(chart.meta.currentTradingPeriod?.regular?.start);
     }),
-    E.map(({ chart: { meta, chart }, date }) => {
+    E.bind("end", ({ chart }) => {
+      return t.number.decode(chart.meta.regularMarketTime);
+    }),
+    E.map(({ chart: { meta, chart }, start, end }) => {
       const beginning = meta.previousClose ?? meta.chartPreviousClose;
       return {
         meta,
         chart,
         price: {
-          date,
+          start,
+          end,
           beginning,
           current: meta.regularMarketPrice,
           changePct: changeInValuePct(beginning)(meta.regularMarketPrice),

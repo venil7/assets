@@ -42,6 +42,10 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
     portfolios,
     sum((p) => p.totals.profitLoss)
   );
+  const totalProfitLossPct = pipe(
+    portfolios,
+    sum((p) => p.totals.profitLossPct * p.weight)
+  );
 
   return (
     <div className="portfolios">
@@ -51,7 +55,7 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
           value={totalValue}
           totals={{
             profitLoss: totalProfitLoss,
-            profitLossPct: 0,
+            profitLossPct: totalProfitLossPct / 100,
           }}
         />
       </HorizontalStack>

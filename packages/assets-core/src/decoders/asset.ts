@@ -29,11 +29,15 @@ export const GetAssetsDecoder = t.array(GetAssetDecoder);
 export const EnrichedAssetDecoder = t.type({
   ...extAssetTypes,
   meta: ChartMetaDecoder,
-  chart: nonEmptyArray(ChartDataPointDecoder),
+  chart: t.type({
+    ccy: nonEmptyArray(ChartDataPointDecoder),
+    base: nonEmptyArray(ChartDataPointDecoder),
+  }),
   value: t.type({
     ccy: PeriodChangesDecoder,
     base: PeriodChangesDecoder,
-    weight: nullableDecoder(t.number),
+    weight: t.number,
+    baseRate: t.number,
   }),
   totals: t.type({
     ccy: TotalsDecoder,

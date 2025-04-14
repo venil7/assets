@@ -8,7 +8,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
-import { PctChangeIndicator, WeightIndicator } from "../Badge/Badges";
+import { AssetPeriodChange, WeightIndicator } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
 import { Totals } from "../Totals/Totals";
@@ -35,7 +35,10 @@ export const AssetLink = ({
     () => confirmationModal(`Delete '${asset.name}'?`),
     TE.map(onDelete)
   );
-  const handleAddTx = pipe(() => txModal(defaultBuyTx()), TE.map(onAddTx));
+  const handleAddTx = pipe(
+    () => txModal(defaultBuyTx(), asset),
+    TE.map(onAddTx)
+  );
 
   return (
     <Card className="asset-link">
@@ -57,10 +60,10 @@ export const AssetLink = ({
       </Card.Body>
       <Card.Footer className="spread-container">
         <div className="stick-left">
-          <WeightIndicator value={asset.value.weight!} />
+          <WeightIndicator value={asset.value.weight} />
         </div>
         <div className="stick-right">
-          <PctChangeIndicator value={asset.value.ccy.changePct} />
+          <AssetPeriodChange value={asset} />
           <AssetMenu
             onDelete={handleDelete}
             onEdit={handleUpdate}

@@ -18,7 +18,7 @@ import type { Context } from "./context";
 
 export const getAssets: HandlerTask<EnrichedAsset[], Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, yahooApi },
 }) =>
   pipe(
     TE.Do,
@@ -27,13 +27,13 @@ export const getAssets: HandlerTask<EnrichedAsset[], Context> = ({
     TE.bind("assets", ({ profile, portfolioId }) =>
       repo.asset.getAll(portfolioId, profile.id)
     ),
-    TE.chain(({ assets }) => enrichedAssets(assets)),
+    TE.chain(({ assets }) => pipe(assets, enrichedAssets(yahooApi))),
     TE.mapLeft(toWebError)
   );
 
 export const getAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, yahooApi },
 }) =>
   pipe(
     TE.Do,
@@ -44,27 +44,29 @@ export const getAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
       repo.asset.get(id, portfolioId, profile.id)
     ),
     TE.map(({ asset }) => asset),
-    TE.chain(enrichOptionalAsset),
+    TE.chain(enrichOptionalAsset(yahooApi)),
     TE.mapLeft(toWebError)
   );
 
 export const createAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, yahooApi },
 }) =>
   pipe(
     TE.Do,
     TE.bind("profile", () => getProfile(res)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
     TE.bind("asset", () => pipe(req.body, liftTE(PostAssetDecoder))),
-    TE.bind("yahooCheck", ({ asset }) => checkTickerExists(asset.ticker)),
+    TE.bind("yahooCheck", ({ asset }) =>
+      pipe(asset.ticker, checkTickerExists(yahooApi))
+    ),
     TE.bind("execution", ({ asset, portfolioId }) =>
       repo.asset.create(asset, portfolioId)
     ),
     TE.chain(({ execution: [id], portfolioId, profile }) =>
       repo.asset.get(id, portfolioId, profile.id)
     ),
-    TE.chain(enrichOptionalAsset),
+    TE.chain(enrichOptionalAsset(yahooApi)),
     TE.mapLeft(toWebError)
   );
 
@@ -86,7 +88,7 @@ export const deleteAsset: HandlerTask<Optional<Id>, Context> = ({
 
 export const updateAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, yahooApi },
 }) =>
   pipe(
     TE.Do,
@@ -94,13 +96,15 @@ export const updateAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
     TE.bind("profile", () => getProfile(res)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
     TE.bind("asset", () => pipe(req.body, liftTE(PostAssetDecoder))),
-    TE.bind("yahooCheck", ({ asset }) => checkTickerExists(asset.ticker)),
+    TE.bind("yahooCheck", ({ asset }) =>
+      pipe(asset.ticker, checkTickerExists(yahooApi))
+    ),
     TE.bind("update", ({ id, portfolioId, asset }) =>
       repo.asset.update(id, asset, portfolioId)
     ),
     TE.chain(({ id, portfolioId, profile }) =>
       repo.asset.get(id, portfolioId, profile.id)
     ),
-    TE.chain(enrichOptionalAsset),
+    TE.chain(enrichOptionalAsset(yahooApi)),
     TE.mapLeft(toWebError)
   );

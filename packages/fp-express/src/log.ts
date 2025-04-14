@@ -1,8 +1,7 @@
 import { formatISO } from "date-fns";
 
 export const createLogger = (name: string) => {
-  const date = new Date();
-  const print = (s: string) => `[${formatISO(date)}] {${name}}: ${s}`;
+  const print = (s: string) => `[${formatISO(new Date())}] {${name}}: ${s}`;
   return {
     debug: (s: string) => console.debug(print(s)),
     info: (s: string) => console.info(print(s)),

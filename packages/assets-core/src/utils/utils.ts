@@ -20,3 +20,5 @@ export const run = async <A>(test: Action<A>) => {
   }
   return result.right;
 };
+
+export type ArrayItem<A> = A extends (infer X)[] ? X : never;

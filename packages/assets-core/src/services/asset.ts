@@ -10,120 +10,138 @@ import type {
   PeriodChanges,
   Totals,
 } from "../domain";
-import { yahooApi } from "../http";
+import type { YahooApi } from "../http";
 import { changeInValue, changeInValuePct, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
 import { baseCcyConversionRate } from "./yahoo";
 
-export const enrichedAssets = (assets: GetAsset[]): Action<EnrichedAsset[]> =>
-  pipe(
-    assets,
-    TE.traverseArray(enrichAsset),
-    TE.map((assets) => calcWeights(assets as EnrichedAsset[]))
-  ) as Action<EnrichedAsset[]>;
+export const enrichAsset =
+  (yahooApi: YahooApi) =>
+  (asset: GetAsset): Action<EnrichedAsset> => {
+    return pipe(
+      TE.Do,
+      TE.apS("asset", TE.of(asset)),
+      TE.bind("enrich", ({ asset }) => yahooApi.chart(asset.ticker)),
+      TE.bind("baseRate", ({ enrich }) =>
+        baseCcyConversionRate(enrich.meta.currency)
+      ),
+      TE.map(
+        ({ asset, enrich: { chart: origChart, price, meta }, baseRate }) => {
+          const toBase = (n: number) => n / baseRate;
 
-export const enrichOptionalAsset = (
-  a: Optional<GetAsset>
-): Action<Optional<EnrichedAsset>> => (a ? enrichAsset(a) : TE.of(null));
-
-export const enrichAsset = (asset: GetAsset): Action<EnrichedAsset> => {
-  return pipe(
-    TE.Do,
-    TE.apS("asset", TE.of(asset)),
-    TE.bind("enrich", ({ asset }) => yahooApi.chart(asset.ticker)),
-    TE.bind("conversionRate", ({ enrich }) =>
-      baseCcyConversionRate(enrich.meta.currency)
-    ),
-    TE.map(
-      ({
-        asset,
-        enrich: { chart: origChart, price, meta },
-        conversionRate,
-      }) => {
-        const chart: ChartData = pipe(
-          origChart,
-          NeA.map((dp) => ({
-            ...dp,
-            // if no holdings, keep price per unit
-            price: dp.price * (asset.holdings || 1),
-          }))
-        );
-
-        const base = (n: number) => n / conversionRate;
-
-        const valueCcy: PeriodChanges = {
-          beginning: price.beginning * asset.holdings,
-          current: price.current * asset.holdings,
-          change: price.change,
-          changePct: price.changePct,
-          date: price.date,
-        };
-
-        const valueBase: PeriodChanges = {
-          beginning: base(valueCcy.beginning),
-          current: base(valueCcy.current),
-          change: changeInValue(base(valueCcy.beginning))(
-            base(valueCcy.current)
-          ),
-          changePct: changeInValuePct(base(valueCcy.beginning))(
-            base(valueCcy.current)
-          ),
-          date: price.date,
-        };
-
-        const totalsCcy = ((): Totals => {
-          const profitLoss = pipe(
-            O.fromNullable(asset.avg_price),
-            O.map(() => changeInValue(asset.invested)(valueCcy.current)),
-            O.getOrElse(() => 0)
+          const chartCcy: ChartData = pipe(
+            origChart,
+            NeA.map((dp) => ({
+              ...dp,
+              // if no holdings, keep price per unit
+              price: dp.price * (asset.holdings || 1),
+            }))
           );
-          const profitLossPct = pipe(
-            O.fromNullable(asset.avg_price),
-            O.map(() => changeInValuePct(asset.invested)(valueCcy.current)),
-            O.getOrElse(() => 0)
+          const chartBase: ChartData = pipe(
+            chartCcy,
+            NeA.map((dp) => ({
+              ...dp,
+              price: toBase(dp.price),
+            }))
           );
-          return { profitLoss, profitLossPct };
-        })();
 
-        const totalsBase = ((): Totals => {
-          const profitLoss = pipe(
-            O.fromNullable(asset.avg_price),
-            O.map(() => changeInValue(base(asset.invested))(valueBase.current)),
-            O.getOrElse(() => 0)
-          );
-          const profitLossPct = pipe(
-            O.fromNullable(asset.avg_price),
-            O.map(() =>
-              changeInValuePct(base(asset.invested))(valueBase.current)
+          const valueCcy: PeriodChanges = {
+            // if no holdings, we consider price for 1 unit
+            beginning: price.beginning * (asset.holdings || 1),
+            current: price.current * (asset.holdings || 1),
+            change: price.change,
+            changePct: price.changePct,
+            start: price.start,
+            end: price.end,
+          };
+
+          const valueBase: PeriodChanges = {
+            beginning: toBase(valueCcy.beginning),
+            current: toBase(valueCcy.current),
+            change: changeInValue(toBase(valueCcy.beginning))(
+              toBase(valueCcy.current)
             ),
-            O.getOrElse(() => 0)
-          );
-          return { profitLoss, profitLossPct };
-        })();
+            changePct: changeInValuePct(toBase(valueCcy.beginning))(
+              toBase(valueCcy.current)
+            ),
+            start: price.start,
+            end: price.end,
+          };
 
-        return {
-          ...asset,
-          meta,
-          chart,
-          value: {
-            ccy: valueCcy,
-            base: valueBase,
-            weight: null,
-          },
-          totals: {
-            ccy: totalsCcy,
-            base: totalsBase,
-          },
-        };
-      }
-    )
-  );
-};
+          const totalsCcy = ((): Totals => {
+            const profitLoss = pipe(
+              O.fromNullable(asset.avg_price),
+              O.map(() => changeInValue(asset.invested)(valueCcy.current)),
+              O.getOrElse(() => 0)
+            );
+            const profitLossPct = pipe(
+              O.fromNullable(asset.avg_price),
+              O.map(() => changeInValuePct(asset.invested)(valueCcy.current)),
+              O.getOrElse(() => 0)
+            );
+            return { profitLoss, profitLossPct };
+          })();
 
-export const calcWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
+          const totalsBase = ((): Totals => {
+            const profitLoss = pipe(
+              O.fromNullable(asset.avg_price),
+              O.map(() =>
+                changeInValue(toBase(asset.invested))(valueBase.current)
+              ),
+              O.getOrElse(() => 0)
+            );
+            const profitLossPct = pipe(
+              O.fromNullable(asset.avg_price),
+              O.map(() =>
+                changeInValuePct(toBase(asset.invested))(valueBase.current)
+              ),
+              O.getOrElse(() => 0)
+            );
+            return { profitLoss, profitLossPct };
+          })();
+
+          return {
+            ...asset,
+            meta,
+            chart: {
+              ccy: chartCcy,
+              base: chartBase,
+            },
+            value: {
+              ccy: valueCcy,
+              base: valueBase,
+              baseRate,
+              //weight cannot be calulcated for single asset
+              weight: 0,
+            },
+            totals: {
+              ccy: totalsCcy,
+              base: totalsBase,
+            },
+          };
+        }
+      )
+    );
+  };
+
+export const enrichedAssets =
+  (yahooApi: YahooApi) =>
+  (assets: GetAsset[]): Action<EnrichedAsset[]> =>
+    pipe(
+      assets,
+      TE.traverseArray(enrichAsset(yahooApi)),
+      TE.map((assets) => calcAssetWeights(assets as EnrichedAsset[]))
+    ) as Action<EnrichedAsset[]>;
+
+export const enrichOptionalAsset =
+  (yahooApi: YahooApi) =>
+  (a: Optional<GetAsset>): Action<Optional<EnrichedAsset>> =>
+    a ? pipe(a, enrichAsset(yahooApi)) : TE.of(null);
+
+export const calcAssetWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
   const total = pipe(
     assets,
-    sum(({ value }) => value.base.beginning)
+    sum(({ value }) => value.base.current)
   );
   return pipe(
     assets,

@@ -11,9 +11,9 @@ const TradingPeriodDecoder = t.type({
 });
 
 const CurrentTradingPeriodDecoder = t.type({
-  pre: TradingPeriodDecoder,
-  regular: TradingPeriodDecoder,
-  post: TradingPeriodDecoder,
+  pre: nullableDecoder(TradingPeriodDecoder),
+  regular: nullableDecoder(TradingPeriodDecoder),
+  post: nullableDecoder(TradingPeriodDecoder),
 });
 
 const tradingPeriods = t.array(t.array(TradingPeriodDecoder));
@@ -48,7 +48,7 @@ export const ChartMetaDecoder = t.type({
   chartPreviousClose: t.number,
   scale: nullableDecoder(t.number),
   // priceHint: t.number,
-  // currentTradingPeriod: CurrentTradingPeriodDecoder,
+  currentTradingPeriod: nullableDecoder(CurrentTradingPeriodDecoder),
   tradingPeriods: nullableDecoder(tradingPeriods),
   dataGranularity: t.string,
   range: Range,

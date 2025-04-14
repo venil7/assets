@@ -15,6 +15,7 @@ import { withNoData } from "../../decorators/nodata";
 import { withProps } from "../../decorators/props";
 import { AssetLink } from "../Asset/AssetLink";
 import { assetModal } from "../Asset/AssetModal";
+import { Chart } from "../Charts/Chart";
 import { Info } from "../Form/Alert";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
@@ -60,6 +61,9 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
         <Info hidden={!!assets.length}>
           This portfolio doesn have any assets yet
         </Info>
+
+        <Chart data={portfolio.chart} hidden={!portfolio.num_assets} />
+
         <Stack gap={3}>
           {assets.map((asset) => (
             <AssetLink

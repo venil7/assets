@@ -18,6 +18,7 @@ import {
 } from "./services/cache";
 import { env, envNumber } from "./services/env";
 import { initializeApp } from "./services/init";
+import { cachedYahooApi } from "./services/yahoo";
 
 type Config = {
   database: string;
@@ -46,7 +47,7 @@ const repository = (c: Config): Action<Repository> =>
 const cache = ({ cacheSize, cacheTtl }: Config): Action<AppCache> =>
   pipe(
     TE.of(
-      new LRUCache<Stringifiable, string, unknown>({
+      new LRUCache<Stringifiable, any>({
         max: cacheSize,
         ttl: cacheTtl,
       })
@@ -131,7 +132,8 @@ const app = () =>
       pipe(
         TE.Do,
         TE.bind("repo", () => repository(config)),
-        TE.bind("cache", () => cache(config))
+        TE.bind("cache", () => cache(config)),
+        TE.bind("yahooApi", ({ cache }) => TE.of(cachedYahooApi(cache)))
       )
     ),
     TE.bind("init", ({ context }) => initializeApp(context.repo)),

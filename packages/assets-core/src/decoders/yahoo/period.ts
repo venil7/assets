@@ -1,13 +1,12 @@
 import * as t from "io-ts";
-import { dateDecoder } from "../util";
 
 const periodChangesTypes = {
   beginning: t.number,
   current: t.number,
   change: t.number,
   changePct: t.number,
-  date: dateDecoder,
-  // date: nullableDecoder(dateDecoder),
+  start: t.number, //represnets date
+  end: t.number, //represnets date
 };
 
 const totalsTypes = {
