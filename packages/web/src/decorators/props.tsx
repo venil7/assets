@@ -19,7 +19,6 @@ export function withProps<P extends Props, Pr extends Partial<P>>(
 type Mapping<T extends Props, K extends keyof T> = {
   [P in K]: (arg: any) => T[P];
 };
-type Orig = { name: string; age: number };
 
 type MappedProps<T extends Props, M> = {
   [K in keyof T]: K extends keyof M

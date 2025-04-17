@@ -1,12 +1,12 @@
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import { boolean, dateDecoder } from "./util";
+import { boolean, dateDecoder, nonEmptyString } from "./util";
 
 const UserId = t.Int;
 
 const credentialsTypes = {
-  username: t.string,
-  password: t.string,
+  username: nonEmptyString,
+  password: nonEmptyString,
 };
 
 const profileTypes = {

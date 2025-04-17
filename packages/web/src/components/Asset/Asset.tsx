@@ -37,7 +37,7 @@ const RawAsset: React.FC<AssetProps> = ({
       <Tabs tabs={["Details", "Transactions"]}>
         <TabContent tab={0}>
           <Chart data={asset.chart.base} priceFormatter={baseMoney} />
-          <Chart data={asset.chart.ccy} priceFormatter={currencyMoney} />
+          {/* <Chart data={asset.chart.ccy} priceFormatter={currencyMoney} /> */}
         </TabContent>
         <TabContent tab={1}>
           <TxList

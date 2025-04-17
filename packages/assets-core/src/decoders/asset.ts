@@ -33,6 +33,7 @@ export const EnrichedAssetDecoder = t.type({
     ccy: nonEmptyArray(ChartDataPointDecoder),
     base: nonEmptyArray(ChartDataPointDecoder),
   }),
+  investedBase: t.number,
   value: t.type({
     ccy: PeriodChangesDecoder,
     base: PeriodChangesDecoder,

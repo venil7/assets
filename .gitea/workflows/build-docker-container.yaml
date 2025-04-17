@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches:
-      # - master
-      - release
+      - master
+      # - release
 
 jobs:
   build-docker:
@@ -16,19 +16,28 @@ jobs:
       - name: GET GIT TAG
         run: |
           echo "BUILD_TAG=$(git describe --tags --always)" >> $GITHUB_ENV
-      - name: LOGIN TO DOCKER
+      # - name: LOGIN TO RASPI DOCKER
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: raspi4:6363
+      #     username: ${{ vars.CONTAINER_REGISTRY_USERNAME }}
+      #     password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+      - name: LOGIN TO GITHUB DOCKER
         uses: docker/login-action@v3
         with:
-          registry: raspi4:6363
-          username: ${{ vars.CONTAINER_REGISTRY_USERNAME }}
-          password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
-      - name: BUILD DOCKER IMAGE
+          registry: ghcr.io
+          username: venil7
+          password: ${{ secrets.GTHB_CR_TOKEN }}
+      - name: PUSH
+        run: |
+          docker push ghcr.io/venil7/assets:latest
+      # - name: BUILD DOCKER IMAGE
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     push: true
+      #     tags: raspi4:6363/${{ vars.CONTAINER_REGISTRY_USERNAME }}/assets #${{ env.BUILD_TAG }}
+      - name: BUILD DOCKER IMAGE AND PUSH TO GIHUB
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: raspi4:6363/${{ vars.CONTAINER_REGISTRY_USERNAME }}/assets #${{ env.BUILD_TAG }}
-      # - name: ALSO PUSH TO GITHUB
-      #   run: |
-      #     echo secrets.GTHB_CR_TOKEN | docker login ghcr.io -u venil7 --password-stdin
-      #     docker tag raspi4:6363/darkruby/assets:latest ghcr.io/venil7/assets:latest
-      #     docker push ghcr.io/venil7/assets:latest
+          tags: ghcr.io/venil7/assets:latest

@@ -37,9 +37,9 @@ export const PortfolioLink = ({
       <Card.Body>
         <Link to={routes.portfolio(portfolio.id)}>
           <Card.Title className="name">
-            <Stack direction="horizontal">
-              <div>{portfolio.name}</div>
-              <div className="ms-auto">
+            <Stack direction="horizontal" className="spread-container">
+              <div className="stick-left">{portfolio.name}</div>
+              <div className="stick-right">
                 <Totals
                   value={portfolio.value.current}
                   totals={portfolio.totals}

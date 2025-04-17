@@ -1,7 +1,7 @@
 ## Todo
 ### backend
  - [x] wire up cache with yahoo calls
- - [ ] portfolio chart
+ - [x] portfolio chart
  - [ ] summary endoint (also chart)
  - [ ] num_transactions
  - [ ] chart?range=1d

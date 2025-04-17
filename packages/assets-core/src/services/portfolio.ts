@@ -27,6 +27,11 @@ export const enrichPortfolio = (
       pipe(getEnrichedAssets(), TE.map(calcAssetWeights))
     ),
     TE.map(({ portfolio, assets }) => {
+      const investedBase = pipe(
+        assets,
+        sum(({ investedBase }) => investedBase)
+      );
+
       const value: PeriodChanges = (() => {
         const beginning = pipe(
           assets,
@@ -63,16 +68,8 @@ export const enrichPortfolio = (
       })();
 
       const totals = ((): Totals => {
-        const profitLoss = pipe(
-          assets,
-          sum(({ totals }) => totals.base.profitLoss)
-        );
-        const profitLossPct = pipe(
-          assets,
-          sum(({ totals, value }) => {
-            return totals.base.profitLossPct * value.weight;
-          })
-        );
+        const profitLoss = changeInValue(investedBase)(value.current);
+        const profitLossPct = changeInValuePct(investedBase)(value.current);
         return { profitLoss, profitLossPct };
       })();
 
@@ -80,6 +77,7 @@ export const enrichPortfolio = (
 
       return {
         ...portfolio,
+        investedBase,
         value,
         totals,
         chart,

@@ -29,6 +29,8 @@ export const enrichAsset =
         ({ asset, enrich: { chart: origChart, price, meta }, baseRate }) => {
           const toBase = (n: number) => n / baseRate;
 
+          const investedBase = toBase(asset.invested);
+
           const chartCcy: ChartData = pipe(
             origChart,
             NeA.map((dp) => ({
@@ -103,6 +105,7 @@ export const enrichAsset =
           return {
             ...asset,
             meta,
+            investedBase,
             chart: {
               ccy: chartCcy,
               base: chartBase,

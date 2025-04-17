@@ -30,6 +30,7 @@ export const EnrichedPortfolioDecoder = t.type({
   chart: nonEmptyArray(ChartDataPointDecoder), //change later to nonEmptyArray
   value: PeriodChangesDecoder,
   weight: t.number,
+  investedBase: t.number,
   totals: TotalsDecoder,
 });
 

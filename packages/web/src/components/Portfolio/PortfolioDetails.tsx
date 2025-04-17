@@ -8,15 +8,15 @@ import {
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import { Button, Stack, type ButtonProps } from "react-bootstrap";
+import { Stack } from "react-bootstrap";
 import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
-import { withProps } from "../../decorators/props";
 import { AssetLink } from "../Asset/AssetLink";
 import { assetModal } from "../Asset/AssetModal";
 import { Chart } from "../Charts/Chart";
 import { Info } from "../Form/Alert";
+import { AddBtn } from "../Form/Button";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
 import { portfolioModal } from "./PortfolioModal";
@@ -55,7 +55,7 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
     <>
       <div className="portfolio-details">
         <HorizontalStack className="top-toolbar">
-          <AddBtn onClick={handleAddAsset} />
+          <AddBtn onClick={handleAddAsset} label="Portfolio" />
           <Totals value={portfolio.value.current} totals={portfolio.totals} />
         </HorizontalStack>
         <Info hidden={!!assets.length}>
@@ -88,12 +88,3 @@ const DecoratedPortfolioDetails = pipe(
 );
 
 export { DecoratedPortfolioDetails as PortfolioDetails };
-
-const AddBtn = pipe(
-  Button,
-  withProps({
-    size: "sm",
-    variant: "outline-primary",
-    children: "[+] Add Asset",
-  })
-) as React.FC<ButtonProps>;
