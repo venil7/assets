@@ -22,20 +22,17 @@ jobs:
       #     registry: raspi4:6363
       #     username: ${{ vars.CONTAINER_REGISTRY_USERNAME }}
       #     password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+      # - name: BUILD DOCKER IMAGE
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     push: true
+      #     tags: raspi4:6363/${{ vars.CONTAINER_REGISTRY_USERNAME }}/assets #${{ env.BUILD_TAG }}
       - name: LOGIN TO GITHUB DOCKER
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: venil7
           password: ${{ secrets.GTHB_CR_TOKEN }}
-      - name: PUSH
-        run: |
-          docker push ghcr.io/venil7/assets:latest
-      # - name: BUILD DOCKER IMAGE
-      #   uses: docker/build-push-action@v6
-      #   with:
-      #     push: true
-      #     tags: raspi4:6363/${{ vars.CONTAINER_REGISTRY_USERNAME }}/assets #${{ env.BUILD_TAG }}
       - name: BUILD DOCKER IMAGE AND PUSH TO GIHUB
         uses: docker/build-push-action@v6
         with:
