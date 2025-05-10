@@ -31,6 +31,18 @@ export const queryOne =
     );
   };
 
+export const transaction =
+  <R>(insideTransaction: () => void) =>
+  (db: Database): Action<Nullable<R>> => {
+    const transact = db.transaction(insideTransaction);
+    return pipe(
+      TE.tryCatch(
+        async () => transact(),
+        (e) => generalError(`${e}`)
+      )
+    );
+  };
+
 export const execute =
   <R>(sql: string, bindings: SQLQueryBindings = null) =>
   (db: Database): Action<ExecutionResult> => {

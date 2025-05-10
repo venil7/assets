@@ -31,10 +31,12 @@ export const login: HandlerTask<Token, Context> = ({
 }) =>
   pipe(
     TE.Do,
-    TE.bind("login", () => pipe(req.body, liftTE(CredenatialsDecoder))),
-    TE.bind("user", ({ login }) => repo.user.byUsername(login.username)),
-    TE.bind("auth", ({ login, user }) => verifyPassword(user, login)),
+    TE.bind("creds", () => pipe(req.body, liftTE(CredenatialsDecoder))),
+    TE.bind("user", ({ creds }) => repo.user.loginAttempt(creds.username)),
+    TE.bind("auth", ({ creds, user }) => verifyPassword(user, creds)),
+    TE.bind("reset", ({ user }) => repo.user.loginSuccess(user.username)),
     TE.bind("profile", ({ user }) => liftTE(ProfileDecoder)(user)),
+    TE.chainFirstIOK((x) => () => console.log(x)),
     TE.chain(({ profile }) => createToken(profile)),
     TE.mapLeft(toWebError)
   );

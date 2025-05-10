@@ -52,7 +52,7 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
   return (
     <div className="portfolios">
       <HorizontalStack className="top-toolbar">
-        <AddBtn onClick={handleAdd} label="Asset" />
+        <AddBtn onClick={handleAdd} label="Portfolio" />
         <Totals
           value={currentValue}
           totals={{

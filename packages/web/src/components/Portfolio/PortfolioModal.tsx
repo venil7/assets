@@ -7,6 +7,7 @@ import {
   type DialogDrivenComponentProps,
 } from "../../util/modal";
 import { portfolioValidator } from "../../validation/portfolio";
+import { FormErrors } from "../Form/FormErrors";
 import { ConfirmationModalFooter } from "../Modals/Footer";
 import { PortfolioForm } from "./PortfolioForm";
 
@@ -20,13 +21,14 @@ export const PortfolioModal: React.FC<PortfolioModalProps> = ({
 }) => {
   const [portfolio, setPortfolio] = useState<PostPortfolio>(value!);
   const handleOk = () => onSubmit(portfolio);
-  const { valid } = portfolioValidator(portfolio);
+  const { valid, errors } = portfolioValidator(portfolio);
 
   return (
     <Modal show={open}>
       <ModalHeader>Portfolio</ModalHeader>
       <ModalBody>
         <PortfolioForm portfolio={portfolio} onChange={setPortfolio} />
+        <FormErrors errors={errors} valid={valid} />
       </ModalBody>
       <ConfirmationModalFooter
         disabled={!valid}

@@ -1,11 +1,18 @@
-import type { Identity, Nullable, Profile } from "@darkruby/assets-core";
+import type {
+  ActionResult,
+  Credentials,
+  Identity,
+  Nullable,
+  Profile,
+} from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
-import { getProfile } from "../services/profile";
+import { getProfile, updateCredentials } from "../services/profile";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type ProfileStore = Identity<
   StoreBase<Nullable<Profile>> & {
-    load: () => Promise<unknown>;
+    load: () => ActionResult<Nullable<Profile>>;
+    update: (c: Credentials) => ActionResult<Nullable<Profile>>;
   }
 >;
 
@@ -16,5 +23,6 @@ export const createProfileStore = (): ProfileStore => {
   return {
     ...storeBase,
     load: () => storeBase.run(getProfile()),
+    update: (c: Credentials) => storeBase.run(updateCredentials(c)),
   };
 };

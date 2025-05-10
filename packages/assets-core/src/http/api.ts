@@ -8,7 +8,7 @@ import {
 } from "../decoders/portfolio";
 import { TokenDecoder } from "../decoders/token";
 import { GetTxDecoder, GetTxsDecoder } from "../decoders/transaction";
-import { ProfileDecoder } from "../decoders/user";
+import { ProfileDecoder, ProfilesDecoder } from "../decoders/user";
 import type {
   Credentials,
   EnrichedAsset,
@@ -19,6 +19,7 @@ import type {
   PostTx,
   Profile,
   TickerSearchResult,
+  UserId,
 } from "../domain";
 import type { Id } from "../domain/id";
 import type { Token } from "../domain/token";
@@ -27,7 +28,8 @@ import * as rest from "./rest";
 
 const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const API_URL = `${baseUrl}/api/v1`;
-  const USER_URL = `${API_URL}/user`;
+  const USERS_URL = `${API_URL}/users`;
+  const USER_URL = (uid: UserId) => `${USERS_URL}/${uid}`;
   const PORTFOLIOS_URL = `${API_URL}/portfolios`;
   const PROFILE_URL = `${API_URL}/profile`;
   const PORTFOLIO_URL = (id: number) => `${PORTFOLIOS_URL}/${id}`;
@@ -107,8 +109,16 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const getProfile = () => methods.get<Profile>(PROFILE_URL, ProfileDecoder);
   const updateProfile = (body: Credentials) =>
     methods.put<Profile, Credentials>(PROFILE_URL, body, ProfileDecoder);
+
   const createUser = (body: Credentials) =>
-    methods.post<Profile, Credentials>(USER_URL, body, ProfileDecoder);
+    methods.post<Profile, Credentials>(USERS_URL, body, ProfileDecoder);
+  const updateUser = (uid: UserId, body: Credentials) =>
+    methods.put<Profile, Credentials>(USER_URL(uid), body, ProfileDecoder);
+  const getUsers = () => methods.get<Profile[]>(USERS_URL, ProfilesDecoder);
+  const getUser = (uid: UserId) =>
+    methods.get<Profile>(USER_URL(uid), ProfileDecoder);
+  const deleteUser = (uid: UserId) =>
+    methods.delete<Id>(USER_URL(uid), IdDecoder);
 
   const lookupTicker = (ticker: string) =>
     methods.get<TickerSearchResult>(
@@ -118,7 +128,11 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
 
   return {
     user: {
+      get: getUser,
+      getMany: getUsers,
+      update: updateUser,
       create: createUser,
+      delete: deleteUser,
     },
     profile: {
       get: getProfile,

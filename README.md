@@ -72,6 +72,12 @@ Portfolio API
 <-- { id }
 ```
 
+### create migration
+```
+migrate create -ext sql -dir .migrations/ -seq -digits 3 <name>
+migrate migrate -path ./.migrations -database=sqlite3://test.db
+```
+
 ### run tests
 
 To install dependencies:

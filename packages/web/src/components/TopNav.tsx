@@ -34,6 +34,9 @@ const RawProfileLink: React.FC<{ profile: Profile }> = ({ profile }) => {
       <Dropdown.Item>
         <Link to="/profile">Profile</Link>
       </Dropdown.Item>
+      <Dropdown.Item hidden={!profile.admin}>
+        <Link to="/users">Users</Link>
+      </Dropdown.Item>
       <Dropdown.Divider />
       <Dropdown.Item>
         <Link to="/logout">Logout</Link>

@@ -1,6 +1,8 @@
 @import "~/bootstrap/scss/_functions";
 @import "~/bootstrap/scss/_variables";
 
+$breakpoint-phone: 600px;
+
 @mixin flex-container-row {
   display: flex;
   flex-direction: row;
@@ -27,5 +29,11 @@ a {
   .stick-right {
     @include flex-container-row();
     justify-content: flex-end;
+  }
+}
+
+@media (max-width: $breakpoint-phone) {
+  .description.h6 {
+    font-size: 0.75rem;
   }
 }

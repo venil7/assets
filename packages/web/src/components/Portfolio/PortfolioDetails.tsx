@@ -55,7 +55,7 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
     <>
       <div className="portfolio-details">
         <HorizontalStack className="top-toolbar">
-          <AddBtn onClick={handleAddAsset} label="Portfolio" />
+          <AddBtn onClick={handleAddAsset} label="Asset" />
           <Totals value={portfolio.value.current} totals={portfolio.totals} />
         </HorizontalStack>
         <Info hidden={!!assets.length}>

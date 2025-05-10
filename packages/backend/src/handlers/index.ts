@@ -5,6 +5,7 @@ import * as assets from "./asset";
 import * as auth from "./auth";
 import type { Context } from "./context";
 import * as portfolio from "./portfolio";
+import * as profile from "./profile";
 import * as tx from "./transaction";
 import * as user from "./user";
 import * as yahoo from "./yahoo";
@@ -35,11 +36,15 @@ export const createHandlers = (
     delete: pipe(tx.deleteTx, expressify),
   },
   user: {
+    get: pipe(user.getUser, expressify),
+    getMany: pipe(user.getUsers, expressify),
     create: pipe(user.createUser, expressify),
+    update: pipe(user.updateUser, expressify),
+    delete: pipe(user.deleteUser, expressify),
   },
   profile: {
-    get: pipe(user.getOwnProfile, expressify),
-    update: pipe(user.updateOwnProfile, expressify),
+    get: pipe(profile.getOwnProfile, expressify),
+    update: pipe(profile.updateOwnProfile, expressify),
   },
   auth: {
     login: pipe(auth.login, expressify),

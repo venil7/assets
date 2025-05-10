@@ -13,7 +13,6 @@ import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
 import { Totals } from "../Totals/Totals";
 import { txModal } from "../Tx/TxModal";
-import "./Asset.scss";
 import { assetModal } from "./AssetModal";
 import { AssetMenu } from "./Menu";
 
@@ -45,7 +44,7 @@ export const AssetLink = ({
       <Card.Body>
         <Link to={routes.asset(asset.portfolio_id, asset.id)}>
           <Card.Title className="name">
-            <Stack direction="horizontal">
+            <Stack direction="horizontal" className="spread-container">
               <div>{asset.name}</div>
               <div className="ms-auto">
                 <Totals

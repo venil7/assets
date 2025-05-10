@@ -17,13 +17,13 @@ import { env } from "./env";
 export const verifyPassword = (
   { phash }: GetUser,
   { password }: Credentials
-): Action<any> => {
+): Action<boolean> => {
   return pipe(
     TE.tryCatch(
       () => compare(password, phash),
       (e) => authError(`Unable to auth ${e}`)
     ),
-    TE.filterOrElse(identity, (e) => authError("could not authenticate"))
+    TE.filterOrElse(identity, (e) => authError("wrong passord?"))
   );
 };
 
@@ -58,14 +58,19 @@ export const verifyBearer = (
   );
 };
 
-export const createUser =
+const toUser =
   (admin: boolean = false) =>
   ({ username, password }: Credentials): Action<PostUser> => {
     return pipe(
       TE.Do,
       TE.bind("psalt", () => TE.of(genSaltSync())),
       TE.bind("phash", ({ psalt }) => TE.of(hashSync(password, psalt))),
-      TE.chain(({ phash, psalt }) => TE.of({ phash, psalt, username, admin })),
+      TE.chain(({ phash, psalt }) =>
+        TE.of({ phash, psalt, username, admin, login_attempts: 0, locked: 0 })
+      ),
       TE.chain(liftTE(PostUserDecoder))
     );
   };
+
+export const toNonAdminUser = toUser(false);
+export const toAdminUser = toUser(true);

@@ -9,10 +9,17 @@ const credentialsTypes = {
   password: nonEmptyString,
 };
 
+const passwordChangeTypes = {
+  password: nonEmptyString,
+  repeat: nonEmptyString,
+};
+
 const profileTypes = {
   id: UserId,
   username: t.string,
   admin: boolean,
+  login_attempts: t.number,
+  locked: boolean,
 };
 
 const getUserTypes = {
@@ -28,9 +35,17 @@ const postUserTypes = {
   admin: boolean,
   phash: t.string,
   psalt: t.string,
+  login_attempts: t.number,
+  locked: boolean,
 };
 
 export const CredenatialsDecoder = t.type(credentialsTypes);
 export const ProfileDecoder = pipe(t.type(profileTypes), t.exact);
+export const ProfilesDecoder = t.array(ProfileDecoder);
+
 export const GetUserDecoder = t.type(getUserTypes);
+export const GetUsersDecoder = t.array(GetUserDecoder);
+
 export const PostUserDecoder = t.type(postUserTypes);
+
+export const PasswordChangeDecoder = t.type(passwordChangeTypes);

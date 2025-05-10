@@ -7,6 +7,7 @@ import {
   type DialogDrivenComponentProps,
 } from "../../util/modal";
 import { txValidator } from "../../validation/tx";
+import { FormErrors } from "../Form/FormErrors";
 import { ConfirmationModalFooter } from "../Modals/Footer";
 import { TxForm } from "./TxForm";
 
@@ -33,6 +34,7 @@ export const TxModal: React.FC<TxModalProps> = ({
       <ModalHeader>Transaction</ModalHeader>
       <ModalBody>
         <TxForm tx={tx} onChange={setTx} asset={asset} />
+        <FormErrors errors={errors} valid={valid} />
       </ModalBody>
       <ConfirmationModalFooter
         disabled={!valid}

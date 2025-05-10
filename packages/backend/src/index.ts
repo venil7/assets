@@ -88,7 +88,11 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
 
       const user = express();
       user.post("/", handlers.user.create);
-      api.use("/user", user);
+      user.get("/", handlers.user.getMany);
+      user.get("/:id", handlers.user.get);
+      user.put("/:id", handlers.user.update);
+      user.delete("/:id", handlers.user.delete);
+      api.use("/users", user);
 
       const portfolios = express();
       portfolios.post("/", handlers.portfolio.create);

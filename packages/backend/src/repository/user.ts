@@ -1,5 +1,8 @@
 import { authError, type Action } from "@darkruby/assets-core";
-import { GetUserDecoder } from "@darkruby/assets-core/src/decoders/user";
+import {
+  GetUserDecoder,
+  GetUsersDecoder,
+} from "@darkruby/assets-core/src/decoders/user";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type {
   GetUser,
@@ -9,27 +12,75 @@ import type {
 import type Database from "bun:sqlite";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import { execute, queryOne, type ExecutionResult } from "./database";
+import { defaultPaging } from "../domain/paging";
+import {
+  execute,
+  queryMany,
+  queryOne,
+  transaction,
+  type ExecutionResult,
+} from "./database";
 
-export const getUserByUsername =
+export const loginAttempt =
   (db: Database) =>
-  (username: string): Action<GetUser> =>
-    pipe(
+  (username: string): Action<GetUser> => {
+    const attempt = db.prepare(`
+      update users
+      set login_attempts = login_attempts + 1
+      where username=$username;
+    `);
+    const getUser = db.prepare(`
+      select phash, psalt, created, modified, id, username, admin, login_attempts, locked
+      from users u
+      where u.username=$username
+            and u.login_attempts<3
+            and u.locked<1
+      limit 1;
+    `);
+    return pipe(
       db,
-      queryOne(
-        `
-        select *
-        from users u
-        where u.username = $username
-        limit 1;
-        `,
-        { username }
-      ),
+      transaction(() => {
+        attempt.run({ username });
+        return getUser.get({ username });
+      }),
       TE.filterOrElse(
-        (u) => !!u,
+        (x) => !!x,
         () => authError("could not authenticate")
       ),
       TE.chain(liftTE(GetUserDecoder))
+    );
+  };
+
+export const loginSuccess =
+  (db: Database) =>
+  (username: string): Action<any> =>
+    pipe(
+      db,
+      execute(
+        `
+        update users
+        set login_attempts=0
+        where username=$username and login_attempts>0;
+        `,
+        { username }
+      ),
+      TE.filterOrElse(Boolean, () => authError("failed to reset login"))
+    );
+
+export const getUsers =
+  (db: Database) =>
+  (paging = defaultPaging()): Action<GetUser[]> =>
+    pipe(
+      db,
+      queryMany(
+        `
+        select id, username, admin, login_attempts, locked, phash, psalt, created, modified
+        from users u
+        limit $limit offset $offset;
+        `,
+        paging
+      ),
+      TE.chain(liftTE(GetUsersDecoder))
     );
 
 export const getUser =
@@ -39,7 +90,7 @@ export const getUser =
       db,
       queryOne(
         `
-        select phash, psalt, created, modified, id, username, admin
+        select phash, psalt, created, modified, id, username, admin, login_attempts, locked
         from users u
         where u.id = $userId
         limit 1;
@@ -66,16 +117,31 @@ export const createUser =
 
 export const updateUser =
   (db: Database) =>
-  (user: PostUser, userId: UserId): Action<ExecutionResult> => {
+  (userId: UserId, user: PostUser): Action<ExecutionResult> => {
     return pipe(
       db,
       execute(
         `
           update users
-          set username=$username, phash=$phash, psalt=$psalt, admin=$admin
-          where id=$userId
+          set username=$username, phash=$phash, psalt=$psalt,
+              admin=$admin, login_attempts=$login_attempts, locked=$locked
+          where id=$userId;
           `,
         { ...user, userId }
       )
     );
   };
+
+export const deleteUser =
+  (db: Database) =>
+  (userId: UserId): Action<ExecutionResult> =>
+    pipe(
+      db,
+      execute<unknown[]>(
+        `
+        delete from users
+        where id=$userId;
+      `,
+        { userId }
+      )
+    );

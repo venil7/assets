@@ -31,9 +31,12 @@ export const createRepository = (db: Database) => {
     },
     user: {
       get: user.getUser(db),
+      getAll: user.getUsers(db),
       create: user.createUser(db),
       update: user.updateUser(db),
-      byUsername: user.getUserByUsername(db),
+      delete: user.deleteUser(db),
+      loginAttempt: user.loginAttempt(db),
+      loginSuccess: user.loginSuccess(db),
     },
   };
 };

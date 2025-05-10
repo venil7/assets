@@ -14,8 +14,9 @@ const RawLoginScreen: React.FC = () => {
 
   const handleLogin = (creds: Credentials) => {
     const onSuccess: Action<void> = TE.fromTask<void>(() => {
-      console.log("redirecting");
-      return navigate(`/portfolios`, { replace: true }) as Promise<void>;
+      return navigate(`/portfolios`, {
+        replace: true,
+      }) as Promise<void>;
     });
     auth.login(creds, onSuccess);
   };

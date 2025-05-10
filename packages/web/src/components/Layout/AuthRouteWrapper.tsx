@@ -1,11 +1,11 @@
 import { Suspense, use } from "react";
 import { Spinner } from "react-bootstrap";
 import { Navigate, Outlet } from "react-router";
-import { StoreContext, type Store } from "../../stores/store";
+import { type Store } from "../../stores/store";
 import { AppLayout } from "./AppLayout";
 
 export const AuthRouteWrapper: React.FC<{ store: Store }> = ({ store }) => {
-  const { auth } = use(StoreContext);
+  const { auth } = store; //use(StoreContext);
   const load = auth.load();
 
   const SuspendedComponent = () => {

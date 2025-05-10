@@ -2,14 +2,14 @@ import type { UserId } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import type { Repository } from "../repository";
-import { createUser } from "./auth";
+import { toAdminUser } from "./auth";
 import { env } from "./env";
 
 const defaultUser = pipe(
   TE.Do,
   TE.apS("username", env("ASSET_USERNAME", "admin")),
   TE.apS("password", env("ASSET_PASSWORD", "admin")),
-  TE.chain(createUser(true))
+  TE.chain(toAdminUser)
 );
 
 export const initializeApp = (repo: Repository) => {
