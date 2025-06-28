@@ -9,6 +9,7 @@ import {
 import { TokenDecoder } from "../decoders/token";
 import { GetTxDecoder, GetTxsDecoder } from "../decoders/transaction";
 import { ProfileDecoder, ProfilesDecoder } from "../decoders/user";
+import type { ChartRange } from "../decoders/yahoo/meta";
 import type {
   Credentials,
   EnrichedAsset,
@@ -35,8 +36,14 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const PORTFOLIO_URL = (id: number) => `${PORTFOLIOS_URL}/${id}`;
   const ASSETS_URL = (portfolioId: number) =>
     `${PORTFOLIOS_URL}/${portfolioId}/assets`;
-  const ASSET_URL = (portfolioId: number, assetId: number) =>
-    `${ASSETS_URL(portfolioId)}/${assetId}`;
+  const ASSET_URL = (
+    portfolioId: number,
+    assetId: number,
+    range?: ChartRange
+  ) => {
+    const base = `${ASSETS_URL(portfolioId)}/${assetId}`;
+    return range ? `${base}?range=${range}` : base;
+  };
   const AUTH_URL = `${API_URL}/auth`;
   const REFRESH_TOKEN_URL = `${AUTH_URL}/refresh_token`;
   const TICKER_URL = `${API_URL}/lookup/ticker`;
@@ -82,9 +89,9 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       asset,
       EnrichedAssetDecoder
     );
-  const getAsset = (portfolioId: number, id: number) =>
+  const getAsset = (portfolioId: number, assetId: number, range?: ChartRange) =>
     methods.get<EnrichedAsset>(
-      ASSET_URL(portfolioId, id),
+      ASSET_URL(portfolioId, assetId, range),
       EnrichedAssetDecoder
     );
   const getAssets = (portfolioId: number) =>
@@ -172,7 +179,6 @@ export const login =
   (baseUrl: string) =>
   (creds: Credentials): Action<Token> => {
     const LOGIN_URL = `${baseUrl}/login`;
-    // console.log("core login", creds, LOGIN_URL);
     return rest
       .methods()
       .post<{ token: string }>(LOGIN_URL, creds, TokenDecoder);

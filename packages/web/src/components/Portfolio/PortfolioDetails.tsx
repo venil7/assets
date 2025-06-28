@@ -62,7 +62,13 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
           This portfolio doesn have any assets yet
         </Info>
 
-        <Chart data={portfolio.chart} hidden={!portfolio.num_assets} />
+        <Chart
+          // onChange={console.info}
+          data={portfolio.chart}
+          // range={portfolio.meta.range}
+          // ranges={portfolio.meta.validRanges}
+          hidden={!portfolio.num_assets}
+        />
 
         <Stack gap={3}>
           {assets.map((asset) => (

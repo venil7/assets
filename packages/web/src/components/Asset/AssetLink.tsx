@@ -8,7 +8,11 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
-import { AssetPeriodChange, WeightIndicator } from "../Badge/Badges";
+import {
+  AssetPeriodChange,
+  HoldingsIndicator,
+  WeightIndicator,
+} from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
 import { Totals } from "../Totals/Totals";
@@ -60,6 +64,7 @@ export const AssetLink = ({
       <Card.Footer className="spread-container">
         <div className="stick-left">
           <WeightIndicator value={asset.value.weight} />
+          <HoldingsIndicator value={asset} />
         </div>
         <div className="stick-right">
           <AssetPeriodChange value={asset} />

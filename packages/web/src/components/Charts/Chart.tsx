@@ -1,22 +1,44 @@
-import type { ArrayItem, ChartData } from "@darkruby/assets-core";
+import type { ChartData, ChartDataItem } from "@darkruby/assets-core";
 import { format } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { withVisibility } from "../../decorators/nodata";
 import { money } from "../../util/number";
 
-type ChartProps = {
+export type ChartProps = {
   data: ChartData;
-  timeFormatter?: (n: ArrayItem<ChartData>["timestamp"]) => string;
-  priceFormatter?: (n: ArrayItem<ChartData>["price"]) => string;
+  timeFormatter?: (n: ChartDataItem["timestamp"]) => string;
+  priceFormatter?: (n: ChartDataItem["price"]) => string;
+  volumeFormatter?: (n: ChartDataItem["volume"]) => string;
 };
 
 const RawChart: React.FC<ChartProps> = ({
   data,
   timeFormatter = (t) => format(t * 1000, "HH:mm"),
   priceFormatter = (n) => money(n),
+  volumeFormatter = (n) => money(n),
 }: ChartProps) => {
+  const tooltipValueFormatter = (v: number, n: keyof ChartDataItem) => {
+    switch (n) {
+      case "price":
+        return priceFormatter(v);
+      case "volume":
+        return volumeFormatter(v);
+      default:
+        String(v);
+    }
+  };
+
   const [stroke, fill] = (function () {
     if (data.length > 1) {
       const first = data[0];
@@ -29,26 +51,47 @@ const RawChart: React.FC<ChartProps> = ({
 
     return ["plum", "lavender"];
   })();
+
   return (
     <>
       <ResponsiveContainer width="100%" height={200}>
-        <AreaChart data={data}>
-          <Area
-            fill={fill}
+        <ComposedChart data={data}>
+          <XAxis
+            minTickGap={50}
+            dataKey="timestamp"
+            tickFormatter={timeFormatter}
+          />
+          <YAxis
+            width={100}
+            yAxisId="price"
+            dataKey="price"
+            tickFormatter={priceFormatter}
+            domain={["dataMin", "dataMax"]}
+            orientation="left"
+          />
+          <YAxis
+            yAxisId="volume"
+            dataKey="volume"
+            tickFormatter={priceFormatter}
+            domain={["dataMin", "dataMax"]}
+            orientation="right"
+          />
+          <Tooltip
+            contentStyle={{ backgroundColor: "none", border: "none" }}
+            labelFormatter={(t) => `Time: ${timeFormatter(t)}`}
+            formatter={tooltipValueFormatter}
+          />
+          <Bar yAxisId="volume" dataKey="volume" fill="#413ea055" />
+          <Line
+            yAxisId="price"
             dot={false}
-            type="monotone"
+            type="linear"
             dataKey="price"
             stroke={stroke}
             animationDuration={0}
           />
-          <XAxis dataKey="timestamp" tickFormatter={timeFormatter} />
-          <YAxis
-            width={100}
-            dataKey="price"
-            tickFormatter={priceFormatter}
-            domain={["dataMin", "dataMax"]}
-          />
-        </AreaChart>
+          <CartesianGrid stroke="#333" />
+        </ComposedChart>
       </ResponsiveContainer>
     </>
   );

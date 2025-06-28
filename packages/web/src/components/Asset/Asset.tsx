@@ -4,14 +4,14 @@ import {
   type GetTx,
   type PostTx,
 } from "@darkruby/assets-core";
+import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
 import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { money } from "../../util/number";
-import { Chart } from "../Charts/Chart";
-import { TabContent, Tabs } from "../Form/Tabs";
+import { RangeChart } from "../Charts/RangesChart";
 import { TxList } from "../Tx/TxList";
 
 type AssetProps = {
@@ -21,6 +21,7 @@ type AssetProps = {
   onAddTx: (tx: PostTx) => void;
   onEditTx: (txid: number, tx: PostTx) => void;
   onDeleteTx: (txid: number) => void;
+  onRange: (rng: ChartRange) => void;
 };
 
 const RawAsset: React.FC<AssetProps> = ({
@@ -29,26 +30,26 @@ const RawAsset: React.FC<AssetProps> = ({
   onEditTx,
   onDeleteTx,
   onAddTx,
+  onRange,
 }: AssetProps) => {
-  const currencyMoney = (n: number) => money(n, asset.meta.currency);
+  // const currencyMoney = (n: number) => money(n, asset.meta.currency);
   const baseMoney = (n: number) => money(n);
   return (
     <div className="asset-details">
-      <Tabs tabs={["Details", "Transactions"]}>
-        <TabContent tab={0}>
-          <Chart data={asset.chart.base} priceFormatter={baseMoney} />
-          {/* <Chart data={asset.chart.ccy} priceFormatter={currencyMoney} /> */}
-        </TabContent>
-        <TabContent tab={1}>
-          <TxList
-            txs={txs}
-            asset={asset}
-            onAdd={onAddTx}
-            onEdit={onEditTx}
-            onDelete={onDeleteTx}
-          />
-        </TabContent>
-      </Tabs>
+      <RangeChart
+        onChange={onRange}
+        data={asset.chart.base}
+        range={asset.meta.range}
+        priceFormatter={baseMoney}
+        ranges={asset.meta.validRanges}
+      />
+      <TxList
+        txs={txs}
+        asset={asset}
+        onAdd={onAddTx}
+        onEdit={onEditTx}
+        onDelete={onDeleteTx}
+      />
     </div>
   );
 };

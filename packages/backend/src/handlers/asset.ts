@@ -10,7 +10,7 @@ import type { Id } from "@darkruby/assets-core/src/domain/id";
 import { type HandlerTask } from "@darkruby/fp-express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
-import { numberFromUrl } from "../decoders/params";
+import { numberFromUrl, rangeFromUrl } from "../decoders/params";
 import { toWebError } from "../domain/error";
 import { checkTickerExists } from "../services/yahoo";
 import { getProfile } from "./auth";
@@ -38,13 +38,14 @@ export const getAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
   pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
+    TE.bind("range", () => rangeFromUrl(req.query.range)),
     TE.bind("profile", () => getProfile(res)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
     TE.bind("asset", ({ id, portfolioId, profile }) =>
       repo.asset.get(id, portfolioId, profile.id)
     ),
-    TE.map(({ asset }) => asset),
-    TE.chain(enrichOptionalAsset(yahooApi)),
+    TE.let("yahooEnricher", () => enrichOptionalAsset(yahooApi)),
+    TE.chain(({ asset, yahooEnricher, range }) => yahooEnricher(asset, range!)),
     TE.mapLeft(toWebError)
   );
 

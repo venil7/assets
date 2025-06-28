@@ -1,14 +1,15 @@
 import {
   type EnrichedAsset,
   type EnrichedPortfolio,
+  type GetAsset,
   type GetPortfolio,
 } from "@darkruby/assets-core";
 import { identity, pipe } from "fp-ts/lib/function";
 import { Badge, type BadgeProps } from "react-bootstrap";
 import { withProps } from "../../decorators/props";
-import { money, percent } from "../../util/number";
+import { decimal, money, percent } from "../../util/number";
 
-type ChnageBadgeProps<T> = {
+type ChangeBadgeProps<T> = {
   value: T;
   color?: BadgeProps["bg"];
   numeric: (t: T) => number;
@@ -20,7 +21,7 @@ export function ChangeIndicator<T>({
   formatter,
   color,
   numeric,
-}: ChnageBadgeProps<T>) {
+}: ChangeBadgeProps<T>) {
   const bg = (() => {
     if (color) return color;
     const n = numeric(value);
@@ -65,14 +66,14 @@ export const AssetCountIndicator = pipe(
   })
 );
 
-// export const TxCountIndicator = pipe(
-//   ChangeIndicator<EnrichedAsset>,
-//   withProps({
-//     color: "dark",
-//     numeric: (a) => a.num_txs,
-//     formatter: (p) => `Txs: ${p.num_txs}`,
-//   })
-// );
+export const HoldingsIndicator = pipe(
+  ChangeIndicator<GetAsset>,
+  withProps({
+    color: "dark",
+    numeric: (p) => p.holdings,
+    formatter: (p) => `Holdings: ${decimal(p.holdings)}`,
+  })
+);
 
 export const AssetPeriodChange = pipe(
   ChangeIndicator<EnrichedAsset>,

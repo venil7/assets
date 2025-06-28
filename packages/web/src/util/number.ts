@@ -1,9 +1,21 @@
 export const money = (number: number, currency = "GBP"): string => {
-  return new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(
-    number
-  );
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency,
+    // maximumFractionDigits: 2,
+  }).format(number);
 };
 
-export const float = (number: number, prec = 2): string => number.toFixed(prec);
-export const percent = (number: number, prec = 2): string =>
-  `${float(number * 100, prec)}%`;
+export const decimal = (value: number, prec = 2): string => {
+  return Intl.NumberFormat("en-GB", {
+    style: "decimal",
+    maximumFractionDigits: prec,
+  }).format(value);
+};
+
+export const percent = (value: number, prec = 2): string => {
+  return Intl.NumberFormat("en-GB", {
+    style: "percent",
+    maximumFractionDigits: prec,
+  }).format(value);
+};

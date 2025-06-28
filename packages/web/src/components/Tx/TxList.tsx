@@ -11,7 +11,7 @@ import * as React from "react";
 import { Table } from "react-bootstrap";
 import { withCondition } from "../../decorators/nodata";
 import { iso } from "../../util/date";
-import { float, money } from "../../util/number";
+import { decimal, money } from "../../util/number";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
 import { HorizontalStack } from "../Layout/Stack";
@@ -85,7 +85,7 @@ const RawTxTable: React.FC<TxTableProps> = ({
           <tr key={tx.id}>
             <td>{tx.id}</td>
             <td>{tx.type}</td>
-            <td>{float(tx.quantity)}</td>
+            <td>{decimal(tx.quantity)}</td>
             <td>{money(tx.price, asset.meta.currency)}</td>
             <td>{tx.comments}</td>
             <td>{iso(tx.date)}</td>

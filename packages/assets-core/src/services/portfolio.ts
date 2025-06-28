@@ -3,6 +3,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import Heap from "heap-js";
 import type { ChartDataPoint } from "../decoders/yahoo/chart";
+import { DEFAULT_CHART_RANGE, type ChartRange } from "../decoders/yahoo/meta";
 import type {
   ChartData,
   EnrichedAsset,
@@ -75,12 +76,19 @@ export const enrichPortfolio = (
 
       const chart = portfolioChart(assets);
 
+      const meta = (() => {
+        const range = DEFAULT_CHART_RANGE;
+        const validRanges = commonRanges(assets);
+        return { range, validRanges };
+      })();
+
       return {
         ...portfolio,
         investedBase,
         value,
         totals,
         chart,
+        meta,
         // weight cannot be calc
         // for single portfolio
         weight: 0,
@@ -122,7 +130,13 @@ export const calcPortfolioWeights = (
   );
 };
 
-export const portfolioChart = (as: EnrichedAsset[]): ChartData => {
+const commonRanges = (assets: EnrichedAsset[]): ChartRange[] => {
+  const rs = assets.flatMap((a) => a.meta.validRanges);
+  const s = new Set<ChartRange>(rs);
+  return [...s.values()];
+};
+
+const portfolioChart = (as: EnrichedAsset[]): ChartData => {
   const heap = new Heap<{ point: ChartDataPoint; ticker: string }>(
     (a, b) => a.point.timestamp - b.point.timestamp
   );

@@ -6,6 +6,7 @@ import { confirmationModal } from "../components/Modals/Confirmation";
 import { PortfolioMenu } from "../components/Portfolio/Menu";
 import { portfolioModal } from "../components/Portfolio/PortfolioModal";
 import { TickerLookup } from "../components/Tx/TickerLookup";
+import { decimal, money, percent } from "../util/number";
 
 const RawTestScreen: React.FC = () => {
   const handler1 = () => {
@@ -28,6 +29,11 @@ const RawTestScreen: React.FC = () => {
       <SecondaryButton onClick={handler2}>click</SecondaryButton>
       <PortfolioMenu onDelete={handler1} onEdit={handler1} />
       <TickerLookup onSelect={console.log} />
+      <ul>
+        <li>{money(40123)}</li>
+        <li>{decimal(0.012)}</li>
+        <li>{percent(0.012)}</li>
+      </ul>
     </>
   );
 };

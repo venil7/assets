@@ -36,7 +36,6 @@ export const login: HandlerTask<Token, Context> = ({
     TE.bind("auth", ({ creds, user }) => verifyPassword(user, creds)),
     TE.bind("reset", ({ user }) => repo.user.loginSuccess(user.username)),
     TE.bind("profile", ({ user }) => liftTE(ProfileDecoder)(user)),
-    TE.chainFirstIOK((x) => () => console.log(x)),
     TE.chain(({ profile }) => createToken(profile)),
     TE.mapLeft(toWebError)
   );

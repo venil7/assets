@@ -3,6 +3,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as NeA from "fp-ts/lib/NonEmptyArray";
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
+import type { ChartRange } from "../decoders/yahoo/meta";
 import type {
   ChartData,
   EnrichedAsset,
@@ -17,11 +18,11 @@ import { baseCcyConversionRate } from "./yahoo";
 
 export const enrichAsset =
   (yahooApi: YahooApi) =>
-  (asset: GetAsset): Action<EnrichedAsset> => {
+  (asset: GetAsset, range?: ChartRange): Action<EnrichedAsset> => {
     return pipe(
       TE.Do,
       TE.apS("asset", TE.of(asset)),
-      TE.bind("enrich", ({ asset }) => yahooApi.chart(asset.ticker)),
+      TE.bind("enrich", ({ asset }) => yahooApi.chart(asset.ticker, range)),
       TE.bind("baseRate", ({ enrich }) =>
         baseCcyConversionRate(enrich.meta.currency)
       ),
@@ -138,8 +139,16 @@ export const enrichedAssets =
 
 export const enrichOptionalAsset =
   (yahooApi: YahooApi) =>
-  (a: Optional<GetAsset>): Action<Optional<EnrichedAsset>> =>
-    a ? pipe(a, enrichAsset(yahooApi)) : TE.of(null);
+  (
+    a: Optional<GetAsset>,
+    range?: ChartRange
+  ): Action<Optional<EnrichedAsset>> => {
+    if (a) {
+      const yahooEnricher = enrichAsset(yahooApi);
+      return yahooEnricher(a, range);
+    }
+    return TE.of(null);
+  };
 
 export const calcAssetWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
   const total = pipe(

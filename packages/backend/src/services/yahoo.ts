@@ -4,6 +4,10 @@ import {
   type Action,
   type YahooApi,
 } from "@darkruby/assets-core";
+import {
+  DEFAULT_CHART_RANGE,
+  type ChartRange,
+} from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { createLogger } from "@darkruby/fp-express";
 import * as A from "fp-ts/lib/Array";
 import { identity, pipe } from "fp-ts/lib/function";
@@ -18,14 +22,14 @@ export const cachedYahooApi = (cache: AppCache): YahooApi => {
   return {
     search: (term: string) =>
       cache.cachedAction(
-        `yaho-search-${term}`,
+        `yahoo-search-${term}`,
         () => rawYahooApi.search(term),
         SEARCH_TTL
       ),
-    chart: (symbol: string) =>
+    chart: (symbol: string, range?: ChartRange) =>
       cache.cachedAction(
-        `yaho-chart-${symbol}`,
-        () => rawYahooApi.chart(symbol),
+        `yahoo-chart-${symbol}-${range ?? DEFAULT_CHART_RANGE}`,
+        () => rawYahooApi.chart(symbol, range),
         CHART_TTL
       ),
   };

@@ -67,10 +67,11 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
     }),
     TE.tapIO((exp) => () => {
       // routes
+      exp.get("/", (_, res) => res.redirect("/app"));
       exp.use("/app", express.static(path.join(process.cwd(), app)));
-      exp.use("/app/*", (_, res) => {
-        res.sendFile(path.join(process.cwd(), app, "index.html"));
-      });
+      exp.use("/app/*", (_, res) =>
+        res.sendFile(path.join(process.cwd(), app, "index.html"))
+      );
 
       exp.post("/login", handlers.auth.login);
 

@@ -18,11 +18,53 @@ const CurrentTradingPeriodDecoder = t.type({
 
 const tradingPeriods = t.array(t.array(TradingPeriodDecoder));
 
-export const Range = pipe(
-  ["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"],
-  A.map((v: string) => t.literal(v) as t.Mixed),
-  (codecs) => t.union(codecs as [t.Mixed, t.Mixed, ...t.Mixed[]])
-);
+const intervals = [
+  "1m",
+  "2m",
+  "3m",
+  "5m",
+  "15m",
+  "30m",
+  "60m",
+  "90m",
+  "1h",
+  "1d",
+  "5d",
+  "1wk",
+  "1mo",
+  "3mo",
+] as const;
+export type ChartInterval = (typeof intervals)[number];
+
+const ranges = [
+  "1d",
+  "5d",
+  "1mo",
+  "3mo",
+  "6mo",
+  "1y",
+  "2y",
+  "5y",
+  "10y",
+  "ytd",
+  "max",
+] as const;
+export type ChartRange = (typeof ranges)[number];
+
+export const DEFAULT_CHART_RANGE: ChartRange = "1d";
+
+export const RangeDecoder = pipe(
+  ranges as unknown as string[],
+  A.map((v: string) => t.literal(v) as t.LiteralC<string>),
+  (codecs) =>
+    t.union(
+      codecs as [
+        t.LiteralC<string>,
+        t.LiteralC<string>,
+        ...t.LiteralC<string>[]
+      ]
+    )
+) as t.Type<ChartRange>;
 
 export const ChartMetaDecoder = t.type({
   currency: t.string,
@@ -31,26 +73,17 @@ export const ChartMetaDecoder = t.type({
   fullExchangeName: t.string,
   instrumentType: t.string,
   regularMarketTime: t.number,
-  // firstTradeDate: t.number,
-  // hasPrePostMarketData: t.boolean,
-  // gmtoffset: t.number,
-  // timezone: t.string,
-  // exchangeTimezoneName: t.string,
   regularMarketPrice: t.number,
   fiftyTwoWeekHigh: t.number,
   fiftyTwoWeekLow: t.number,
-  // regularMarketDayHigh: t.number,
-  // regularMarketDayLow: t.number,
-  // regularMarketVolume: t.number,
   longName: t.string,
   shortName: t.string,
   previousClose: nullableDecoder(t.number),
   chartPreviousClose: t.number,
   scale: nullableDecoder(t.number),
-  // priceHint: t.number,
   currentTradingPeriod: nullableDecoder(CurrentTradingPeriodDecoder),
   tradingPeriods: nullableDecoder(tradingPeriods),
   dataGranularity: t.string,
-  range: Range,
-  validRanges: t.array(Range),
+  validRanges: t.array(RangeDecoder),
+  range: RangeDecoder,
 });

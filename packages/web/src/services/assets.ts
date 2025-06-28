@@ -4,6 +4,7 @@ import type {
   Id,
   PostAsset,
 } from "@darkruby/assets-core";
+import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
@@ -15,10 +16,14 @@ export const getAssets = (pid: number): Action<EnrichedAsset[]> => {
   );
 };
 
-export const getAsset = (pid: number, aid: number): Action<EnrichedAsset> => {
+export const getAsset = (
+  pid: number,
+  aid: number,
+  range?: ChartRange
+): Action<EnrichedAsset> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ asset }) => asset.get(pid, aid))
+    TE.chain(({ asset }) => asset.get(pid, aid, range))
   );
 };
 

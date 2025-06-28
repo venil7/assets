@@ -16,8 +16,9 @@
 
 ### frontend
  - [ ] home screen summary
- - [ ] user management
- - [ ] profile management
+ - [ ] portfolio screen: asset amounts
+ - [x] user management
+ - [x] profile management
  - [x] basic chart
  - [x] currency symbol asset/tx
  - [x] non epmty string decoder
@@ -75,7 +76,9 @@ Portfolio API
 ### create migration
 ```
 migrate create -ext sql -dir .migrations/ -seq -digits 3 <name>
-migrate migrate -path ./.migrations -database=sqlite3://test.db
+migrate -path ./.migrations -database=sqlite3://assets.db up
+migrate -path ./.migrations -database=sqlite3://assets.db down
+migrate -path ./.migrations -database=sqlite3://assets.db version
 ```
 
 ### run tests
