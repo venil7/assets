@@ -1,6 +1,6 @@
 import {
-  enrichedAssets,
-  enrichOptionalAsset,
+  getAssetsEnricher,
+  getOptionalAssetsEnricher,
   type EnrichedAsset,
   type Optional,
 } from "@darkruby/assets-core";
@@ -27,7 +27,7 @@ export const getAssets: HandlerTask<EnrichedAsset[], Context> = ({
     TE.bind("assets", ({ profile, portfolioId }) =>
       repo.asset.getAll(portfolioId, profile.id)
     ),
-    TE.chain(({ assets }) => pipe(assets, enrichedAssets(yahooApi))),
+    TE.chain(({ assets }) => pipe(assets, getAssetsEnricher(yahooApi))),
     TE.mapLeft(toWebError)
   );
 
@@ -44,7 +44,7 @@ export const getAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
     TE.bind("asset", ({ id, portfolioId, profile }) =>
       repo.asset.get(id, portfolioId, profile.id)
     ),
-    TE.let("yahooEnricher", () => enrichOptionalAsset(yahooApi)),
+    TE.let("yahooEnricher", () => getOptionalAssetsEnricher(yahooApi)),
     TE.chain(({ asset, yahooEnricher, range }) => yahooEnricher(asset, range!)),
     TE.mapLeft(toWebError)
   );
@@ -67,7 +67,7 @@ export const createAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
     TE.chain(({ execution: [id], portfolioId, profile }) =>
       repo.asset.get(id, portfolioId, profile.id)
     ),
-    TE.chain(enrichOptionalAsset(yahooApi)),
+    TE.chain(getOptionalAssetsEnricher(yahooApi)),
     TE.mapLeft(toWebError)
   );
 
@@ -106,6 +106,6 @@ export const updateAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
     TE.chain(({ id, portfolioId, profile }) =>
       repo.asset.get(id, portfolioId, profile.id)
     ),
-    TE.chain(enrichOptionalAsset(yahooApi)),
+    TE.chain(getOptionalAssetsEnricher(yahooApi)),
     TE.mapLeft(toWebError)
   );

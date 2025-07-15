@@ -8,6 +8,7 @@ import type {
 import { signal } from "@preact/signals-react";
 import { pipe } from "fp-ts/lib/function";
 
+import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import * as TE from "fp-ts/lib/TaskEither";
 import {
   createPortfolio,
@@ -19,7 +20,10 @@ import { type StoreBase, createStoreBase } from "./base";
 
 export type PortfolioStore = Identity<
   StoreBase<Nullable<EnrichedPortfolio>> & {
-    load: (id: number) => ActionResult<Nullable<EnrichedPortfolio>>;
+    load: (
+      portfolioId: number,
+      range?: ChartRange
+    ) => ActionResult<Nullable<EnrichedPortfolio>>;
     update: (
       pid: number,
       p: PostPortfolio
@@ -35,7 +39,8 @@ export const createPortfolioStore = (): PortfolioStore => {
 
   return {
     ...storeBase,
-    load: (id) => storeBase.run(getPortfolio(id)),
+    load: (portfolioId: number, range?: ChartRange) =>
+      storeBase.run(getPortfolio(portfolioId, range)),
     update: (pid: number, p: PostPortfolio) =>
       storeBase.run(updatePortfolio(pid, p)),
     create: (p: PostPortfolio) => storeBase.run(createPortfolio(p)),

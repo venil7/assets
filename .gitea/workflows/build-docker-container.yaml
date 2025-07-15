@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - master
-      # - release
 
 jobs:
   build-docker:
@@ -13,9 +12,11 @@ jobs:
     steps:
       - name: CHECK-OUT
         uses: actions/checkout@v4
-      - name: GET GIT TAG
-        run: |
-          echo "BUILD_TAG=$(git describe --tags --always)" >> $GITHUB_ENV
+      - name: Extract version from package.json
+        uses: sergeysova/jq-action@v2
+        id: version
+        with:
+          cmd: "jq .version package.json -r"
       # - name: LOGIN TO RASPI DOCKER
       #   uses: docker/login-action@v3
       #   with:
@@ -37,4 +38,4 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ghcr.io/venil7/assets:latest
+          tags: ghcr.io/venil7/assets:${{ steps.version.outputs.value }}

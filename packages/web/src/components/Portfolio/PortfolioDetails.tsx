@@ -6,6 +6,7 @@ import {
   type PostPortfolio,
   type PostTx,
 } from "@darkruby/assets-core";
+import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Stack } from "react-bootstrap";
@@ -14,7 +15,7 @@ import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { AssetLink } from "../Asset/AssetLink";
 import { assetModal } from "../Asset/AssetModal";
-import { Chart } from "../Charts/Chart";
+import { RangeChart } from "../Charts/RangesChart";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
 import { HorizontalStack } from "../Layout/Stack";
@@ -25,11 +26,11 @@ type PortfolioDetailsProps = {
   portfolio: EnrichedPortfolio;
   assets: EnrichedAsset[];
   onUpdate: (p: PostPortfolio) => void;
-
   onAddAsset: (a: PostAsset) => void;
   onAddTx: (aid: number, a: PostTx) => void;
   onUpdateAsset: (aid: number, a: PostAsset) => void;
   onDeleteAsset: (aid: number) => void;
+  onRange: (r: ChartRange) => void;
 };
 
 const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
@@ -39,6 +40,7 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
   onAddAsset,
   onDeleteAsset,
   onUpdateAsset,
+  onRange,
   onAddTx,
 }: PortfolioDetailsProps) => {
   const handleAddAsset = () =>
@@ -62,11 +64,11 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
           This portfolio doesn have any assets yet
         </Info>
 
-        <Chart
-          // onChange={console.info}
+        <RangeChart
+          onChange={onRange}
           data={portfolio.chart}
-          // range={portfolio.meta.range}
-          // ranges={portfolio.meta.validRanges}
+          range={portfolio.meta.range}
+          ranges={portfolio.meta.validRanges}
           hidden={!portfolio.num_assets}
         />
 

@@ -4,14 +4,18 @@ import {
   type Id,
   type PostPortfolio,
 } from "@darkruby/assets-core";
+import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
 
-export const getPortfolio = (pid: number): Action<EnrichedPortfolio> => {
+export const getPortfolio = (
+  pid: number,
+  range?: ChartRange
+): Action<EnrichedPortfolio> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ portfolio }) => portfolio.get(pid))
+    TE.chain(({ portfolio }) => portfolio.get(pid, range))
   );
 };
 

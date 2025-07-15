@@ -1,9 +1,14 @@
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
+import * as Ord from "fp-ts/lib/Ord";
 import * as TE from "fp-ts/lib/TaskEither";
 import Heap from "heap-js";
 import type { ChartDataPoint } from "../decoders/yahoo/chart";
-import { DEFAULT_CHART_RANGE, type ChartRange } from "../decoders/yahoo/meta";
+import {
+  ChartRangeOrd,
+  DEFAULT_CHART_RANGE,
+  type ChartRange,
+} from "../decoders/yahoo/meta";
 import type {
   ChartData,
   EnrichedAsset,
@@ -77,7 +82,11 @@ export const enrichPortfolio = (
       const chart = portfolioChart(assets);
 
       const meta = (() => {
-        const range = DEFAULT_CHART_RANGE;
+        const range = pipe(
+          assets,
+          A.map((a) => a.meta.range),
+          A.reduce(DEFAULT_CHART_RANGE, Ord.max(ChartRangeOrd))
+        );
         const validRanges = commonRanges(assets);
         return { range, validRanges };
       })();
@@ -97,7 +106,7 @@ export const enrichPortfolio = (
   );
 };
 
-export const enrichedPortfolios = (
+export const enrichPortfolios = (
   portfolios: GetPortfolio[],
   f: (p: GetPortfolio) => Action<EnrichedAsset[]>
 ) =>
@@ -107,7 +116,7 @@ export const enrichedPortfolios = (
     TE.map((ps) => calcPortfolioWeights(ps as EnrichedPortfolio[]))
   ) as Action<EnrichedPortfolio[]>;
 
-export const enrichedOptionalPortfolio = (
+export const enrichOptionalPortfolio = (
   p: Optional<GetPortfolio>,
   getEnrichedAssets: () => Action<EnrichedAsset[]>
 ) => (p ? enrichPortfolio(p, getEnrichedAssets) : TE.of(null));

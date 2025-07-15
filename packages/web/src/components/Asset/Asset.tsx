@@ -10,7 +10,6 @@ import * as React from "react";
 import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
-import { money } from "../../util/number";
 import { RangeChart } from "../Charts/RangesChart";
 import { TxList } from "../Tx/TxList";
 
@@ -32,15 +31,12 @@ const RawAsset: React.FC<AssetProps> = ({
   onAddTx,
   onRange,
 }: AssetProps) => {
-  // const currencyMoney = (n: number) => money(n, asset.meta.currency);
-  const baseMoney = (n: number) => money(n);
   return (
     <div className="asset-details">
       <RangeChart
         onChange={onRange}
         data={asset.chart.base}
         range={asset.meta.range}
-        priceFormatter={baseMoney}
         ranges={asset.meta.validRanges}
       />
       <TxList

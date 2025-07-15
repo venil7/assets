@@ -1,12 +1,15 @@
+import { tfForRange, type ChartData } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
+import { useMemo } from "react";
 import { Button, ButtonGroup } from "react-bootstrap";
 import { withVisibility } from "../../decorators/nodata";
-import { Chart, type ChartProps } from "./Chart";
+import { Chart } from "./Chart";
 import "./Chart.scss";
 
-type RangeChartProps = ChartProps & {
+type RangeChartProps = {
+  data: ChartData;
   range: ChartRange;
   ranges: ChartRange[];
   onChange: (r: ChartRange) => void;
@@ -17,12 +20,12 @@ const RawRangeChart: React.FC<RangeChartProps> = ({
   range,
   ranges,
   onChange,
-  ...rest
 }) => {
+  const timeFormatter = useMemo(() => tfForRange(range), [range]);
   return (
     <div className="range-chart">
-      <Chart data={data} {...rest} />
-      <div className="spread-container">
+      <Chart data={data} timeFormatter={timeFormatter} />
+      <div className="spread-container table-responsive">
         <div className="stick-left">&nbsp;</div>
         <div className="stick-right">
           <RangeButtons range={range} ranges={ranges} onChange={onChange} />

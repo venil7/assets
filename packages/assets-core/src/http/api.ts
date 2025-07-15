@@ -33,7 +33,10 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const USER_URL = (uid: UserId) => `${USERS_URL}/${uid}`;
   const PORTFOLIOS_URL = `${API_URL}/portfolios`;
   const PROFILE_URL = `${API_URL}/profile`;
-  const PORTFOLIO_URL = (id: number) => `${PORTFOLIOS_URL}/${id}`;
+  const PORTFOLIO_URL = (portfolioId: number, range?: ChartRange) => {
+    const base = `${PORTFOLIOS_URL}/${portfolioId}`;
+    return range ? `${base}?range=${range}` : base;
+  };
   const ASSETS_URL = (portfolioId: number) =>
     `${PORTFOLIOS_URL}/${portfolioId}/assets`;
   const ASSET_URL = (
@@ -66,8 +69,11 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       portfolio,
       EnrichedPortfolioDecoder
     );
-  const getPortfolio = (id: number) =>
-    methods.get<EnrichedPortfolio>(PORTFOLIO_URL(id), EnrichedPortfolioDecoder);
+  const getPortfolio = (portfolioId: number, range?: ChartRange) =>
+    methods.get<EnrichedPortfolio>(
+      PORTFOLIO_URL(portfolioId, range),
+      EnrichedPortfolioDecoder
+    );
   const deletePortfolio = (id: number) =>
     methods.delete<Id>(PORTFOLIO_URL(id), IdDecoder);
   const getPortfolios = () =>

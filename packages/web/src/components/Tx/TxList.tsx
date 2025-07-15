@@ -68,27 +68,27 @@ const RawTxTable: React.FC<TxTableProps> = ({
       TE.map(() => onDelete(txid))
     );
   return (
-    <Table striped bordered hover>
+    <Table responsive striped bordered hover>
       <thead>
         <tr>
-          <th>#</th>
+          <th className="d-none d-md-block">#</th>
           <th>Type</th>
           <th>Quantity</th>
           <th>Price</th>
           <th>Comments</th>
-          <th>Date</th>
+          <th className="d-none d-md-block">Date</th>
           <th>^</th>
         </tr>
       </thead>
       <tbody>
         {txs.map((tx) => (
           <tr key={tx.id}>
-            <td>{tx.id}</td>
+            <td className="d-none d-md-table-cell">{tx.id}</td>
             <td>{tx.type}</td>
             <td>{decimal(tx.quantity)}</td>
             <td>{money(tx.price, asset.meta.currency)}</td>
             <td>{tx.comments}</td>
-            <td>{iso(tx.date)}</td>
+            <td className="d-none d-md-table-cell">{iso(tx.date)}</td>
             <td>
               <PortfolioMenu
                 onDelete={handleDelete(tx.id)}

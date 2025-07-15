@@ -1,5 +1,7 @@
 import * as A from "fp-ts/lib/Array";
+import { fromCompare, type Ord } from "fp-ts/lib/Ord";
 import { pipe } from "fp-ts/lib/function";
+import { Ord as NumOrd } from "fp-ts/lib/number";
 import * as t from "io-ts";
 import { nullableDecoder } from "../util";
 
@@ -52,6 +54,13 @@ const ranges = [
 export type ChartRange = (typeof ranges)[number];
 
 export const DEFAULT_CHART_RANGE: ChartRange = "1d";
+
+export const ChartRangeOrd: Ord<ChartRange> = fromCompare((a, b) =>
+  NumOrd.compare(
+    ranges.findIndex((r) => r === a),
+    ranges.findIndex((r) => r === b)
+  )
+);
 
 export const RangeDecoder = pipe(
   ranges as unknown as string[],

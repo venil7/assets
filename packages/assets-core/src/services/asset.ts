@@ -16,7 +16,7 @@ import { changeInValue, changeInValuePct, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
 import { baseCcyConversionRate } from "./yahoo";
 
-export const enrichAsset =
+export const getAssetEnricher =
   (yahooApi: YahooApi) =>
   (asset: GetAsset, range?: ChartRange): Action<EnrichedAsset> => {
     return pipe(
@@ -128,24 +128,24 @@ export const enrichAsset =
     );
   };
 
-export const enrichedAssets =
+export const getAssetsEnricher =
   (yahooApi: YahooApi) =>
   (assets: GetAsset[]): Action<EnrichedAsset[]> =>
     pipe(
       assets,
-      TE.traverseArray(enrichAsset(yahooApi)),
+      TE.traverseArray(getAssetEnricher(yahooApi)),
       TE.map((assets) => calcAssetWeights(assets as EnrichedAsset[]))
     ) as Action<EnrichedAsset[]>;
 
-export const enrichOptionalAsset =
+export const getOptionalAssetsEnricher =
   (yahooApi: YahooApi) =>
   (
     a: Optional<GetAsset>,
     range?: ChartRange
   ): Action<Optional<EnrichedAsset>> => {
     if (a) {
-      const yahooEnricher = enrichAsset(yahooApi);
-      return yahooEnricher(a, range);
+      const enrichAsset = getAssetEnricher(yahooApi);
+      return enrichAsset(a, range);
     }
     return TE.of(null);
   };

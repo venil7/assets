@@ -1,5 +1,4 @@
 import type { ChartData, ChartDataItem } from "@darkruby/assets-core";
-import { format } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
 import {
@@ -17,14 +16,14 @@ import { money } from "../../util/number";
 
 export type ChartProps = {
   data: ChartData;
-  timeFormatter?: (n: ChartDataItem["timestamp"]) => string;
+  timeFormatter: (n: ChartDataItem["timestamp"]) => string;
   priceFormatter?: (n: ChartDataItem["price"]) => string;
   volumeFormatter?: (n: ChartDataItem["volume"]) => string;
 };
 
 const RawChart: React.FC<ChartProps> = ({
   data,
-  timeFormatter = (t) => format(t * 1000, "HH:mm"),
+  timeFormatter,
   priceFormatter = (n) => money(n),
   volumeFormatter = (n) => money(n),
 }: ChartProps) => {
@@ -62,7 +61,7 @@ const RawChart: React.FC<ChartProps> = ({
             tickFormatter={timeFormatter}
           />
           <YAxis
-            width={100}
+            hide
             yAxisId="price"
             dataKey="price"
             tickFormatter={priceFormatter}
@@ -70,6 +69,7 @@ const RawChart: React.FC<ChartProps> = ({
             orientation="left"
           />
           <YAxis
+            hide
             yAxisId="volume"
             dataKey="volume"
             tickFormatter={priceFormatter}

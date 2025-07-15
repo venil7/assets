@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import * as t from "io-ts";
 import type { YahooChartDataDecoder } from "../decoders/yahoo/chart";
 import type { ChartInterval, ChartRange } from "../decoders/yahoo/meta";
@@ -36,5 +37,27 @@ export const intervalForRange = (range: ChartRange): ChartInterval => {
     case "10y":
     case "max":
       return "1mo";
+  }
+};
+
+type TimeFormatter = (ts: ChartDataItem["timestamp"]) => string;
+export const tfForRange = (r: ChartRange): TimeFormatter => {
+  switch (r) {
+    case "1d":
+      return (t) => format(t * 1000, "HH:mm");
+    case "5d":
+      return (t) => format(t * 1000, "cccccc HH:mm");
+    case "1mo":
+    case "3mo":
+      return (t) => format(t * 1000, "d-LLL HH:mm");
+    case "6mo":
+      return (t) => format(t * 1000, "d-LLL");
+    case "1y":
+    case "2y":
+    case "5y":
+    case "10y":
+    case "ytd":
+    case "max":
+      return (t) => format(t * 1000, "d-LLL-yy");
   }
 };

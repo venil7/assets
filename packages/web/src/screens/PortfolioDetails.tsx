@@ -1,4 +1,5 @@
 import type { PostAsset, PostPortfolio, PostTx } from "@darkruby/assets-core";
+import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { useSignals } from "@preact/signals-react/runtime";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -27,10 +28,13 @@ const RawPortfolioDetails: React.FC = () => {
       () => txs.create(aid, t),
       TE.chain(() => () => portfolio.load(+portfolioId!))
     )();
+  const handleRange = (range: ChartRange) =>
+    portfolio.load(+portfolioId!, range);
 
   return (
     <PortfolioDetails
       onAddTx={handleAddTx}
+      onRange={handleRange}
       onUpdate={handleUpdate}
       assets={assets.data.value}
       onAddAsset={handleAddAsset}
