@@ -12,30 +12,41 @@ jobs:
     steps:
       - name: CHECK-OUT
         uses: actions/checkout@v4
-      - name: Extract version from package.json
+      - name: CHECK RELEASE or FEATURE
+        id: release
+        run: |
+          if [ "${GITHUB_REF##*/}" == "master" ]; then
+            echo "RELEASE=true" >> $GITHUB_ENV
+            # echo "BUILD_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "RELEASE=false" >> $GITHUB_ENV
+            echo "BUILD_TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          fi
+      - name: EXTRACT VERSION
         uses: sergeysova/jq-action@v2
         id: version
         with:
           cmd: "jq .version package.json -r"
-      # - name: LOGIN TO RASPI DOCKER
-      #   uses: docker/login-action@v3
-      #   with:
-      #     registry: raspi4:6363
-      #     username: ${{ vars.CONTAINER_REGISTRY_USERNAME }}
-      #     password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
-      # - name: BUILD DOCKER IMAGE
-      #   uses: docker/build-push-action@v6
-      #   with:
-      #     push: true
-      #     tags: raspi4:6363/${{ vars.CONTAINER_REGISTRY_USERNAME }}/assets #${{ env.BUILD_TAG }}
       - name: LOGIN TO GITHUB DOCKER
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: venil7
           password: ${{ secrets.GTHB_CR_TOKEN }}
-      - name: BUILD DOCKER IMAGE AND PUSH TO GIHUB
+      # builds featire image, pushes under feature tag
+      - name: BUILD FEATURE DOCKER-IMAGE
+        if: ${{ env.RELEASE == 'false' }}
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ghcr.io/venil7/assets:${{ steps.version.outputs.value }}
+          tags: |
+            ghcr.io/venil7/assets:${{ env.BUILD_TAG }}
+      # builds release image, pushes under version and latest tags
+      - name: BUILD RELEASE DOCKER-IMAGE
+        if: ${{ env.RELEASE == 'true' }}
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: |
+            ghcr.io/venil7/assets:latest
+            ghcr.io/venil7/assets:${{ steps.version.outputs.value }}

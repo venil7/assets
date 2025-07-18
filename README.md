@@ -4,7 +4,7 @@
  - [x] portfolio chart
  - [ ] summary endoint (also chart)
  - [ ] num_transactions
- - [ ] chart?range=1d
+ - [x] chart?range=1d
  - [x] enriched asset - base ratio
  - [x] PUT endpoints
  - [x] update tx checks sufficiend funds
@@ -95,4 +95,9 @@ To run:
 bun run index.ts
 ```
 
-This project was created using `bun init` in bun v1.1.28. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+# Production
+```bash
+TAG=latest \
+ASSETS_JWT_SECRET=some-secret \
+docker compose up -d
+```

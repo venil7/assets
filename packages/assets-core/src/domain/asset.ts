@@ -1,3 +1,6 @@
+import { pipe } from "fp-ts/lib/function";
+import { Ord as ordNumber } from "fp-ts/lib/number";
+import { contramap, reverse, type Ord } from "fp-ts/lib/Ord";
 import * as t from "io-ts";
 import type {
   EnrichedAssetDecoder,
@@ -18,3 +21,9 @@ export type Totals = t.TypeOf<typeof TotalsDecoder>;
 export type EnrichedAsset = t.TypeOf<typeof EnrichedAssetDecoder>;
 
 export const defaultAsset = (): PostAsset => ({ name: "", ticker: "" });
+
+export const byAssetChangePct: Ord<EnrichedAsset> = pipe(
+  ordNumber,
+  reverse,
+  contramap<number, EnrichedAsset>((a) => a.value.ccy.changePct)
+);

@@ -1,11 +1,10 @@
 services:
   darkruby-assets:
-    image: assets:latest
-    # image: raspi4:6363/darkruby/assets:latest
+    image: ghcr.io/venil7/assets:${TAG}
     environment:
       - ASSETS_DB=/data/assets.db
-      - ASSETS_JWT_SECRET=X7LGLA8D4frp
+      - ASSETS_JWT_SECRET=${ASSETS_JWT_SECRET}
     volumes:
       - ./:/data
     ports:
-      - 1990:4020
+      - 8084:4020

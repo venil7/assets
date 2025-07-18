@@ -10,6 +10,7 @@ import { computed, type ReadonlySignal, signal } from "@preact/signals-react";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { login, logout } from "../services/api";
+import { refreshWhenCloseToExpiry } from "../services/auth";
 import { readToken } from "../services/token";
 import { createStoreBase, type StoreBase } from "./base";
 
@@ -22,6 +23,7 @@ export type AuthStore = Identity<
     ) => ActionResult<Nullable<Token>>;
     logout: () => ActionResult<Nullable<Token>>;
     tokenExists: ReadonlySignal<boolean>;
+    refresh: () => ActionResult<Nullable<Token>>;
   }
 >;
 
@@ -49,5 +51,6 @@ export const createAuthStore = (): AuthStore => {
           TE.tap(() => onSuccess)
         )
       ),
+    refresh: () => storeBase.run(refreshWhenCloseToExpiry()),
   };
 };

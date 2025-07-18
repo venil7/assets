@@ -1,10 +1,12 @@
 import {
+  byPortfolioChangePct,
   type Action,
   type EnrichedPortfolio,
   type Id,
   type PostPortfolio,
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
+import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
@@ -22,7 +24,8 @@ export const getPortfolio = (
 export const getPortfolios = (): Action<EnrichedPortfolio[]> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ portfolio: p }) => p.getMany())
+    TE.chain(({ portfolio: p }) => p.getMany()),
+    TE.map(A.sort(byPortfolioChangePct))
   );
 };
 

@@ -1,10 +1,12 @@
-import type {
-  Action,
-  EnrichedAsset,
-  Id,
-  PostAsset,
+import {
+  byAssetChangePct,
+  type Action,
+  type EnrichedAsset,
+  type Id,
+  type PostAsset,
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
+import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
@@ -12,7 +14,8 @@ import { apiFromToken } from "./api";
 export const getAssets = (pid: number): Action<EnrichedAsset[]> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ asset }) => asset.getMany(pid))
+    TE.chain(({ asset }) => asset.getMany(pid)),
+    TE.map(A.sort(byAssetChangePct))
   );
 };
 

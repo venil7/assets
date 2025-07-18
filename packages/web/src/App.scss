@@ -1,6 +1,14 @@
 @import "~/bootstrap/scss/_functions";
 @import "~/bootstrap/scss/_variables";
 
+html,
+body {
+  min-height: 100vh;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
 $breakpoint-phone: 600px;
 
 @mixin flex-container-row {
@@ -12,6 +20,9 @@ $breakpoint-phone: 600px;
 
 #root {
   padding-top: 1rem;
+  & > .container {
+    min-height: 100vh;
+  }
 }
 
 a {

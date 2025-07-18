@@ -53,7 +53,7 @@ export const PortfolioPeriodChange = pipe(
   ChangeIndicator<EnrichedPortfolio>,
   withProps({
     numeric: (p) => p.value.changePct,
-    formatter: (p) => `1d: ${percent(p.value.changePct)}`,
+    formatter: (p) => `${p.meta.range}: ${percent(p.value.changePct)}`,
   })
 );
 
