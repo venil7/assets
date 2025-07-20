@@ -23,11 +23,15 @@ export const getAssets: HandlerTask<EnrichedAsset[], Context> = ({
   pipe(
     TE.Do,
     TE.bind("profile", () => getProfile(res)),
+    TE.bind("range", () => rangeFromUrl(req.query.range)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
     TE.bind("assets", ({ profile, portfolioId }) =>
       repo.asset.getAll(portfolioId, profile.id)
     ),
-    TE.chain(({ assets }) => pipe(assets, getAssetsEnricher(yahooApi))),
+    TE.let("yahooEnricher", () => getAssetsEnricher(yahooApi)),
+    TE.chain(({ assets, range, yahooEnricher }) =>
+      yahooEnricher(assets, range!)
+    ),
     TE.mapLeft(toWebError)
   );
 

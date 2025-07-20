@@ -28,8 +28,10 @@ const RawPortfolioDetails: React.FC = () => {
       () => txs.create(aid, t),
       TE.chain(() => () => portfolio.load(+portfolioId!))
     )();
-  const handleRange = (range: ChartRange) =>
+  const handleRange = (range: ChartRange) => {
     portfolio.load(+portfolioId!, range);
+    assets.load(+portfolioId!, range);
+  };
 
   return (
     <PortfolioDetails

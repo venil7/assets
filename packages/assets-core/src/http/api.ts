@@ -37,8 +37,10 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     const base = `${PORTFOLIOS_URL}/${portfolioId}`;
     return range ? `${base}?range=${range}` : base;
   };
-  const ASSETS_URL = (portfolioId: number) =>
-    `${PORTFOLIOS_URL}/${portfolioId}/assets`;
+  const ASSETS_URL = (portfolioId: number, range?: ChartRange) => {
+    const base = `${PORTFOLIOS_URL}/${portfolioId}/assets`;
+    return range ? `${base}?range=${range}` : base;
+  };
   const ASSET_URL = (
     portfolioId: number,
     assetId: number,
@@ -100,9 +102,9 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       ASSET_URL(portfolioId, assetId, range),
       EnrichedAssetDecoder
     );
-  const getAssets = (portfolioId: number) =>
+  const getAssets = (portfolioId: number, range?: ChartRange) =>
     methods.get<EnrichedAsset[]>(
-      `${ASSETS_URL(portfolioId)}`,
+      `${ASSETS_URL(portfolioId, range)}`,
       EnrichedAssetsDecoder
     );
   const deleteAsset = (portfolioId: number, id: number) =>

@@ -52,7 +52,7 @@ const RawUsers: React.FC<UsersProps> = ({
       <HorizontalStack className="top-toolbar spread-container">
         <AddBtn onClick={handleAdd} label="User" />
       </HorizontalStack>
-      <Table responsive striped bordered hover>
+      <Table responsive={false} striped bordered hover>
         <thead>
           <tr>
             <th>#</th>

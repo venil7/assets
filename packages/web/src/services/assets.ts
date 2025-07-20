@@ -11,10 +11,13 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
 
-export const getAssets = (pid: number): Action<EnrichedAsset[]> => {
+export const getAssets = (
+  pid: number,
+  range?: ChartRange
+): Action<EnrichedAsset[]> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ asset }) => asset.getMany(pid)),
+    TE.chain(({ asset }) => asset.getMany(pid, range)),
     TE.map(A.sort(byAssetChangePct))
   );
 };

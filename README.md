@@ -4,7 +4,7 @@
  - [x] portfolio chart
  - [ ] summary endoint (also chart)
  - [ ] num_transactions
- - [x] chart?range=1d
+ - [-] chart?range=1d
  - [x] enriched asset - base ratio
  - [x] PUT endpoints
  - [x] update tx checks sufficiend funds

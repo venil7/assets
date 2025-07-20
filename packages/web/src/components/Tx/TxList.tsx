@@ -68,7 +68,7 @@ const RawTxTable: React.FC<TxTableProps> = ({
       TE.map(() => onDelete(txid))
     );
   return (
-    <Table responsive striped bordered hover>
+    <Table responsive={false} striped bordered hover>
       <thead>
         <tr>
           <th className="d-none d-md-block">#</th>

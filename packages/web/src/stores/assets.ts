@@ -4,6 +4,7 @@ import type {
   Identity,
   PostAsset,
 } from "@darkruby/assets-core";
+import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { signal } from "@preact/signals-react";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -17,7 +18,7 @@ import { type StoreBase, createStoreBase } from "./base";
 
 export type AssetsStore = Identity<
   StoreBase<EnrichedAsset[]> & {
-    load: (pid: number) => ActionResult<EnrichedAsset[]>;
+    load: (pid: number, range?: ChartRange) => ActionResult<EnrichedAsset[]>;
     create: (pid: number, a: PostAsset) => ActionResult<EnrichedAsset[]>;
     update: (
       pid: number,
@@ -34,7 +35,8 @@ export const createAssetsStore = (): AssetsStore => {
 
   return {
     ...storeBase,
-    load: (pid: number) => storeBase.run(getAssets(pid)),
+    load: (pid: number, range?: ChartRange) =>
+      storeBase.run(getAssets(pid, range)),
     create: (pid: number, a: PostAsset) =>
       storeBase.run(
         pipe(

@@ -130,12 +130,14 @@ export const getAssetEnricher =
 
 export const getAssetsEnricher =
   (yahooApi: YahooApi) =>
-  (assets: GetAsset[]): Action<EnrichedAsset[]> =>
-    pipe(
+  (assets: GetAsset[], range?: ChartRange): Action<EnrichedAsset[]> => {
+    const enrichAsset = getAssetEnricher(yahooApi);
+    return pipe(
       assets,
-      TE.traverseArray(getAssetEnricher(yahooApi)),
+      TE.traverseArray((asset) => enrichAsset(asset, range)),
       TE.map((assets) => calcAssetWeights(assets as EnrichedAsset[]))
     ) as Action<EnrichedAsset[]>;
+  };
 
 export const getOptionalAssetsEnricher =
   (yahooApi: YahooApi) =>
