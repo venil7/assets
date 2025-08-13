@@ -3,9 +3,10 @@ import {
   type Action,
   type Nullable,
 } from "@darkruby/assets-core";
-import { pipe } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/lib/function";
 import * as IO from "fp-ts/lib/IOEither";
 import * as TE from "fp-ts/lib/TaskEither";
+import ms from "ms";
 
 export const env = (
   name: string,
@@ -39,6 +40,26 @@ export const envNumber = (
       )
     )
   );
+
+// reads ms.StringValue fron env, returns number of milliseconds
+export const envDurationMsec = (
+  name: string,
+  defaultValue: ms.StringValue
+): Action<number /**milliseconds */> =>
+  pipe(
+    env(name, defaultValue),
+    TE.map((s) => ms(s as ms.StringValue)),
+    TE.filterOrElseW(
+      (n) => n != undefined,
+      () => generalError(`not an ms.StringValue`)
+    ),
+    TE.orElse(() => TE.of(ms(defaultValue)))
+  );
+
+export const envDurationSec = flow(
+  envDurationMsec,
+  TE.map((x) => x / 1000)
+);
 
 export const envBoolean = (
   name: string,

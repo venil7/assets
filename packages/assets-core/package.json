@@ -7,9 +7,6 @@
     "test": "bun test",
     "check": "tsc --noEmit"
   },
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
   "dependencies": {
     "heap-js": "^2.6.0",
     "io-ts": "^2.2.22",

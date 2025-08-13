@@ -12,7 +12,7 @@
   "dependencies": {
     "@darkruby/assets-core": "workspace:*",
     "@darkruby/fp-express": "workspace:*",
-    "@types/bcrypt": "^5.0.2",
+    "jsonwebtoken": "^9.0.2",
     "bcrypt": "^5.1.1",
     "express": "~4.18.3",
     "io-ts": "~2.2.21",
@@ -21,6 +21,8 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/faker": "5",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/bcrypt": "^5.0.2",
     "aws-sdk": "^2.1692.0",
     "faker": "5",
     "mock-aws-s3": "^4.0.2",

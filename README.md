@@ -4,7 +4,7 @@
  - [x] portfolio chart
  - [ ] summary endoint (also chart)
  - [ ] num_transactions
- - [-] chart?range=1d
+ - [x] chart?range=1d
  - [x] enriched asset - base ratio
  - [x] PUT endpoints
  - [x] update tx checks sufficiend funds
@@ -13,6 +13,7 @@
  - [x] create user, change password
  - [x] create/edit asset checks ticker with yahoo
  - [x] update tests
+ - [ ] SQL as comptime
 
 ### frontend
  - [ ] home screen summary
@@ -30,6 +31,7 @@
  - [x] modal box as promise,
  - [x] add/edit everything
  - [x] delete everything
+ - [ ] better REST API documentation
 
 ## API
 Portfolio API
@@ -74,7 +76,7 @@ Portfolio API
 ```
 
 ### create migration
-```
+```sh
 migrate create -ext sql -dir .migrations/ -seq -digits 3 <name>
 migrate -path ./.migrations -database=sqlite3://assets.db up
 migrate -path ./.migrations -database=sqlite3://assets.db down
@@ -95,7 +97,25 @@ To run:
 bun run index.ts
 ```
 
-# Production
+## configurable env variables
+
+### runtime parameters
+ - `ASSETS_DB` - path to database
+ - `ASSETS_APP` - path to public (../dist/public)
+ - `ASSETS_PORT` - listen on port (must be number)
+ - `ASSETS_CACHE_SIZE` - cache size (number), default 1000
+ - `ASSETS_CACHE_TTL` - cache time to live in `ms` format, default `1m`
+ - `ASSETS_USERNAME` - initialize with admin login, default admin
+ - `ASSETS_PASSWORD` - initialize with admin password, default admin
+ - `ASSETS_JWT_SECRET` - a secret to encrypt/sign jwt
+ - `ASSETS_JWT_EXPIRES_IN` - expiration for token in `ms` format, default `24h`
+ - `ASSETS_JWT_REFRESH_BEFORE` - refresh token X before expiry in ms format, default `12h`
+
+### build time parameters (goes int .env in web)
+ - `VITE_ASSETS_URL=http://localhost:4020` - he base part of backend REST api url, this param required in VITE DEV mode, but defaults to empty '' in production
+ - `VITE_ASSET_BASENAME=/ap`p - the beginnig part of URL before any routing
+
+## running in prod
 ```bash
 TAG=latest \
 ASSETS_JWT_SECRET=some-secret \

@@ -1,7 +1,7 @@
 {
   "name": "@darkruby/assets-ui",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -12,6 +12,7 @@
   "dependencies": {
     "@darkruby/assets-core": "workspace:*",
     "@preact/signals-react": "^3.0.1",
+    "jose": "^6.0.11",
     "bootstrap": "^5.3.3",
     "lru-cache": "^11.0.2",
     "react": "^19.0.0",

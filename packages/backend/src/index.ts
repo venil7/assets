@@ -16,7 +16,7 @@ import {
   type AppCache,
   type Stringifiable,
 } from "./services/cache";
-import { env, envNumber } from "./services/env";
+import { env, envDurationMsec, envNumber } from "./services/env";
 import { initializeApp } from "./services/init";
 import { cachedYahooApi } from "./services/yahoo";
 
@@ -35,7 +35,7 @@ const config = (): Action<Config> =>
     TE.apS("app", env("ASSETS_APP")),
     TE.apS("port", envNumber("ASSETS_PORT")),
     TE.apS("cacheSize", envNumber("ASSETS_CACHE_SIZE", 1000)),
-    TE.apS("cacheTtl", envNumber("ASSETS__CACHE_SIZE", 10))
+    TE.apS("cacheTtl", envDurationMsec("ASSETS_CACHE_TTL", "1m"))
   );
 
 const repository = (c: Config): Action<Repository> =>

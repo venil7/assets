@@ -187,9 +187,7 @@ export const login =
   (baseUrl: string) =>
   (creds: Credentials): Action<Token> => {
     const LOGIN_URL = `${baseUrl}/login`;
-    return rest
-      .methods()
-      .post<{ token: string }>(LOGIN_URL, creds, TokenDecoder);
+    return rest.methods().post<Token>(LOGIN_URL, creds, TokenDecoder);
   };
 
 export const api =

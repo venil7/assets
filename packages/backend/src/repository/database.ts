@@ -32,9 +32,9 @@ export const queryOne =
   };
 
 export const transaction =
-  <R>(insideTransaction: () => void) =>
+  <R>(insideTransaction: () => R) =>
   (db: Database): Action<Nullable<R>> => {
-    const transact = db.transaction(insideTransaction);
+    const transact = db.transaction<any[], R>(insideTransaction);
     return pipe(
       TE.tryCatch(
         async () => transact(),

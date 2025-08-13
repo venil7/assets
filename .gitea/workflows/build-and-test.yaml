@@ -1,6 +1,7 @@
 name: BUILD-AND-TEST
 run-name: ${{ gitea.actor }} is building and running tests
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - master

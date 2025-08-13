@@ -7,8 +7,8 @@ import { env } from "./env";
 
 const defaultUser = pipe(
   TE.Do,
-  TE.apS("username", env("ASSET_USERNAME", "admin")),
-  TE.apS("password", env("ASSET_PASSWORD", "admin")),
+  TE.apS("username", env("ASSETS_USERNAME", "admin")),
+  TE.apS("password", env("ASSETS_PASSWORD", "admin")),
   TE.chain(toAdminUser)
 );
 

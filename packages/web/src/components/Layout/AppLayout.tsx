@@ -3,8 +3,6 @@ import { Container } from "react-bootstrap";
 import { TopNav } from "../TopNav";
 import "./AppLayout.scss";
 
-declare const VERSION: string;
-
 export const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <>
@@ -13,7 +11,9 @@ export const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
         <div className="content">{children}</div>
       </Container>
       <footer className="footer">
-        <span>client version: {VERSION}</span>
+        <span>
+          version: {VERSION}, built: {BUILD_DATE}
+        </span>
       </footer>
     </>
   );

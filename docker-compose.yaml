@@ -3,8 +3,12 @@ services:
     image: ghcr.io/venil7/assets:${TAG}
     environment:
       - ASSETS_DB=/data/assets.db
+      - ASSETS_CACHE_TTL=${ASSETS_CACHE_TTL}
       - ASSETS_JWT_SECRET=${ASSETS_JWT_SECRET}
+      - ASSETS_JWT_EXPIRES_IN=${ASSETS_JWT_EXPIRES_IN}
+      - ASSETS_JWT_REFRESH_BEFORE=${ASSETS_JWT_REFRESH_BEFORE}
     volumes:
       - ./:/data
     ports:
       - 8084:4020
+    restart: unless-stopped

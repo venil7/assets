@@ -5,5 +5,3 @@ Dockerfile
 **/.env
 data/
 .vscode
-.gitea
-.bruno

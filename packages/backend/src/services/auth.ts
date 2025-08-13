@@ -12,7 +12,7 @@ import { compare, genSaltSync, hashSync } from "bcrypt";
 import { identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { sign, verify, type Jwt } from "jsonwebtoken";
-import { env } from "./env";
+import { env, envDurationSec } from "./env";
 
 export const verifyPassword = (
   { phash }: GetUser,
@@ -23,18 +23,23 @@ export const verifyPassword = (
       () => compare(password, phash),
       (e) => authError(`Unable to auth ${e}`)
     ),
-    TE.filterOrElse(identity, (e) => authError("wrong passord?"))
+    TE.filterOrElse(identity, (e) => authError("wrong password?"))
   );
 };
 
 export const createToken = (profile: Profile): Action<Token> => {
   return pipe(
     TE.Do,
-    TE.bind("secret", () => env("ASSETS_JWT_SECRET")),
-    TE.bind("token", ({ secret }) =>
-      TE.fromIO(() => sign(profile, secret, { expiresIn: "24h" }))
+    // valid values: https://www.npmjs.com/package/ms
+    TE.bind("expiresIn", () => envDurationSec("ASSETS_JWT_EXPIRES_IN", "24h")),
+    TE.bind("refreshBefore", () =>
+      envDurationSec("ASSETS_JWT_REFRESH_BEFORE", "12h")
     ),
-    TE.map(({ token }) => ({ token }))
+    TE.bind("secret", () => env("ASSETS_JWT_SECRET")),
+    TE.bind("token", ({ secret, expiresIn }) =>
+      TE.fromIO(() => sign(profile, secret, { expiresIn }))
+    ),
+    TE.map(({ token, refreshBefore }) => ({ token, refreshBefore }))
   );
 };
 
