@@ -3,7 +3,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import type { Decoder } from "io-ts";
 import { ErrorDecoder } from "../decoders/error";
 import { liftTE } from "../decoders/util";
-import { generalError, type AppError } from "../domain";
+import { generalError, handleError, type AppError } from "../domain";
 import type { Action } from "../utils/utils";
 
 const rest = <JSON>(
@@ -14,20 +14,17 @@ const rest = <JSON>(
   // console.info(`[${method}] ${url} ${body ?? "-"}`);
   const req = { method, body, headers } as RequestInit;
   return pipe(
-    TE.tryCatch(
-      () => fetch(url, req),
-      (e) => generalError(`fetch: ${e}`)
-    ),
+    TE.tryCatch(() => fetch(url, req), handleError("fetch")),
     TE.bindTo("resp"),
     TE.bind("clone", ({ resp }) => TE.of(resp.clone())),
     TE.chain(({ resp, clone }) => {
       const toJson = TE.tryCatch(
         () => resp.json(),
-        (e) => generalError(`JSON failed: ${e}`)
+        handleError("JSON parse error")
       );
       const toText = TE.tryCatch(
         () => clone.text(),
-        (e) => generalError(`TEXT failed: ${e}`)
+        handleError("TEXT parse error")
       );
       if (resp.status >= 200 && resp.status < 300) {
         return pipe(toJson, TE.chain(liftTE(decoder)));

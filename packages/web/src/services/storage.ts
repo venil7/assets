@@ -1,4 +1,4 @@
-import { generalError, type Result } from "@darkruby/assets-core";
+import { handleError, type Result } from "@darkruby/assets-core";
 import { liftE } from "@darkruby/assets-core/src/decoders/util";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
@@ -11,7 +11,7 @@ const reader =
     pipe(
       E.tryCatch(
         () => localStorage.getItem(key) ?? "",
-        (e) => generalError((e as Error).message)
+        handleError("localStorage.getItem")
       ),
       E.chain(liftE(decoder))
     );
@@ -22,7 +22,7 @@ const writer =
     pipe(
       E.tryCatch(
         () => localStorage.setItem(key, decoder.encode(value)),
-        (e) => generalError((e as Error).message)
+        handleError("localStorage.setItem")
       )
     );
 
@@ -30,7 +30,7 @@ const remover = (key: string): Result<void> =>
   pipe(
     E.tryCatch(
       () => localStorage.removeItem(key),
-      (e) => generalError((e as Error).message)
+      handleError("localStorage.removeItem")
     )
   );
 

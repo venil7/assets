@@ -1,6 +1,6 @@
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
-import { type AppError } from "../domain/error";
+import { handleError, type AppError } from "../domain/error";
 
 export type Nullable<T> = T | null;
 export type Optional<T> = Nullable<T> | undefined;
@@ -22,3 +22,9 @@ export const run = async <A>(test: Action<A>) => {
 };
 
 export type ArrayItem<A> = A extends (infer X)[] ? X : never;
+
+export const trySync = <A>(f: () => A) =>
+  TE.tryCatch(async () => f(), handleError());
+
+export const tryAsync = <A>(f: () => Promise<A>) =>
+  TE.tryCatch(f, handleError());

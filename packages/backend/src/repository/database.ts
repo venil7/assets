@@ -1,8 +1,4 @@
-import {
-  generalError,
-  type Action,
-  type Nullable,
-} from "@darkruby/assets-core";
+import { handleError, type Action, type Nullable } from "@darkruby/assets-core";
 import { Database, type SQLQueryBindings } from "bun:sqlite";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -10,23 +6,31 @@ import * as TE from "fp-ts/lib/TaskEither";
 export type ExecutionResult = [lastId: number, rows: number];
 
 export const queryMany =
-  <R>(sql: string, bindings: SQLQueryBindings = null) =>
+  <R>(bindings: SQLQueryBindings = null) =>
+  (sql: Action<string>) =>
   (db: Database): Action<R[]> => {
     return pipe(
-      TE.tryCatch(
-        async () => db.query<R, SQLQueryBindings>(sql).all(bindings),
-        (e) => generalError(`${e}`)
+      sql,
+      TE.chain((sql) =>
+        TE.tryCatch(
+          async () => db.query<R, SQLQueryBindings>(sql).all(bindings),
+          handleError()
+        )
       )
     );
   };
 
 export const queryOne =
-  <R>(sql: string, bindings: SQLQueryBindings = null) =>
+  <R>(bindings: SQLQueryBindings = null) =>
+  (sql: Action<string>) =>
   (db: Database): Action<Nullable<R>> => {
     return pipe(
-      TE.tryCatch(
-        async () => db.query<R, SQLQueryBindings>(sql).get(bindings),
-        (e) => generalError(`${e}`)
+      sql,
+      TE.chain((sql) =>
+        TE.tryCatch(
+          async () => db.query<R, SQLQueryBindings>(sql).get(bindings),
+          handleError()
+        )
       )
     );
   };
@@ -35,21 +39,20 @@ export const transaction =
   <R>(insideTransaction: () => R) =>
   (db: Database): Action<Nullable<R>> => {
     const transact = db.transaction<any[], R>(insideTransaction);
-    return pipe(
-      TE.tryCatch(
-        async () => transact(),
-        (e) => generalError(`${e}`)
-      )
-    );
+    return pipe(TE.tryCatch(async () => transact(), handleError()));
   };
 
 export const execute =
-  <R>(sql: string, bindings: SQLQueryBindings = null) =>
+  <R>(bindings: SQLQueryBindings = null) =>
+  (sql: Action<string>) =>
   (db: Database): Action<ExecutionResult> => {
     return pipe(
-      TE.tryCatch(
-        async () => db.query<R, SQLQueryBindings>(sql).run(bindings),
-        (e) => generalError(`${e}`)
+      sql,
+      TE.chain((sql) =>
+        TE.tryCatch(
+          async () => db.query<R, SQLQueryBindings>(sql).run(bindings),
+          handleError()
+        )
       ),
       TE.map(
         ({ changes, lastInsertRowid }) =>

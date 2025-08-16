@@ -15,24 +15,37 @@ import {
 } from "@darkruby/assets-core/src/decoders/util";
 import type Database from "bun:sqlite";
 import { pipe } from "fp-ts/lib/function";
+import * as ID from "fp-ts/lib/Identity";
 import * as TE from "fp-ts/lib/TaskEither";
+
 import { defaultPaging } from "../domain/paging";
 import { execute, queryMany, queryOne, type ExecutionResult } from "./database";
+
+import {
+  deletePortfolioSql,
+  getPortfolioSql,
+  getPortfoliosSql,
+  insertPortfolioSql,
+  updatePortfolioSql,
+} from "./sql" with { type: "macro" };
+
+const sql = {
+  portfolio: {
+    get: TE.of(getPortfolioSql()),
+    getMany: TE.of(getPortfoliosSql()),
+    insert: TE.of(insertPortfolioSql()),
+    update: TE.of(updatePortfolioSql()),
+    delete: TE.of(deletePortfolioSql()),
+  },
+};
 
 export const getPortfolios =
   (db: Database) =>
   (userId: UserId, paging = defaultPaging()): Action<GetPortfolio[]> =>
     pipe(
-      db,
-      queryMany<unknown[]>(
-        `
-      select p.*
-			from portfolios_ext p
-			where p.user_id=$userId
-			limit $limit offset $offset;
-      `,
-        { userId, ...paging }
-      ),
+      queryMany<unknown[]>({ userId, ...paging }),
+      ID.ap(sql.portfolio.getMany),
+      ID.ap(db),
       TE.chain(liftTE(GetPortfoliosDecoder))
     );
 
@@ -40,15 +53,9 @@ export const getPortfolio =
   (db: Database) =>
   (id: number, userId: UserId): Action<Optional<GetPortfolio>> => {
     return pipe(
-      db,
-      queryOne(
-        `
-      select p.*
-			from portfolios_ext p
-			where p.id=$id and p.user_id=$userId
-      limit 1;`,
-        { id, userId }
-      ),
+      queryOne({ id, userId }),
+      ID.ap(sql.portfolio.get),
+      ID.ap(db),
       TE.chain(liftTE(nullableDecoder(GetPortfolioDecoder)))
     );
   };
@@ -61,41 +68,25 @@ export const updatePortfolio =
     userId: UserId
   ): Action<ExecutionResult> =>
     pipe(
-      db,
-      execute<unknown[]>(
-        `
-      UPDATE portfolios
-      SET name = $name, description = $description, modified = CURRENT_TIMESTAMP
-      WHERE id = $portfolioId AND user_id = $userId
-      `,
-        { ...body, portfolioId, userId }
-      )
+      execute<unknown[]>({ ...body, portfolioId, userId }),
+      ID.ap(sql.portfolio.update),
+      ID.ap(db)
     );
 
 export const createPortfolio =
   (db: Database) =>
   (body: PostPortfolio, userId: UserId): Action<ExecutionResult> =>
     pipe(
-      db,
-      execute<unknown[]>(
-        `
-      insert into portfolios(name, description, user_id)
-		  values($name, $description, $userId)
-      `,
-        { ...body, userId }
-      )
+      execute<unknown[]>({ ...body, userId }),
+      ID.ap(sql.portfolio.insert),
+      ID.ap(db)
     );
 
 export const deletePortfolio =
   (db: Database) =>
   (id: number, userId: UserId): Action<ExecutionResult> =>
     pipe(
-      db,
-      execute<unknown[]>(
-        `
-			delete from portfolios
-			where id=$id AND user_id=$userId;
-		`,
-        { id, userId }
-      )
+      execute<unknown[]>({ id, userId }),
+      ID.ap(sql.portfolio.delete),
+      ID.ap(db)
     );

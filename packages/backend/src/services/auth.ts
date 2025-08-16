@@ -1,4 +1,10 @@
-import { authError, type Action, type Optional } from "@darkruby/assets-core";
+import {
+  AppErrorType,
+  authError,
+  handleError,
+  type Action,
+  type Optional,
+} from "@darkruby/assets-core";
 import { PostUserDecoder } from "@darkruby/assets-core/src/decoders/user";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { Token } from "@darkruby/assets-core/src/domain/token";
@@ -21,7 +27,7 @@ export const verifyPassword = (
   return pipe(
     TE.tryCatch(
       () => compare(password, phash),
-      (e) => authError(`Unable to auth ${e}`)
+      handleError("Unable to auth", AppErrorType.Auth)
     ),
     TE.filterOrElse(identity, (e) => authError("wrong password?"))
   );
@@ -57,7 +63,7 @@ export const verifyBearer = (
     TE.chain(({ token, secret }) =>
       TE.tryCatch(
         async () => verify(token, secret, { complete: true }),
-        (e) => authError(`invalid token ${e}`)
+        handleError("Invalid token", AppErrorType.Auth)
       )
     )
   );

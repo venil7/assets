@@ -1,5 +1,6 @@
 import {
   generalError,
+  handleError,
   type Action,
   type Nullable,
 } from "@darkruby/assets-core";
@@ -13,14 +14,11 @@ export const env = (
   defaultValue: Nullable<string> = null
 ): Action<string> =>
   pipe(
-    IO.tryCatch(
-      () => {
-        const val = process.env[name] ?? defaultValue;
-        if (val) return val;
-        throw Error(`${name} is not defined`);
-      },
-      (e) => generalError((e as Error).message)
-    ),
+    IO.tryCatch(() => {
+      const val = process.env[name] ?? defaultValue;
+      if (val) return val;
+      throw Error(`${name} is not defined`);
+    }, handleError("Environment variable")),
     TE.fromIOEither
   );
 
@@ -32,10 +30,7 @@ export const envNumber = (
     env(name, defaultValue?.toString()),
     TE.chain((s) =>
       pipe(
-        IO.tryCatch(
-          () => parseFloat(s),
-          (e) => generalError((e as Error).message)
-        ),
+        IO.tryCatch(() => parseFloat(s), handleError("parseFloat")),
         TE.fromIOEither
       )
     )

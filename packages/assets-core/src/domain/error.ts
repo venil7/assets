@@ -26,6 +26,13 @@ export const validationError = (message: string): AppError => ({
   type: AppErrorType.Validation,
 });
 
+export const handleError =
+  (msg: string = "", type: AppErrorType = AppErrorType.General) =>
+  (e: unknown): AppError => ({
+    message: `${msg}: ${e}`,
+    type,
+  });
+
 export const fromValidationError = (
   val: ValidationError,
   fallbackMessage = "validation error"

@@ -1,7 +1,8 @@
 import {
   type Action,
-  authError,
+  AppErrorType,
   generalError,
+  handleError,
   type Result,
   type Token,
 } from "@darkruby/assets-core";
@@ -26,7 +27,7 @@ const belowThreshold = (token: Token): Result<Token> =>
   pipe(
     E.tryCatch(
       () => jose.decodeJwt(token.token),
-      (e) => authError(`cant parse token: ${e}`)
+      handleError("Cant parse token", AppErrorType.Auth)
     ),
     E.filterOrElseW(
       ({ exp = 0 }) =>

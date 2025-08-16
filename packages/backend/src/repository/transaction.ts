@@ -18,9 +18,28 @@ import {
 } from "@darkruby/assets-core/src/decoders/util";
 import type Database from "bun:sqlite";
 import { pipe } from "fp-ts/lib/function";
+import * as ID from "fp-ts/lib/Identity";
 import * as TE from "fp-ts/lib/TaskEither";
+
 import { defaultPaging } from "../domain/paging";
 import { execute, queryMany, queryOne, type ExecutionResult } from "./database";
+import {
+  deleteTxSql,
+  getTxSql,
+  getTxsSql,
+  insertTxSql,
+  updateTxSql,
+} from "./sql" with { type: "macro" };
+
+const sql = {
+  tx: {
+    get: TE.of(getTxSql()),
+    getMany: TE.of(getTxsSql()),
+    insert: TE.of(insertTxSql()),
+    update: TE.of(updateTxSql()),
+    delete: TE.of(deleteTxSql()),
+  },
+};
 
 export const getTxs =
   (db: Database) =>
@@ -30,17 +49,9 @@ export const getTxs =
     paging = defaultPaging()
   ): Action<GetTx[]> =>
     pipe(
-      db,
-      queryMany<unknown[]>(
-        `
-      select id, asset_id, type, quantity, price, date, created, modified, comments
-		  from asset_transactions at
-		  where at.asset_id=$assetId and at.user_id=$userId
-		  order by at.date desc
-		  limit $limit offset $offset;
-      `,
-        { userId, assetId, ...paging }
-      ),
+      queryMany<unknown[]>({ userId, assetId, ...paging }),
+      ID.ap(sql.tx.getMany),
+      ID.ap(db),
       TE.chain(liftTE(GetTxsDecoder))
     );
 
@@ -48,16 +59,9 @@ export const getTx =
   (db: Database) =>
   (id: number, assetId: number, userId: UserId): Action<Optional<GetTx>> => {
     return pipe(
-      db,
-      queryOne(
-        `
-      select id, asset_id, type, quantity, price, date, created, modified, comments
-		  from asset_transactions at
-		  where at.id=$id and at.asset_id=$assetId and at.user_id=$userId
-		  order by at.date desc
-		  limit 1`,
-        { id, assetId, userId }
-      ),
+      queryOne({ id, assetId, userId }),
+      ID.ap(sql.tx.get),
+      ID.ap(db),
       TE.chain(liftTE(nullableDecoder(GetTxDecoder)))
     );
   };
@@ -66,18 +70,13 @@ export const createTx =
   (db: Database) =>
   (tx: PostTx, assetId: number, userId: UserId): Action<ExecutionResult> =>
     pipe(
-      db,
-      execute<unknown[]>(
-        `
-        insert into transactions (asset_id, type, quantity, price, comments, date)
-			  values ($assetId, $type, $quantity, $price, $comments, $date)
-      `,
-        {
-          assetId,
-          ...PostTxDecoder.encode(tx),
-          date: tx.date.toISOString(),
-        } as Record<string, any>
-      ),
+      execute<unknown[]>({
+        assetId,
+        ...PostTxDecoder.encode(tx),
+        date: tx.date.toISOString(),
+      } as Record<string, any>),
+      ID.ap(sql.tx.insert),
+      ID.ap(db),
       TE.mapLeft(insufficientHoldingCheck)
     );
 
@@ -90,42 +89,21 @@ export const updateTx =
     userId: UserId
   ): Action<ExecutionResult> =>
     pipe(
-      db,
-      execute<unknown[]>(
-        `
-        UPDATE transactions
-        SET type = $type, quantity = $quantity, price = $price,
-            comments = $comments, date = $date, modified = CURRENT_TIMESTAMP
-        WHERE id = $transactionId and asset_id = $assetId
-      `,
-        {
-          assetId,
-          ...PostTxDecoder.encode(tx),
-          transactionId,
-          date: tx.date.toISOString(),
-        } as Record<string, any>
-      ),
+      execute<unknown[]>({
+        assetId,
+        ...PostTxDecoder.encode(tx),
+        transactionId,
+        date: tx.date.toISOString(),
+      } as Record<string, any>),
+      ID.ap(sql.tx.update),
+      ID.ap(db),
       TE.mapLeft(insufficientHoldingCheck)
     );
 
 export const deleteTx =
   (db: Database) =>
   (id: number, userId: UserId): Action<ExecutionResult> =>
-    pipe(
-      db,
-      execute<unknown[]>(
-        `
-			delete from transactions
-		  where id in (
-				select at.id
-				from asset_transactions at
-				where at.id=$id and at.user_id=$userId
-				limit 1
-		  );
-		`,
-        { id, userId }
-      )
-    );
+    pipe(execute<unknown[]>({ id, userId }), ID.ap(sql.tx.delete), ID.ap(db));
 
 const insufficientHoldingCheck = (err: AppError) => {
   switch (true) {

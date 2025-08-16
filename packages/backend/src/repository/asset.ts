@@ -15,9 +15,27 @@ import {
 } from "@darkruby/assets-core/src/decoders/util";
 import type Database from "bun:sqlite";
 import { pipe } from "fp-ts/lib/function";
+import * as ID from "fp-ts/lib/Identity";
 import * as TE from "fp-ts/lib/TaskEither";
 import { defaultPaging } from "../domain/paging";
 import { execute, queryMany, queryOne, type ExecutionResult } from "./database";
+import {
+  deleteAssetSql,
+  getAssetSql,
+  getAssetsSql,
+  insertAssetSql,
+  updateAssetSql,
+} from "./sql" with { type: "macro" };
+
+const sql = {
+  asset: {
+    get: TE.of(getAssetSql()),
+    getMany: TE.of(getAssetsSql()),
+    insert: TE.of(insertAssetSql()),
+    update: TE.of(updateAssetSql()),
+    delete: TE.of(deleteAssetSql()),
+  },
+};
 
 export const getAssets =
   (db: Database) =>
@@ -27,16 +45,9 @@ export const getAssets =
     paging = defaultPaging()
   ): Action<GetAsset[]> =>
     pipe(
-      db,
-      queryMany<unknown[]>(
-        `
-      SELECT id,portfolio_id,name,ticker,created,modified,holdings,invested,avg_price,portfolio_contribution
-			FROM assets_contributions A
-			WHERE A.portfolio_id=$portfolioId AND A.user_id=$userId
-			LIMIT $limit OFFSET $offset;
-      `,
-        { userId, portfolioId, ...paging }
-      ),
+      queryMany<unknown[]>({ userId, portfolioId, ...paging }),
+      ID.ap(sql.asset.getMany),
+      ID.ap(db),
       TE.chain(liftTE(GetAssetsDecoder))
     );
 
@@ -48,15 +59,9 @@ export const getAsset =
     userId: UserId
   ): Action<Optional<GetAsset>> => {
     return pipe(
-      db,
-      queryOne(
-        `
-      SELECT id,portfolio_id,name,ticker,created,modified,holdings,invested,avg_price,portfolio_contribution
-			FROM assets_contributions A
-			WHERE A.id=$id AND A.portfolio_id=$portfolioId AND A.user_id=$userId
-			LIMIT 1;`,
-        { id, portfolioId, userId }
-      ),
+      queryOne({ id, portfolioId, userId }),
+      ID.ap(sql.asset.get),
+      ID.ap(db),
       TE.chain(liftTE(nullableDecoder(GetAssetDecoder)))
     );
   };
@@ -65,14 +70,9 @@ export const createAsset =
   (db: Database) =>
   (body: PostAsset, portfolioId: number): Action<ExecutionResult> =>
     pipe(
-      db,
-      execute<unknown[]>(
-        `
-        INSERT INTO assets (name, ticker, portfolio_id)
-        VALUES ($name, $ticker, $portfolioId)
-      `,
-        { ...body, portfolioId }
-      )
+      execute<unknown[]>({ ...body, portfolioId }),
+      ID.ap(sql.asset.insert),
+      ID.ap(db)
     );
 
 export const updateAsset =
@@ -83,33 +83,16 @@ export const updateAsset =
     portfolioId: number
   ): Action<ExecutionResult> =>
     pipe(
-      db,
-      execute<unknown[]>(
-        `
-        UPDATE assets
-        SET name = $name, ticker = $ticker, modified = CURRENT_TIMESTAMP
-        WHERE id = $assetId and portfolio_id = $portfolioId
-      `,
-        { ...body, assetId, portfolioId }
-      )
+      execute<unknown[]>({ ...body, assetId, portfolioId }),
+      ID.ap(sql.asset.update),
+      ID.ap(db)
     );
 
 export const deleteAsset =
   (db: Database) =>
   (id: number, portfolioId: number, userId: UserId): Action<ExecutionResult> =>
     pipe(
-      db,
-      execute<unknown>(
-        `
-      delete from assets
-			where id in (
-				select A.id
-				from assets A
-				inner join portfolios P ON P.id = A.portfolio_id
-				where A.id=$id and P.id=$portfolioId AND P.user_id=$userId
-				limit 1
-			);
-    `,
-        { id, portfolioId, userId }
-      )
+      execute<unknown>({ id, portfolioId, userId }),
+      ID.ap(sql.asset.delete),
+      ID.ap(db)
     );
