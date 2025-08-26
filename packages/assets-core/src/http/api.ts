@@ -6,6 +6,7 @@ import {
   EnrichedPortfolioDecoder,
   EnrichedPortfoliosDecoder,
 } from "../decoders/portfolio";
+import { SummaryDecoder } from "../decoders/summary";
 import { TokenDecoder } from "../decoders/token";
 import { GetTxDecoder, GetTxsDecoder } from "../decoders/transaction";
 import { ProfileDecoder, ProfilesDecoder } from "../decoders/user";
@@ -19,6 +20,7 @@ import type {
   PostPortfolio,
   PostTx,
   Profile,
+  Summary,
   TickerSearchResult,
   UserId,
 } from "../domain";
@@ -31,14 +33,21 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const API_URL = `${baseUrl}/api/v1`;
   const USERS_URL = `${API_URL}/users`;
   const USER_URL = (uid: UserId) => `${USERS_URL}/${uid}`;
-  const PORTFOLIOS_URL = `${API_URL}/portfolios`;
+  const SUMMARY_URL = (range?: ChartRange) => {
+    const base = `${API_URL}/summary`;
+    return range ? `${base}?range=${range}` : base;
+  };
+  const PORTFOLIOS_URL = (range?: ChartRange) => {
+    const base = `${API_URL}/portfolios`;
+    return range ? `${base}?range=${range}` : base;
+  };
   const PROFILE_URL = `${API_URL}/profile`;
   const PORTFOLIO_URL = (portfolioId: number, range?: ChartRange) => {
-    const base = `${PORTFOLIOS_URL}/${portfolioId}`;
+    const base = `${PORTFOLIOS_URL()}/${portfolioId}`;
     return range ? `${base}?range=${range}` : base;
   };
   const ASSETS_URL = (portfolioId: number, range?: ChartRange) => {
-    const base = `${PORTFOLIOS_URL}/${portfolioId}/assets`;
+    const base = `${PORTFOLIOS_URL()}/${portfolioId}/assets`;
     return range ? `${base}?range=${range}` : base;
   };
   const ASSET_URL = (
@@ -59,9 +68,12 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const getRefreshToken = () =>
     methods.get<Token>(REFRESH_TOKEN_URL, TokenDecoder);
 
+  const getSummary = (range?: ChartRange) =>
+    methods.get<Summary>(SUMMARY_URL(range), SummaryDecoder);
+
   const createPortfolio = (portfolio: PostPortfolio) =>
     methods.post<EnrichedPortfolio, PostPortfolio>(
-      PORTFOLIOS_URL,
+      PORTFOLIOS_URL(),
       portfolio,
       EnrichedPortfolioDecoder
     );
@@ -78,8 +90,11 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     );
   const deletePortfolio = (id: number) =>
     methods.delete<Id>(PORTFOLIO_URL(id), IdDecoder);
-  const getPortfolios = () =>
-    methods.get<EnrichedPortfolio[]>(PORTFOLIOS_URL, EnrichedPortfoliosDecoder);
+  const getPortfolios = (range?: ChartRange) =>
+    methods.get<EnrichedPortfolio[]>(
+      PORTFOLIOS_URL(range),
+      EnrichedPortfoliosDecoder
+    );
 
   const createAsset = (portfolioId: number, asset: PostAsset) =>
     methods.post<EnrichedAsset, PostAsset>(
@@ -152,6 +167,9 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     profile: {
       get: getProfile,
       update: updateProfile,
+    },
+    summary: {
+      get: getSummary,
     },
     portfolio: {
       get: getPortfolio,

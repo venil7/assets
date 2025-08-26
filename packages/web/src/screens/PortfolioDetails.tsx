@@ -14,6 +14,7 @@ const RawPortfolioDetails: React.FC = () => {
   const { portfolioId } = useParams<{ portfolioId: string }>();
   useEffect(() => {
     asset.reset();
+
     portfolio.load(+portfolioId!);
     assets.load(+portfolioId!);
   }, [portfolio]);

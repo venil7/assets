@@ -21,10 +21,13 @@ const extPortfolioTypes = {
 };
 
 export const PostPortfolioDecoder = t.type(basePortfolioTypes);
-export const GetPortfolioDecoder = PostPortfolioDecoder.pipe(
-  t.type(extPortfolioTypes)
-);
+export const GetPortfolioDecoder = t.type(extPortfolioTypes);
 export const GetPortfoliosDecoder = t.array(GetPortfolioDecoder);
+
+export const PortfolioMetaDecoder = t.type({
+  range: RangeDecoder,
+  validRanges: t.array(RangeDecoder),
+});
 
 export const EnrichedPortfolioDecoder = t.type({
   ...extPortfolioTypes,
@@ -33,10 +36,7 @@ export const EnrichedPortfolioDecoder = t.type({
   weight: t.number,
   investedBase: t.number,
   totals: TotalsDecoder,
-  meta: t.type({
-    range: RangeDecoder,
-    validRanges: t.array(RangeDecoder),
-  }),
+  meta: PortfolioMetaDecoder,
 });
 
 export const EnrichedPortfoliosDecoder = t.array(EnrichedPortfolioDecoder);

@@ -4,6 +4,7 @@ import type {
   Identity,
   PostPortfolio,
 } from "@darkruby/assets-core";
+import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { signal } from "@preact/signals-react";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
@@ -17,7 +18,7 @@ import { type StoreBase, createStoreBase } from "./base";
 
 export type PortfoliosStore = Identity<
   StoreBase<EnrichedPortfolio[]> & {
-    load: () => ActionResult<EnrichedPortfolio[]>;
+    load: (range?: ChartRange) => ActionResult<EnrichedPortfolio[]>;
     create: (p: PostPortfolio) => ActionResult<EnrichedPortfolio[]>;
     update: (
       pid: number,
@@ -33,7 +34,7 @@ export const createPortfoliosStore = (): PortfoliosStore => {
 
   return {
     ...storeBase,
-    load: () => storeBase.run(getPortfolios()),
+    load: (range?: ChartRange) => storeBase.run(getPortfolios(range)),
     create: (p: PostPortfolio) =>
       storeBase.run(
         pipe(

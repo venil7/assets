@@ -1,8 +1,16 @@
 import { pipe } from "fp-ts/lib/function";
+import type { Refinement } from "fp-ts/lib/Refinement";
 import * as t from "io-ts";
 import { boolean, dateDecoder, nonEmptyString } from "./util";
 
-const UserId = t.Int;
+export const UserIdDecoder = t.brand(
+  t.number,
+  ((a) => a >= 0 && a == Math.floor(a)) as Refinement<
+    number,
+    t.Branded<number, { readonly UserId: symbol }>
+  >,
+  "UserId"
+);
 
 const credentialsTypes = {
   username: nonEmptyString,
@@ -15,7 +23,7 @@ const passwordChangeTypes = {
 };
 
 const profileTypes = {
-  id: UserId,
+  id: UserIdDecoder,
   username: t.string,
   admin: boolean,
   login_attempts: t.number,

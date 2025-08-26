@@ -82,6 +82,10 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       auth.get("/refresh_token", handlers.auth.refreshToken);
       api.use("/auth", auth);
 
+      const summary = express();
+      summary.get("/", handlers.summary.get);
+      api.use("/summary", summary);
+
       const profile = express();
       profile.get("/", handlers.profile.get);
       profile.put("/", handlers.profile.update);

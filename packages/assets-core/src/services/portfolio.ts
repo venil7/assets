@@ -1,125 +1,148 @@
 import * as A from "fp-ts/lib/Array";
-import { pipe } from "fp-ts/lib/function";
+import { pipe, type FunctionN, type LazyArg } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
 import * as TE from "fp-ts/lib/TaskEither";
-import Heap from "heap-js";
-import type { ChartDataPoint } from "../decoders/yahoo/chart";
 import {
   ChartRangeOrd,
   DEFAULT_CHART_RANGE,
   type ChartRange,
 } from "../decoders/yahoo/meta";
 import type {
-  ChartData,
-  EnrichedAsset,
   EnrichedPortfolio,
+  GetAsset,
   GetPortfolio,
   PeriodChanges,
   Totals,
+  UnixDate,
 } from "../domain";
+import type { YahooApi } from "../http";
 import { nonEmpty } from "../utils/array";
 import { changeInValue, changeInValuePct, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
-import { calcAssetWeights } from "./asset";
+import { calcAssetWeights, getAssetsEnricher } from "./asset";
+import { combineAssetCharts, commonAssetRanges } from "./chart";
 
-export const enrichPortfolio = (
-  portfolio: GetPortfolio,
-  getEnrichedAssets: () => Action<EnrichedAsset[]>
-): Action<EnrichedPortfolio> => {
-  return pipe(
-    TE.Do,
-    TE.apS("portfolio", TE.of(portfolio)),
-    TE.bind("assets", () =>
-      pipe(getEnrichedAssets(), TE.map(calcAssetWeights))
-    ),
-    TE.map(({ portfolio, assets }) => {
-      const investedBase = pipe(
-        assets,
-        sum(({ investedBase }) => investedBase)
-      );
+export const getPortfolioEnricher =
+  (yahooApi: YahooApi, range?: ChartRange) =>
+  (
+    portfolio: GetPortfolio,
+    getAssets: LazyArg<Action<GetAsset[]>>,
+    overrideRange = range
+  ): Action<EnrichedPortfolio> => {
+    const enrichAssets = getAssetsEnricher(yahooApi, overrideRange);
 
-      const value: PeriodChanges = (() => {
-        const beginning = pipe(
-          assets,
-          sum(({ value }) => value.base.beginning)
+    return pipe(
+      TE.Do,
+      TE.apS("portfolio", TE.of(portfolio)),
+      TE.bind("assets", () => {
+        return pipe(
+          getAssets(),
+          TE.chain(enrichAssets),
+          TE.map(calcAssetWeights)
         );
-        const current = pipe(
+      }),
+      TE.map(({ portfolio, assets }) => {
+        const investedBase = pipe(
           assets,
-          sum(({ value }) => value.base.current)
+          sum(({ investedBase }) => investedBase)
         );
 
-        const change = changeInValue(beginning)(current);
-        const changePct = changeInValuePct(beginning)(current);
-        const start = pipe(
-          assets,
-          A.map(({ value }) => value.ccy.start),
-          nonEmpty(() => Math.floor(new Date().getTime() / 1000)),
-          (s) => Math.min(...s)
-        );
-        const end = pipe(
-          assets,
-          A.map(({ value }) => value.ccy.end),
-          nonEmpty(() => Math.floor(new Date().getTime() / 1000)),
-          (s) => Math.max(...s)
-        );
+        const value: PeriodChanges = (() => {
+          const beginning = pipe(
+            assets,
+            sum(({ value }) => value.base.beginning)
+          );
+          const current = pipe(
+            assets,
+            sum(({ value }) => value.base.current)
+          );
+
+          const change = changeInValue(beginning)(current);
+          const changePct = changeInValuePct(beginning)(current);
+          const start = pipe(
+            assets,
+            A.map(({ value }) => value.ccy.start),
+            nonEmpty(() => Math.floor(new Date().getTime() / 1000)),
+            (s) => Math.min(...s)
+          ) as UnixDate;
+          const end = pipe(
+            assets,
+            A.map(({ value }) => value.ccy.end),
+            nonEmpty(() => Math.floor(new Date().getTime() / 1000)),
+            (s) => Math.max(...s)
+          ) as UnixDate;
+
+          return {
+            beginning,
+            current,
+            change,
+            changePct,
+            start,
+            end,
+          };
+        })();
+
+        const totals = ((): Totals => {
+          const profitLoss = changeInValue(investedBase)(value.current);
+          const profitLossPct = changeInValuePct(investedBase)(value.current);
+          return { profitLoss, profitLossPct };
+        })();
+
+        const chart = combineAssetCharts(assets);
+
+        const meta = (() => {
+          const range = pipe(
+            assets,
+            A.map((a) => a.meta.range),
+            A.reduce(DEFAULT_CHART_RANGE, Ord.max(ChartRangeOrd))
+          );
+          const validRanges = commonAssetRanges(assets);
+          return { range, validRanges };
+        })();
 
         return {
-          beginning,
-          current,
-          change,
-          changePct,
-          start,
-          end,
+          ...portfolio,
+          investedBase,
+          value,
+          totals,
+          chart,
+          meta,
+          // weight cannot be calc
+          // for single portfolio
+          weight: 0,
         };
-      })();
+      })
+    );
+  };
 
-      const totals = ((): Totals => {
-        const profitLoss = changeInValue(investedBase)(value.current);
-        const profitLossPct = changeInValuePct(investedBase)(value.current);
-        return { profitLoss, profitLossPct };
-      })();
+export const getPortfoliosEnricher =
+  (yahooApi: YahooApi, range?: ChartRange) =>
+  (
+    portfolios: GetPortfolio[],
+    getPortfolioAssets: FunctionN<[GetPortfolio], Action<GetAsset[]>>,
+    overrideRange = range
+  ): Action<EnrichedPortfolio[]> => {
+    const enrichPortfolio = getPortfolioEnricher(yahooApi, overrideRange);
+    return pipe(
+      portfolios,
+      TE.traverseArray((p) => enrichPortfolio(p, () => getPortfolioAssets(p))),
+      TE.map((ps) => calcPortfolioWeights(ps as EnrichedPortfolio[]))
+    );
+  };
 
-      const chart = portfolioChart(assets);
-
-      const meta = (() => {
-        const range = pipe(
-          assets,
-          A.map((a) => a.meta.range),
-          A.reduce(DEFAULT_CHART_RANGE, Ord.max(ChartRangeOrd))
-        );
-        const validRanges = commonRanges(assets);
-        return { range, validRanges };
-      })();
-
-      return {
-        ...portfolio,
-        investedBase,
-        value,
-        totals,
-        chart,
-        meta,
-        // weight cannot be calc
-        // for single portfolio
-        weight: 0,
-      };
-    })
-  );
-};
-
-export const enrichPortfolios = (
-  portfolios: GetPortfolio[],
-  f: (p: GetPortfolio) => Action<EnrichedAsset[]>
-) =>
-  pipe(
-    portfolios,
-    TE.traverseArray((p) => enrichPortfolio(p, () => f(p))),
-    TE.map((ps) => calcPortfolioWeights(ps as EnrichedPortfolio[]))
-  ) as Action<EnrichedPortfolio[]>;
-
-export const enrichOptionalPortfolio = (
-  p: Optional<GetPortfolio>,
-  getEnrichedAssets: () => Action<EnrichedAsset[]>
-) => (p ? enrichPortfolio(p, getEnrichedAssets) : TE.of(null));
+export const getOptionalPorfolioEnricher =
+  (yahooApi: YahooApi, range?: ChartRange) =>
+  (
+    portfolio: Optional<GetPortfolio>,
+    getAssets: () => Action<GetAsset[]>,
+    overrideRange = range
+  ): Action<Optional<EnrichedPortfolio>> => {
+    if (portfolio) {
+      const enrichPortfolio = getPortfolioEnricher(yahooApi, overrideRange);
+      return enrichPortfolio(portfolio, getAssets);
+    }
+    return TE.of(null);
+  };
 
 export const calcPortfolioWeights = (
   portfolios: EnrichedPortfolio[]
@@ -136,57 +159,5 @@ export const calcPortfolioWeights = (
       }
       return p;
     })
-  );
-};
-
-const commonRanges = (assets: EnrichedAsset[]): ChartRange[] => {
-  const rs = assets.flatMap((a) => a.meta.validRanges);
-  const s = new Set<ChartRange>(rs);
-  return [...s.values()];
-};
-
-const portfolioChart = (as: EnrichedAsset[]): ChartData => {
-  const heap = new Heap<{ point: ChartDataPoint; ticker: string }>(
-    (a, b) => a.point.timestamp - b.point.timestamp
-  );
-  heap.init();
-  as.forEach((a) =>
-    heap.addAll(
-      a.chart.base.map((p) => ({ point: p, ticker: a.ticker } as const))
-    )
-  );
-  const assetNames = as.map((a) => a.ticker);
-  const assetDict = new Map(as.map((a) => [a.ticker, a]));
-
-  const points = [] as unknown as ChartData;
-
-  while (heap.length) {
-    const set = new Set(assetNames);
-    const { point, ticker } = heap.pop()!;
-    set.delete(ticker);
-    while (set.size > 0) {
-      if (!heap.length) break;
-      if (heap.peek()!.point.timestamp == point.timestamp) {
-        const {
-          point: { price, volume },
-          ticker,
-        } = heap.pop()!;
-        point.price += price;
-        point.volume += volume;
-        set.delete(ticker);
-      } else break;
-    }
-
-    set.forEach((ticker) => {
-      const ts = point.timestamp;
-      const p = assetDict.get(ticker)!;
-      point.price += p.value.base.current;
-    });
-
-    points.push(point);
-  }
-  return pipe(
-    points,
-    nonEmpty(() => ({ timestamp: 0, volume: 0, price: 0 }))
   );
 };

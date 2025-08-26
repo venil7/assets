@@ -1,22 +1,42 @@
-name: BUILD-AND-TEST
-run-name: ${{ gitea.actor }} is building and running tests
+name: CHECKS-AND-INTEGRATION-TESTS
+run-name: Tests for ${{ gitea.sha }}
 on:
   workflow_dispatch:
-  pull_request:
+  push:
     branches:
       - master
+      - feature/*
 
 jobs:
-  build-and-test-code:
+  run-migrations:
     runs-on: ubuntu-latest
     steps:
-      - name: CHECKOUT
+      - name: CHECK-OUT
         uses: actions/checkout@v4
+      - name: SETUP GO
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+      - name: RUN MIGRATION
+        run: |
+          go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+          ~/go/bin/migrate -path ./.migrations -database=sqlite3://assets.db up
+          # make migrate
       - name: INSTALL BUN
         uses: oven-sh/setup-bun@v2
       - name: INSTALL DEPENDENCIES
+        run: bun install
+      - name: RUN STATIC CHECKS
+        run: bun run check
+      - name: RUN INTEGRATION TESTS
+        env:
+          URL: localhost:4020
+          ASSETS_DB: "../../assets.db"
+          ASSETS_JWT_SECRET: S0meS3cret
+          ASSETS_APP: /public
+          ASSETS_PORT: 4020
         run: |
-          bun install
-      - name: RUN CHECKS
-        run: |
-          bun run check
+          bun run backend:dev & echo $! >/tmp/backend.pid
+          sleep 1
+          bun test
+          kill -9 $(cat /tmp/backend.pid)

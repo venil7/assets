@@ -21,10 +21,12 @@ export const getPortfolio = (
   );
 };
 
-export const getPortfolios = (): Action<EnrichedPortfolio[]> => {
+export const getPortfolios = (
+  range?: ChartRange
+): Action<EnrichedPortfolio[]> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ portfolio: p }) => p.getMany()),
+    TE.chain(({ portfolio: p }) => p.getMany(range)),
     TE.map(A.sort(byPortfolioChangePct))
   );
 };

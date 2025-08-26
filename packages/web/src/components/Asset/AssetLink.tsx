@@ -11,6 +11,7 @@ import { Link } from "react-router";
 import {
   AssetPeriodChange,
   HoldingsIndicator,
+  TxCount,
   WeightIndicator,
 } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
@@ -65,6 +66,7 @@ export const AssetLink = ({
         <div className="stick-left">
           <WeightIndicator value={asset.value.weight} />
           <HoldingsIndicator value={asset} />
+          <TxCount value={asset} />
         </div>
         <div className="stick-right">
           <AssetPeriodChange value={asset} />

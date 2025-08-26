@@ -6,6 +6,7 @@ SELECT id,
   modified,
   holdings,
   invested,
+  num_tx as num_txs,
   avg_price,
   portfolio_contribution
 FROM assets_contributions A

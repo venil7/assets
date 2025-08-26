@@ -1,4 +1,9 @@
-import { authError } from "@darkruby/assets-core";
+import {
+  authError,
+  type Action,
+  type Profile,
+  type UserId,
+} from "@darkruby/assets-core";
 import {
   CredenatialsDecoder,
   ProfileDecoder,
@@ -13,8 +18,15 @@ import { toWebError } from "../domain/error";
 import { createToken, verifyBearer, verifyPassword } from "../services/auth";
 import type { Context } from "./context";
 
-export const getProfile = (res: Parameters<RequestHandler>[1]) =>
-  pipe(res.locals["profile"], liftTE(ProfileDecoder));
+export const getProfile = (
+  res: Parameters<RequestHandler>[1]
+): Action<Profile> => pipe(res.locals["profile"], liftTE(ProfileDecoder));
+
+export const getUserId = (res: Parameters<RequestHandler>[1]): Action<UserId> =>
+  pipe(
+    getProfile(res),
+    TE.map((p) => p.id)
+  );
 
 export const getAdminProfile = (res: Parameters<RequestHandler>[1]) =>
   pipe(

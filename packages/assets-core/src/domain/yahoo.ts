@@ -3,6 +3,11 @@ import * as t from "io-ts";
 import type { YahooChartDataDecoder } from "../decoders/yahoo/chart";
 import type { ChartInterval, ChartRange } from "../decoders/yahoo/meta";
 import type {
+  PeriodChangesDecoder,
+  TotalsDecoder,
+  UnixDateDecoder,
+} from "../decoders/yahoo/period";
+import type {
   YahooTickerDecoder,
   YahooTickerSearchResultDecoder,
 } from "../decoders/yahoo/ticker";
@@ -13,10 +18,14 @@ export type YahooTickerSearchResult = t.TypeOf<
   typeof YahooTickerSearchResultDecoder
 >;
 
+export type PeriodChanges = t.TypeOf<typeof PeriodChangesDecoder>;
+export type Totals = t.TypeOf<typeof TotalsDecoder>;
+
 export type YahooChartData = t.TypeOf<typeof YahooChartDataDecoder>;
 export type ChartMeta = YahooChartData["meta"];
 export type ChartData = YahooChartData["chart"];
 export type ChartDataItem = ArrayItem<ChartData>;
+export type UnixDate = t.TypeOf<typeof UnixDateDecoder>;
 
 export const intervalForRange = (range: ChartRange): ChartInterval => {
   switch (range) {

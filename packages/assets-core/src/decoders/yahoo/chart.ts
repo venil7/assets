@@ -5,10 +5,11 @@ import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
+import type { UnixDate } from "../../domain";
 import { changeInValue, changeInValuePct } from "../../utils/finance";
 import { mapDecoder, nullableDecoder, validationErr } from "../util";
 import { ChartMetaDecoder } from "./meta";
-import type { PeriodChangesDecoder } from "./period";
+import { UnixDateDecoder, type PeriodChangesDecoder } from "./period";
 
 const QuoteDecoder = t.type({
   open: t.array(nullableDecoder(t.number)),
@@ -111,12 +112,12 @@ export const YahooChartDataDecoder = mapDecoder<
     }),
     E.bind("start", ({ chart }) => {
       return withFallback(
-        t.number,
-        Math.floor(new Date().getTime() / 1000)
+        UnixDateDecoder,
+        Math.floor(new Date().getTime() / 1000) as UnixDate
       ).decode(chart.meta.currentTradingPeriod?.regular?.start);
     }),
     E.bind("end", ({ chart }) => {
-      return t.number.decode(chart.meta.regularMarketTime);
+      return UnixDateDecoder.decode(chart.meta.regularMarketTime);
     }),
     E.map(({ chart: { meta, chart }, start, end }) => {
       const beginning = meta.previousClose ?? meta.chartPreviousClose;

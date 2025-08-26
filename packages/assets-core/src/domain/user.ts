@@ -5,6 +5,7 @@ import type {
   PasswordChangeDecoder,
   PostUserDecoder,
   ProfileDecoder,
+  UserIdDecoder,
 } from "../decoders/user";
 
 export type Credentials = t.TypeOf<typeof CredenatialsDecoder>;
@@ -12,7 +13,7 @@ export type PasswordChange = t.TypeOf<typeof PasswordChangeDecoder>;
 export type GetUser = t.TypeOf<typeof GetUserDecoder>;
 export type PostUser = t.TypeOf<typeof PostUserDecoder>;
 export type Profile = t.TypeOf<typeof ProfileDecoder>;
-export type UserId = GetUser["id"];
+export type UserId = t.TypeOf<typeof UserIdDecoder>;
 
 export const profile = ({ phash, psalt, ...profile }: GetUser): Profile =>
   profile;

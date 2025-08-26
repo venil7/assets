@@ -1,13 +1,7 @@
-import type {
-  Action,
-  EnrichedAsset,
-  GetPortfolio,
-  Optional,
-} from "@darkruby/assets-core";
+import type { GetPortfolio, Optional } from "@darkruby/assets-core";
 import {
-  enrichOptionalPortfolio,
-  enrichPortfolios,
-  getAssetEnricher,
+  getOptionalPorfolioEnricher,
+  getPortfoliosEnricher,
   type EnrichedPortfolio,
 } from "@darkruby/assets-core";
 import { PostPortfolioDecoder } from "@darkruby/assets-core/src/decoders/portfolio";
@@ -18,26 +12,24 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { numberFromUrl, rangeFromUrl } from "../decoders/params";
 import { toWebError } from "../domain/error";
-import { getProfile } from "./auth";
+import { getUserId } from "./auth";
 import type { Context } from "./context";
 
 export const getPortfolios: HandlerTask<EnrichedPortfolio[], Context> = ({
-  params: [_, res],
+  params: [req, res],
   context: { repo, yahooApi },
 }) => {
-  const enrichAsset = getAssetEnricher(yahooApi);
   return pipe(
     TE.Do,
-    TE.bind("profile", () => getProfile(res)),
-    TE.bind("portfolios", ({ profile }) => repo.portfolio.getAll(profile.id)),
-    TE.chain(({ portfolios, profile }) => {
-      const f = (p: GetPortfolio) => {
-        return pipe(
-          repo.asset.getAll(p.id, profile.id),
-          TE.chain(TE.traverseArray(enrichAsset))
-        ) as Action<EnrichedAsset[]>;
-      };
-      return enrichPortfolios(portfolios, f);
+    TE.bind("userId", () => getUserId(res)),
+    TE.bind("range", () => rangeFromUrl(req.query.range)),
+    TE.bind("portfolios", ({ userId }) => repo.portfolio.getAll(userId)),
+    TE.let("enrichPortfolios", ({ range }) =>
+      getPortfoliosEnricher(yahooApi, range!)
+    ),
+    TE.chain(({ portfolios, enrichPortfolios, userId }) => {
+      const getAssets = (p: GetPortfolio) => repo.asset.getAll(p.id, userId);
+      return enrichPortfolios(portfolios, getAssets);
     }),
     TE.mapLeft(toWebError)
   );
@@ -47,23 +39,18 @@ export const getPortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
 > = ({ params: [req, res], context: { repo, yahooApi } }) => {
-  const enrichAsset = getAssetEnricher(yahooApi);
   return pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
     TE.bind("range", () => rangeFromUrl(req.query.range)),
-    TE.bind("profile", () => getProfile(res)),
-    TE.bind("portfolio", ({ id, profile }) =>
-      repo.portfolio.get(id, profile.id)
+    TE.bind("userId", () => getUserId(res)),
+    TE.bind("portfolio", ({ id, userId }) => repo.portfolio.get(id, userId)),
+    TE.let("enrichPortfolio", ({ range }) =>
+      getOptionalPorfolioEnricher(yahooApi, range!)
     ),
-    TE.bind("assets", ({ id, profile }) => repo.asset.getAll(id, profile.id)),
-    TE.chain(({ portfolio, assets, range }) => {
-      const enrichAssets = () =>
-        pipe(
-          assets,
-          TE.traverseArray((asset) => enrichAsset(asset, range!))
-        ) as Action<EnrichedAsset[]>;
-      return enrichOptionalPortfolio(portfolio, enrichAssets);
+    TE.chain(({ portfolio, enrichPortfolio, userId }) => {
+      const getAssets = () => repo.asset.getAll(portfolio!.id, userId);
+      return enrichPortfolio(portfolio, getAssets);
     }),
     TE.mapLeft(toWebError)
   );
@@ -73,26 +60,20 @@ export const createPortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
 > = ({ params: [req, res], context: { repo, yahooApi } }) => {
-  const enrichAsset = getAssetEnricher(yahooApi);
-
   return pipe(
     TE.Do,
-    TE.bind("profile", () => getProfile(res)),
+    TE.bind("userId", () => getUserId(res)),
     TE.bind("body", () => pipe(req.body, liftTE(PostPortfolioDecoder))),
-    TE.bind("execution", ({ body, profile }) =>
-      repo.portfolio.create(body, profile.id)
+    TE.bind("execution", ({ body, userId }) =>
+      repo.portfolio.create(body, userId)
     ),
-    TE.bind("portfolio", ({ execution: [id], profile }) =>
-      repo.portfolio.get(id, profile.id)
+    TE.let("enrichPortfolio", () => getOptionalPorfolioEnricher(yahooApi)),
+    TE.bind("portfolio", ({ execution: [id], userId }) =>
+      repo.portfolio.get(id, userId)
     ),
-    TE.bind("assets", ({ execution: [id], profile }) =>
-      repo.asset.getAll(id, profile.id)
+    TE.chain(({ portfolio, enrichPortfolio }) =>
+      enrichPortfolio(portfolio, () => TE.of([]))
     ),
-    TE.chain(({ portfolio, assets }) => {
-      const enrichAssets = () =>
-        pipe(assets, TE.traverseArray(enrichAsset)) as Action<EnrichedAsset[]>;
-      return enrichOptionalPortfolio(portfolio, enrichAssets);
-    }),
     TE.mapLeft(toWebError)
   );
 };
@@ -104,10 +85,8 @@ export const deletePortfolio: HandlerTask<Optional<Id>, Context> = ({
   pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("profile", () => getProfile(res)),
-    TE.bind("delete", ({ id, profile }) =>
-      repo.portfolio.delete(id, profile.id)
-    ),
+    TE.bind("userId", () => getUserId(res)),
+    TE.bind("delete", ({ id, userId }) => repo.portfolio.delete(id, userId)),
     TE.map(({ id, delete: [_, rowsDeleted] }) => (rowsDeleted ? { id } : null)),
     TE.mapLeft(toWebError)
   );
@@ -116,26 +95,19 @@ export const updatePortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
 > = ({ params: [req, res], context: { repo, yahooApi } }) => {
-  const enrichAsset = getAssetEnricher(yahooApi);
-
   return pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
     TE.bind("body", () => pipe(req.body, liftTE(PostPortfolioDecoder))),
-    TE.bind("profile", () => getProfile(res)),
-    TE.bind("execution", ({ id, body, profile }) =>
-      repo.portfolio.update(id, body, profile.id)
+    TE.bind("userId", () => getUserId(res)),
+    TE.bind("execution", ({ id, body, userId }) =>
+      repo.portfolio.update(id, body, userId)
     ),
-    TE.bind("portfolio", ({ id, profile }) =>
-      repo.portfolio.get(id, profile.id)
-    ),
-    TE.bind("assets", ({ profile, execution: [id] }) =>
-      repo.asset.getAll(id, profile.id)
-    ),
-    TE.chain(({ portfolio, assets }) => {
-      const enrichAssets = () =>
-        pipe(assets, TE.traverseArray(enrichAsset)) as Action<EnrichedAsset[]>;
-      return enrichOptionalPortfolio(portfolio, enrichAssets);
+    TE.let("enrichPortfolio", () => getOptionalPorfolioEnricher(yahooApi)),
+    TE.bind("portfolio", ({ id, userId }) => repo.portfolio.get(id, userId)),
+    TE.chain(({ portfolio, enrichPortfolio, userId }) => {
+      const getAssets = () => repo.asset.getAll(portfolio!.id, userId);
+      return enrichPortfolio(portfolio, getAssets);
     }),
     TE.mapLeft(toWebError)
   );

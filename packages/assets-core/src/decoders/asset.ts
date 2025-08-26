@@ -18,6 +18,7 @@ const extAssetTypes = {
   modified: dateDecoder,
   holdings: t.number,
   invested: t.number,
+  num_txs: t.number,
   avg_price: nullableDecoder(t.number),
   portfolio_contribution: t.number,
 };

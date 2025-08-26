@@ -75,6 +75,15 @@ export const HoldingsIndicator = pipe(
   })
 );
 
+export const TxCount = pipe(
+  ChangeIndicator<GetAsset>,
+  withProps({
+    color: "dark",
+    numeric: (p) => p.num_txs,
+    formatter: (p) => `Txs: ${decimal(p.num_txs)}`,
+  })
+);
+
 export const AssetPeriodChange = pipe(
   ChangeIndicator<EnrichedAsset>,
   withProps({

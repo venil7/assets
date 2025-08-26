@@ -5,6 +5,7 @@ import { createAuthStore, type AuthStore } from "./auth";
 import { createPortfolioStore, type PortfolioStore } from "./portfolio";
 import { createPortfoliosStore, type PortfoliosStore } from "./portfolios";
 import { createProfileStore, type ProfileStore } from "./profile";
+import { createSummaryStore, type SummaryStore } from "./summary";
 import { createTxStore, type TxStore } from "./tx";
 import { createTxsStore, type TxsStore } from "./txs";
 import { createUsersStore, type UsersStore } from "./users";
@@ -16,6 +17,7 @@ export type Store = {
   asset: AssetStore;
   users: UsersStore;
   assets: AssetsStore;
+  summary: SummaryStore;
   profile: ProfileStore;
   portfolio: PortfolioStore;
   portfolios: PortfoliosStore;
@@ -28,6 +30,7 @@ export const createStore = (): Store => ({
   users: createUsersStore(),
   asset: createAssetStore(),
   assets: createAssetsStore(),
+  summary: createSummaryStore(),
   profile: createProfileStore(),
   portfolio: createPortfolioStore(),
   portfolios: createPortfoliosStore(),
