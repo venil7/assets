@@ -37,11 +37,11 @@ jobs:
           username: venil7
           password: ${{ secrets.GTHB_CR_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
 
       # builds feature image, pushes under feature tag
       - name: BUILD FEATURE DOCKER-IMAGE
@@ -57,7 +57,7 @@ jobs:
         if: ${{ env.RELEASE == 'true' }}
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/arm64
+          # platforms: linux/arm64
           push: true
           tags: |
             ghcr.io/venil7/assets:latest

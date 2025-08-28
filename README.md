@@ -20,6 +20,8 @@
 ### frontend
  - [x] home screen summary (chart)
  - [ ] chart to show percentage growth for selected range
+ - [ ] fix chart
+ - [ ] asset page, to show totals
  - [x] portfolio screen: asset amounts
  - [x] user management
  - [x] profile management
