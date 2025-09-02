@@ -14,14 +14,14 @@
  - [x] update tests
  - [x] SQL as comptime
  - [x] summary endoint (with chart)
- - [ ] fix chart combining
+ - [x] fix chart combining
  - [ ] serverside sessions
 
 ### frontend
  - [x] home screen summary (chart)
  - [ ] chart to show percentage growth for selected range
- - [ ] fix chart
- - [ ] asset page, to show totals
+ - [x] fix chart
+ - [x] asset page, to show totals
  - [x] portfolio screen: asset amounts
  - [x] user management
  - [x] profile management

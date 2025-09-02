@@ -22,10 +22,21 @@ const RawAssetScreen: React.FC = () => {
 
   const handleEdit = (a: PostAsset) =>
     asset.update(+portfolioId!, +assetId!, a);
-  const handleAddTx = (tx: PostTx) => txs.create(+assetId!, tx);
-  const handleEditTx = (txid: number, tx: PostTx) =>
-    txs.update(+assetId!, txid, tx);
-  const handleDeleteTx = (txid: number) => txs.delete(+assetId!, txid);
+
+  const handleAddTx = async (tx: PostTx) => {
+    await txs.create(+assetId!, tx);
+    asset.load(+portfolioId!, +assetId!);
+  };
+  const handleEditTx = async (txid: number, tx: PostTx) => {
+    await txs.update(+assetId!, txid, tx);
+    asset.load(+portfolioId!, +assetId!);
+  };
+
+  const handleDeleteTx = async (txid: number) => {
+    await txs.delete(+assetId!, txid);
+    asset.load(+portfolioId!, +assetId!);
+  };
+
   const handleRange = (rng: ChartRange) =>
     asset.load(+portfolioId!, +assetId!, rng);
 

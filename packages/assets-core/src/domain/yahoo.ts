@@ -53,14 +53,14 @@ type TimeFormatter = (ts: ChartDataItem["timestamp"]) => string;
 export const tfForRange = (r: ChartRange): TimeFormatter => {
   switch (r) {
     case "1d":
-      return (t) => format(t * 1000, "HH:mm");
+    // return (t) => format(t * 1000, "HH:mm");
     case "5d":
       return (t) => format(t * 1000, "cccccc HH:mm");
     case "1mo":
     case "3mo":
-      return (t) => format(t * 1000, "d-LLL HH:mm");
+      return (t) => format(t * 1000, "d LLL HH:mm");
     case "6mo":
-      return (t) => format(t * 1000, "d-LLL");
+      return (t) => format(t * 1000, "d LLL");
     case "1y":
     case "2y":
     case "5y":

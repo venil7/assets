@@ -11,6 +11,8 @@ import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { RangeChart } from "../Charts/RangesChart";
+import { HorizontalStack } from "../Layout/Stack";
+import { Totals } from "../Totals/Totals";
 import { TxList } from "../Tx/TxList";
 
 type AssetProps = {
@@ -33,6 +35,13 @@ const RawAsset: React.FC<AssetProps> = ({
 }: AssetProps) => {
   return (
     <div className="asset-details">
+      <HorizontalStack className="top-toolbar">
+        <h3>
+          {asset.name} ({asset.ticker})
+        </h3>
+        <Totals value={asset.value.base.current} totals={asset.totals.base} />
+      </HorizontalStack>
+
       <RangeChart
         onChange={onRange}
         data={asset.chart.base}

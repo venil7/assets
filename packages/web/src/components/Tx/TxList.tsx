@@ -74,7 +74,7 @@ const RawTxTable: React.FC<TxTableProps> = ({
           <th className="d-none d-md-block">#</th>
           <th>Type</th>
           <th>Quantity</th>
-          <th>Price</th>
+          <th>Price Per Unit</th>
           <th>Comments</th>
           <th className="d-none d-md-block">Date</th>
           <th>^</th>

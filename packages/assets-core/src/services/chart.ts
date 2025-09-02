@@ -1,5 +1,6 @@
+import * as A from "fp-ts/lib/Array";
 import { pipe, type FunctionN } from "fp-ts/lib/function";
-import Heap from "heap-js";
+import { Heap } from "heap-js";
 import type { ChartDataPoint } from "../decoders/yahoo/chart";
 import type { ChartRange } from "../decoders/yahoo/meta";
 import type { ChartData, EnrichedAsset, EnrichedPortfolio } from "../domain";
@@ -29,46 +30,50 @@ const combineCharts =
     >
   ) =>
   (items: Item[]): ChartData => {
-    const getTicker = (i: Item) => getter(i).ticker;
+    const getIdentifier = (i: Item) => getter(i).ticker;
     const getChart = (i: Item) => getter(i).chart;
-    const getPrice = (i: Item) => getter(i).price;
 
-    const heap = new Heap<{ point: ChartDataPoint; ticker: string }>(
+    type HeapItem = { identifier: string; point: ChartDataPoint };
+
+    const heap = new Heap<HeapItem>(
       (a, b) => a.point.timestamp - b.point.timestamp
     );
-    heap.init();
-    items.forEach((item) =>
-      heap.addAll(
-        getChart(item).map(
-          (point) => ({ point, ticker: getTicker(item) }) as const
+    const heapInit: HeapItem[] = pipe(
+      items,
+      A.flatMap((item) =>
+        pipe(
+          item,
+          getChart,
+          A.map((point) => ({ identifier: getIdentifier(item), point }))
         )
       )
     );
-    const assetNames = items.map(getTicker);
-    const assetDict = new Map(items.map((a) => [getTicker(a), a]));
+    heap.init(heapInit);
+
+    const allIdentifiers = new Set<string>(pipe(items, A.map(getIdentifier)));
+    const lastSeenPoint = new Map<string, ChartDataPoint>(
+      items.map((item) => [getIdentifier(item), getChart(item)[0]])
+    );
 
     const points = [] as unknown as ChartData;
 
     while (heap.length) {
-      const set = new Set(assetNames);
-      const { point, ticker } = heap.pop()!;
-      set.delete(ticker);
-      while (set.size > 0) {
-        if (!heap.length) break;
-        if (heap.peek()!.point.timestamp == point.timestamp) {
-          const {
-            point: { price, volume },
-            ticker,
-          } = heap.pop()!;
-          point.price += price;
-          point.volume += volume;
-          set.delete(ticker);
-        } else break;
+      const { timestamp } = heap.peek()!.point;
+      const point: ChartDataPoint = { timestamp, price: 0, volume: 0 };
+      const timeSlotIdentifiers = new Set<string>();
+      while (heap.length && heap.peek()!.point.timestamp == timestamp) {
+        const heapItem = heap.pop()!;
+        lastSeenPoint.set(heapItem.identifier, heapItem.point);
+        point.price += heapItem.point.price;
+        point.volume += heapItem.point.volume;
+        timeSlotIdentifiers.add(heapItem.identifier);
       }
+      const missingIdentifiers = allIdentifiers.difference(timeSlotIdentifiers);
 
-      set.forEach((ticker) => {
-        const p = assetDict.get(ticker)!;
-        point.price += getPrice(p);
+      missingIdentifiers.forEach((identifier) => {
+        const lastSeenItem = lastSeenPoint.get(identifier)!;
+        point.price += lastSeenItem.price;
+        point.volume += lastSeenItem.volume;
       });
 
       points.push(point);
