@@ -3,10 +3,16 @@ import {
   type EnrichedPortfolio,
   type GetAsset,
   type GetPortfolio,
+  type Totals,
 } from "@darkruby/assets-core";
+import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { identity, pipe } from "fp-ts/lib/function";
 import { Badge, type BadgeProps } from "react-bootstrap";
-import { withProps } from "../../decorators/props";
+import {
+  withExtraProps,
+  withMappedProps,
+  withProps,
+} from "../../decorators/props";
 import { decimal, money, percent } from "../../util/number";
 
 type ChangeBadgeProps<T> = {
@@ -38,6 +44,27 @@ export const MoneyChangeIndicator = pipe(
 export const PctChangeIndicator = pipe(
   ChangeIndicator<number>,
   withProps({ formatter: (n) => percent(n), numeric: identity })
+);
+
+export type MoneyAndChangeIndicatorProps = ChangeBadgeProps<Totals> & {
+  range?: ChartRange;
+};
+export const MoneyAndChangeIndicator = pipe(
+  ChangeIndicator<Totals>,
+  withExtraProps<
+    ChangeBadgeProps<Totals>,
+    Pick<MoneyAndChangeIndicatorProps, "range">
+  >(),
+  withMappedProps<
+    MoneyAndChangeIndicatorProps,
+    Pick<MoneyAndChangeIndicatorProps, "formatter" | "numeric">
+  >(({ range }) => ({
+    formatter: ({ change, changePct }) => {
+      const pre = range ? `${range}: ` : "";
+      return `${pre}${money(change)} (${percent(changePct)})`;
+    },
+    numeric: (t) => t.changePct,
+  }))
 );
 
 export const WeightIndicator = pipe(

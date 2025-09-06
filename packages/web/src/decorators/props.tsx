@@ -16,11 +16,22 @@ export function withProps<P extends Props, Pr extends Partial<P>>(
   };
 }
 
+export function withMappedProps<P extends Props, Z extends Partial<P>>(
+  mapper: (p: UnmappedProps<P, Z>) => Z
+) {
+  return function (Component: React.FC<P>): React.FC<UnmappedProps<P, Z>> {
+    return (props: UnmappedProps<P, Z>) => {
+      const combined = { ...mapper(props), ...props } as unknown as P;
+      return <Component {...combined} />;
+    };
+  };
+}
+
 type Mapping<T extends Props, K extends keyof T> = {
   [P in K]: (arg: any) => T[P];
 };
 
-type MappedProps<T extends Props, M> = {
+type OverridenProps<T extends Props, M> = {
   [K in keyof T]: K extends keyof M
     ? M[K] extends (arg: infer U) => any
       ? U
@@ -31,16 +42,27 @@ type MappedProps<T extends Props, M> = {
 export function withOverridenProps<
   P extends Props,
   K extends keyof P,
-  M extends Mapping<P, K>
+  M extends Mapping<P, K>,
 >(mapping: M) {
   return function (Component: React.FC<P>) {
-    return (p: MappedProps<P, M>) => {
+    return (p: OverridenProps<P, M>) => {
       const unmappedProps = {} as P;
       for (const key of Object.keys(mapping)) {
         unmappedProps[key as K] = mapping[key as K](p[key as K]) as P[K];
       }
       const combinedProps = { ...p, ...unmappedProps };
       return <Component {...(combinedProps as unknown as P)} />;
+    };
+  };
+}
+
+export function withExtraProps<
+  P extends Props,
+  Z extends { [K in keyof Z]: K extends keyof P ? never : Z[K] },
+>() {
+  return function (Component: React.FC<P>): React.FC<P & Z> {
+    return (p: P & Z) => {
+      return <Component {...(p as unknown as P)} />;
     };
   };
 }
