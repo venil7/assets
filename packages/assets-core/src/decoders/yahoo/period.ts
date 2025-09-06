@@ -20,8 +20,8 @@ const periodChangesTypes = {
 };
 
 const totalsTypes = {
-  profitLoss: t.number,
-  profitLossPct: t.number,
+  change: t.number,
+  changePct: t.number,
 };
 
 export const PeriodChangesDecoder = t.type(periodChangesTypes);

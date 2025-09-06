@@ -5,11 +5,6 @@ import {
   type Summary,
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
-import {
-  changeInValue,
-  changeInValuePct,
-  sum,
-} from "@darkruby/assets-core/src/utils/finance";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Stack } from "react-bootstrap";
@@ -46,28 +41,11 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
   const handleUpdate = (pid: number) => (p: PostPortfolio) => onUpdate(pid, p);
   const handleDelete = (pid: number) => () => onDelete(pid);
 
-  const currentValue = pipe(
-    portfolios,
-    sum((p) => p.value.current)
-  );
-  const investedValue = pipe(
-    portfolios,
-    sum((p) => p.investedBase)
-  );
-  const totalProfitLoss = changeInValue(investedValue)(currentValue);
-  const totalProfitLossPct = changeInValuePct(investedValue)(currentValue);
-
   return (
     <div className="portfolios">
       <HorizontalStack className="top-toolbar">
         <AddBtn onClick={handleAdd} label="Portfolio" />
-        <Totals
-          value={currentValue}
-          totals={{
-            profitLoss: totalProfitLoss,
-            profitLossPct: totalProfitLossPct,
-          }}
-        />
+        <Totals value={summary.value.current} totals={summary.value} />
       </HorizontalStack>
 
       <Info hidden={!!portfolios.length}>No portfolios yet</Info>

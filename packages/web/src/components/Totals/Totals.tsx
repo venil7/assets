@@ -18,10 +18,10 @@ export const Totals: React.FC<TotalsProps> = ({
       <h4 className="value">{money(value)}</h4>
       <div className="change">
         <h6 className="value">
-          <MoneyChangeIndicator value={totals.profitLoss} />
+          <MoneyChangeIndicator value={totals.change} />
         </h6>
         <h6 className="pct">
-          <PctChangeIndicator value={totals.profitLossPct} />
+          <PctChangeIndicator value={totals.changePct} />
         </h6>
       </div>
     </div>
