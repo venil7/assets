@@ -1,0 +1,64 @@
+name: RELEASE-DOCKER-CONTAINER
+run-name: ${{ github.actor }} building and pushing docker container
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  release-docker-container:
+    runs-on: ubuntu-latest
+    steps:
+      - name: CHECK-OUT
+        uses: actions/checkout@v4
+      - run: git branch --show-current
+
+      - name: CHECK RELEASE or FEATURE
+        id: release
+        run: |
+          if [ "${GITHUB_REF##*/}" == "master" ]; then
+            echo "RELEASE=true" >> $GITHUB_ENV
+          else
+            echo "RELEASE=false" >> $GITHUB_ENV
+            echo "BUILD_TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          fi
+
+      - name: EXTRACT VERSION
+        uses: sergeysova/jq-action@v2
+        id: version
+        with:
+          cmd: "jq .version package.json -r"
+
+      - name: LOGIN TO GITHUB DOCKER
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: venil7
+          password: ${{ secrets.GTHB_CR_TOKEN }}
+
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
+
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
+
+      # builds feature image, pushes under feature tag
+      - name: BUILD FEATURE DOCKER-IMAGE
+        if: ${{ env.RELEASE == 'false' }}
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: |
+            ghcr.io/venil7/assets:${{ env.BUILD_TAG }}
+
+      # builds release image, pushes under version and latest tags
+      - name: BUILD RELEASE DOCKER-IMAGE
+        if: ${{ env.RELEASE == 'true' }}
+        uses: docker/build-push-action@v6
+        with:
+          # platforms: linux/arm64
+          push: true
+          tags: |
+            ghcr.io/venil7/assets:latest
+            ghcr.io/venil7/assets:${{ steps.version.outputs.value }}

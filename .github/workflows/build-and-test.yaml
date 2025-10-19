@@ -1,5 +1,5 @@
 name: CHECKS-AND-INTEGRATION-TESTS
-run-name: Tests for ${{ gitea.sha }}
+run-name: Tests for ${{ github.sha }}
 on:
   workflow_dispatch:
   push:
@@ -8,7 +8,7 @@ on:
       - feature/*
 
 jobs:
-  run-migrations:
+  checks-and-integration-tests:
     runs-on: ubuntu-latest
     steps:
       - name: CHECK-OUT
