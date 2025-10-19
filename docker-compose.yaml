@@ -1,5 +1,5 @@
 services:
-  darkruby-assets:
+  assets:
     image: ghcr.io/venil7/assets:${TAG}
     environment:
       - ASSETS_DB=/data/assets.db

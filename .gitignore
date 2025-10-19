@@ -11,6 +11,7 @@ lerna-debug.log*
 
 .bruno
 .vscode
+design
 
 node_modules
 *.db
