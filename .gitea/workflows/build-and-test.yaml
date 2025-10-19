@@ -21,7 +21,6 @@ jobs:
         run: |
           go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
           ~/go/bin/migrate -path ./.migrations -database=sqlite3://assets.db up
-          # make migrate
       - name: INSTALL BUN
         uses: oven-sh/setup-bun@v2
       - name: INSTALL DEPENDENCIES

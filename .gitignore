@@ -9,6 +9,9 @@ lerna-debug.log*
 
 */**/tsconfig.tsbuildinfo
 
+.bruno
+.vscode
+
 node_modules
 *.db
 *.sqlite
