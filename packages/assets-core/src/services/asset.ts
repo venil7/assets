@@ -74,35 +74,35 @@ export const getAssetEnricher =
           };
 
           const totalsCcy = ((): Totals => {
-            const profitLoss = pipe(
+            const change = pipe(
               O.fromNullable(asset.avg_price),
               O.map(() => changeInValue(asset.invested)(valueCcy.current)),
               O.getOrElse(() => 0)
             );
-            const profitLossPct = pipe(
+            const changePct = pipe(
               O.fromNullable(asset.avg_price),
               O.map(() => changeInValuePct(asset.invested)(valueCcy.current)),
               O.getOrElse(() => 0)
             );
-            return { profitLoss, profitLossPct };
+            return { change, changePct };
           })();
 
           const totalsBase = ((): Totals => {
-            const profitLoss = pipe(
+            const change = pipe(
               O.fromNullable(asset.avg_price),
               O.map(() =>
                 changeInValue(toBase(asset.invested))(valueBase.current)
               ),
               O.getOrElse(() => 0)
             );
-            const profitLossPct = pipe(
+            const changePct = pipe(
               O.fromNullable(asset.avg_price),
               O.map(() =>
                 changeInValuePct(toBase(asset.invested))(valueBase.current)
               ),
               O.getOrElse(() => 0)
             );
-            return { profitLoss, profitLossPct };
+            return { change, changePct };
           })();
 
           return {

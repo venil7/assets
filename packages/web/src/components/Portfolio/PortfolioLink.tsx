@@ -3,11 +3,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
-import {
-  AssetCountIndicator,
-  PortfolioPeriodChange,
-  WeightIndicator,
-} from "../Badge/Badges";
+import { AssetCountIndicator, WeightIndicator } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
 import { Totals } from "../Totals/Totals";
@@ -41,8 +37,9 @@ export const PortfolioLink = ({
               <div className="stick-left">{portfolio.name}</div>
               <div className="stick-right">
                 <Totals
-                  value={portfolio.value.current}
                   totals={portfolio.totals}
+                  change={portfolio.value}
+                  range={portfolio.meta.range}
                 />
               </div>
             </Stack>
@@ -58,7 +55,7 @@ export const PortfolioLink = ({
           <AssetCountIndicator value={portfolio} />
         </div>
         <div className="stick-right">
-          <PortfolioPeriodChange value={portfolio} />
+          {/* <PortfolioPeriodChange value={portfolio} /> */}
           <PortfolioMenu onDelete={handleDelete} onEdit={handleUpdate} />
         </div>
       </Card.Footer>

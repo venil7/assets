@@ -1,27 +1,33 @@
-import type { Totals as TotalsData } from "@darkruby/assets-core";
+import type {
+  PeriodChanges,
+  Totals as TotalsData,
+} from "@darkruby/assets-core";
+import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import * as React from "react";
 import { money } from "../../util/number";
-import { MoneyChangeIndicator, PctChangeIndicator } from "../Badge/Badges";
+import { MoneyAndChangeIndicator } from "../Badge/Badges";
 import "./Totals.scss";
 
 type TotalsProps = {
-  value: number;
   totals: TotalsData;
+  change: PeriodChanges;
+  range: ChartRange;
 };
 
 export const Totals: React.FC<TotalsProps> = ({
-  value,
   totals,
+  change,
+  range,
 }: TotalsProps) => {
   return (
     <div className="totals">
-      <h4 className="value">{money(value)}</h4>
+      <h4 className="value">{money(change.current)}</h4>
       <div className="change">
         <h6 className="value">
-          <MoneyChangeIndicator value={totals.profitLoss} />
+          <MoneyAndChangeIndicator value={totals} />
         </h6>
         <h6 className="pct">
-          <PctChangeIndicator value={totals.profitLossPct} />
+          <MoneyAndChangeIndicator value={change} range={range} />
         </h6>
       </div>
     </div>

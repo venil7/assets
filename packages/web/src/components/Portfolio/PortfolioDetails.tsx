@@ -58,7 +58,11 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
       <div className="portfolio-details">
         <HorizontalStack className="top-toolbar">
           <AddBtn onClick={handleAddAsset} label="Asset" />
-          <Totals value={portfolio.value.current} totals={portfolio.totals} />
+          <Totals
+            change={portfolio.value}
+            totals={portfolio.totals}
+            range={portfolio.meta.range}
+          />
         </HorizontalStack>
         <Info hidden={!!assets.length}>
           This portfolio doesn have any assets yet

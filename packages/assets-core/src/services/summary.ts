@@ -66,9 +66,9 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
   })();
 
   const totals = ((): Totals => {
-    const profitLoss = changeInValue(investedBase)(value.current);
-    const profitLossPct = changeInValuePct(investedBase)(value.current);
-    return { profitLoss, profitLossPct };
+    const change = changeInValue(investedBase)(value.current);
+    const changePct = changeInValuePct(investedBase)(value.current);
+    return { change, changePct };
   })();
 
   return { chart, meta, value, totals };

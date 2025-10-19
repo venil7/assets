@@ -8,12 +8,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
-import {
-  AssetPeriodChange,
-  HoldingsIndicator,
-  TxCount,
-  WeightIndicator,
-} from "../Badge/Badges";
+import { HoldingsIndicator, TxCount, WeightIndicator } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
 import { Totals } from "../Totals/Totals";
@@ -53,8 +48,9 @@ export const AssetLink = ({
               <div>{asset.name}</div>
               <div className="ms-auto">
                 <Totals
-                  value={asset.value.base.current}
                   totals={asset.totals.base}
+                  change={asset.value.base}
+                  range={asset.meta.range}
                 />
               </div>
             </Stack>
@@ -69,7 +65,7 @@ export const AssetLink = ({
           <TxCount value={asset} />
         </div>
         <div className="stick-right">
-          <AssetPeriodChange value={asset} />
+          {/* <AssetPeriodChange value={asset} /> */}
           <AssetMenu
             onDelete={handleDelete}
             onEdit={handleUpdate}

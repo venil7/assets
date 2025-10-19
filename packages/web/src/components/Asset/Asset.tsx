@@ -39,7 +39,11 @@ const RawAsset: React.FC<AssetProps> = ({
         <h3>
           {asset.name} ({asset.ticker})
         </h3>
-        <Totals value={asset.value.base.current} totals={asset.totals.base} />
+        <Totals
+          totals={asset.totals.base}
+          change={asset.value.base}
+          range={asset.meta.range}
+        />
       </HorizontalStack>
 
       <RangeChart

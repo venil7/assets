@@ -4,7 +4,12 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import * as I from "fp-ts/lib/Identity";
 import * as T from "fp-ts/lib/Task";
 import { pipe } from "fp-ts/lib/function";
-import { WebErrorType, type HandlerContext, type WebAppError } from "./error";
+import {
+  notFound,
+  WebErrorType,
+  type HandlerContext,
+  type WebAppError,
+} from "./error";
 import { createLogger } from "./log";
 
 const logger = createLogger("express");
@@ -80,7 +85,7 @@ export const createRequestHandler =
       task,
       RTE.filterOrElse<WebAppError, T>(
         (x) => x !== null || x != undefined,
-        () => ({ type: WebErrorType.NotFound, message: `not found` })
+        () => notFound(undefined)
       ),
       RTE.fold<HandlerContext<Ctx>, WebAppError, T, any>(
         errorHandler,
