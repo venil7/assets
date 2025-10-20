@@ -16,7 +16,7 @@ const filter = (predicate: () => boolean, message: string) =>
 const match = (pwd: string, pwd2: string) =>
   filter(() => pwd == pwd2, `paswords do not match`);
 const length = (n: number) => (pwd: string) =>
-  filter(() => pwd.length >= n, `length must be >12`);
+  filter(() => pwd.length >= n, `length must be >=${n}`);
 const upper = (pwd: string) =>
   filter(() => /[A-Z]/.test(pwd), `uppercase characters missing`);
 const lower = (pwd: string) =>

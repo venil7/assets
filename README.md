@@ -1,4 +1,4 @@
-# 🪙 Assets — Personal Wealth Tracker
+# `Assets` — Personal Wealth Tracker
 
 A self-hosted net worth and portfolio manager.
 Track multiple portfolios (ISA, General, Pension, Crypto, etc.) and monitor individual or total performance.
@@ -6,7 +6,7 @@ Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.c
 
 ---
 
-## 🚀 Quick Start (Docker)
+## Quick Start (Docker)
 
 ```sh
 docker pull ghcr.io/venil7/assets:latest && \
@@ -19,7 +19,7 @@ docker run \
 
 Then navigate to [localhost:4020](localhost:4020) and login using `admin` / `admin`
 
-## 🧩 Docker Compose (Recommended)
+## Docker Compose (Recommended)
 
 - Create an `.env` with individual parameters, for example:
 
@@ -51,7 +51,7 @@ ASSETS_JWT_REFRESH_BEFORE=5d # when to refresh JWT, before expiry
 
 - Navigate to [localhost:8084](http://localhost:8084), login using `admin` / `admin`
 
-## 🧱 Build & Run Locally (Bun)
+## Build & Run Locally (Bun)
 
 This software is written in TypeScript and assumes that it runs in [Bun](https://bun.sh).
 
@@ -72,7 +72,7 @@ bun test # runs unit and integartion tests , make sure to run backend in another
 
 - To build a docker container locally `$ docker buildx build -t assets .`
 
-## 🧠 Development Notes
+## Development Notes
 
 ### build time `.env` parameters placed in `packages/web`
 
@@ -98,12 +98,12 @@ migrate -path ./.migrations -database=sqlite3://assets.db down
 migrate -path ./.migrations -database=sqlite3://assets.db version
 ```
 
-## 🧩 API-First Design
+## API-First Design
 
 The UI is optional — the backend exposes a full REST API.
 
-- [📘 API Documentation](./API.md)
+- [API Documentation](./API.md)
 
-## 🤝 Contributing
+## Contributing
 
 This codebase is 100% hand written, no AI slop. If you feel comfortable with TypeScript, [functional programming](https://amzn.eu/d/axUrvVz) and basic SQL - contributions are welcome. If you find a bug, kindly open a [Github Issue](https://github.com/venil7/assets/issues)
