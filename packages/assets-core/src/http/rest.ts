@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import type { Decoder } from "io-ts";
-import { ErrorDecoder } from "../decoders/error";
+import { AppErrorDecoder } from "../decoders/error";
 import { liftTE } from "../decoders/util";
 import { generalError, handleError, type AppError } from "../domain";
 import type { Action } from "../utils/utils";
@@ -31,7 +31,7 @@ const rest = <JSON>(
       }
       return pipe(
         toJson,
-        TE.chain(liftTE(ErrorDecoder)),
+        TE.chain(liftTE(AppErrorDecoder)),
         TE.orElseW(() => {
           return pipe(
             toText,

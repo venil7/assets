@@ -1,10 +1,10 @@
 import * as t from "io-ts";
 
-const errorType = {
+const appErrorType = {
   type: t.string,
   message: t.string,
 };
 
-export const ErrorDecoder = t.type(errorType);
+export const AppErrorDecoder = t.type(appErrorType);
 
 export const AnyDecoder = t.record(t.string, t.any);

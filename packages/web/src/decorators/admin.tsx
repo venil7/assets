@@ -1,5 +1,7 @@
+import { validationError } from "@darkruby/assets-core";
 import React, { useEffect } from "react";
 import { useStore } from "../stores/store";
+import { Error } from "./errors";
 import type { Props } from "./fetching";
 
 export function withAdminRestriction<P extends Props>(
@@ -14,7 +16,11 @@ export function withAdminRestriction<P extends Props>(
     return profile.data.value?.admin ? (
       <Component {...props} />
     ) : (
-      <>You dont have enough priviledge to see this content</>
+      <Error
+        error={validationError(
+          "You dont have enough priviledge to see this content"
+        )}
+      />
     );
   };
 }

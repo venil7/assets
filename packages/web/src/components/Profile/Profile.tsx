@@ -6,9 +6,9 @@ import {
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
 import { useState } from "react";
-import { withError, type WithError } from "../../decorators/errors";
+import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
-import { withNoData } from "../../decorators/nodata";
+import { withNoData, type WithNoData } from "../../decorators/nodata";
 import { passwordChangeValidator } from "../../validation/credentials";
 import { PrimaryButton } from "../Form/FormControl";
 import { FormErrors } from "../Form/FormErrors";
@@ -41,7 +41,7 @@ const RawProfile: React.FC<ProfileProps> = ({
 
 export const UserProfile = pipe(
   RawProfile,
-  withError<ProfileProps>,
-  withNoData<WithError<ProfileProps>, "profile">((p) => p.profile),
+  withNoData<ProfileProps, "profile">((p) => p.profile),
+  withError<WithNoData<ProfileProps, "profile">>,
   withFetching
 );

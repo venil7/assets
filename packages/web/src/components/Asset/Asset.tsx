@@ -66,6 +66,6 @@ const RawAsset: React.FC<AssetProps> = ({
 export const Asset = pipe(
   RawAsset,
   withNoData<AssetProps, "asset">((p) => p.asset),
-  withFetching,
-  withError
+  withError,
+  withFetching
 );
