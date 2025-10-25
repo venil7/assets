@@ -1,8 +1,6 @@
 import { useSignals } from "@preact/signals-react/runtime";
-import { pipe } from "fp-ts/lib/function";
 import { useEffect } from "react";
 import { Users } from "../components/Users/Users";
-import { withAdminRestriction } from "../decorators/admin";
 import { useStore } from "../stores/store";
 
 const RawUsersScreen: React.FC = () => {
@@ -25,5 +23,4 @@ const RawUsersScreen: React.FC = () => {
   );
 };
 
-const UsersScreen = pipe(RawUsersScreen, withAdminRestriction);
-export { UsersScreen };
+export { RawUsersScreen as UsersScreen };

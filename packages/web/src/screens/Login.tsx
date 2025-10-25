@@ -4,6 +4,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { Col, Row } from "react-bootstrap";
 import { useNavigate } from "react-router";
 import { Login } from "../components/Auth/Login";
+import { routes } from "../components/Router";
 import { Error } from "../decorators/errors";
 import { useStore } from "../stores/store";
 
@@ -14,9 +15,10 @@ const RawLoginScreen: React.FC = () => {
 
   const handleLogin = (creds: Credentials) => {
     const onSuccess: Action<void> = TE.fromTask<void>(() => {
-      return navigate(`/portfolios`, {
-        replace: true,
-      }) as Promise<void>;
+      const navigateHome = async () => {
+        await navigate(routes.portfolios());
+      };
+      return navigateHome();
     });
     auth.login(creds, onSuccess);
   };

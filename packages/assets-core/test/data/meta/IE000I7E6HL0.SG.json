@@ -1,0 +1,55 @@
+{
+  "currency": "EUR",
+  "symbol": "IE000I7E6HL0.SG",
+  "exchangeName": "STU",
+  "fullExchangeName": "Stuttgart",
+  "instrumentType": "MUTUALFUND",
+  "firstTradeDate": null,
+  "regularMarketTime": 1761335732,
+  "hasPrePostMarketData": false,
+  "gmtoffset": 7200,
+  "timezone": "CEST",
+  "exchangeTimezoneName": "Europe/Berlin",
+  "regularMarketPrice": 9.803,
+  "fiftyTwoWeekHigh": 7.772,
+  "fiftyTwoWeekLow": 7.445,
+  "regularMarketDayHigh": 7.772,
+  "regularMarketDayLow": 7.445,
+  "regularMarketVolume": 8927,
+  "shortName": "HANetf Future of European Defen",
+  "chartPreviousClose": 9.845,
+  "priceHint": 2,
+  "currentTradingPeriod": {
+    "pre": {
+      "timezone": "CEST",
+      "end": 1761285600,
+      "start": 1761285600,
+      "gmtoffset": 7200
+    },
+    "regular": {
+      "timezone": "CEST",
+      "end": 1761336000,
+      "start": 1761285600,
+      "gmtoffset": 7200
+    },
+    "post": {
+      "timezone": "CEST",
+      "end": 1761336000,
+      "start": 1761336000,
+      "gmtoffset": 7200
+    }
+  },
+  "dataGranularity": "1d",
+  "range": "1d",
+  "validRanges": [
+    "1mo",
+    "3mo",
+    "6mo",
+    "ytd",
+    "1y",
+    "2y",
+    "5y",
+    "10y",
+    "max"
+  ]
+}

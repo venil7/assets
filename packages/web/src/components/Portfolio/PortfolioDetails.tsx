@@ -95,8 +95,8 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
 const DecoratedPortfolioDetails = pipe(
   RawPortfolioDetails,
   withNoData<PortfolioDetailsProps, "portfolio">((p) => p.portfolio),
-  withFetching,
-  withError
+  withError,
+  withFetching
 );
 
 export { DecoratedPortfolioDetails as PortfolioDetails };

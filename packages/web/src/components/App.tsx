@@ -5,7 +5,6 @@ import { router } from "./Router";
 
 export const App: React.FC = () => {
   useEffect(() => {
-    // console.log("token refresh");
     store.auth.refresh();
   }, []);
   return (

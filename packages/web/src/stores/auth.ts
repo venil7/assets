@@ -34,9 +34,8 @@ export const createAuthStore = (): AuthStore => {
   const tokenExists = computed(() => data.value != null);
 
   const getToken: Action<Nullable<Token>> = pipe(
-    readToken(),
-    TE.fromEither,
-    TE.orElseW(() => TE.of(null))
+    TE.fromEither(readToken()),
+    TE.orElseW((e) => TE.of(null))
   );
 
   return {

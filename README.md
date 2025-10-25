@@ -5,6 +5,7 @@ Track multiple portfolios (ISA, General, Pension, Crypto, etc.) and monitor indi
 Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.com/)
 
 ---
+
 <img width="235" height="500" alt="screenshot#0" src="https://github.com/user-attachments/assets/e3f5a0d5-b51d-434c-8142-8b7fc686fc14" />
 <img width="235" height="500" alt="screenshot#1" src="https://github.com/user-attachments/assets/9cd1a5b4-c351-441b-80d5-0afee9b321a7" />
 <img width="235" height="500" alt="screenshot#2" src="https://github.com/user-attachments/assets/20ce10c9-96ba-4bcc-84fc-0b9a9d9eda76" />
@@ -19,6 +20,7 @@ docker pull ghcr.io/venil7/assets:latest && \
 docker run \
   -e ASSETS_JWT_SECRET=S0meSecretVa1ue \
   -e ASSETS_DB=/data/assets.db \
+  -p 4020:4020 \
   -v ${PWD}:/data \
   ghcr.io/venil7/assets
 ```

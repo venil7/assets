@@ -9,6 +9,7 @@ import React from "react";
 import { Alert } from "react-bootstrap";
 import { Link } from "react-router";
 import { Danger, Warning } from "../components/Form/Alert";
+import { routes } from "../components/Router";
 import { type Props } from "./fetching";
 import { withNoData } from "./nodata";
 
@@ -39,7 +40,7 @@ const Error: React.FC<{ error: AppError }> = ({ error }) => {
           <Alert.Heading>{error.type}</Alert.Heading>
           <p>{error.message}</p>
           {error.type === AppErrorType.Auth ? (
-            <Link to="/login">Login</Link>
+            <Link to={routes.login()}>Login</Link>
           ) : null}
         </Danger>
       );
