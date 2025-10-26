@@ -8,6 +8,7 @@ import {
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Table } from "react-bootstrap";
+import { withAdminRestriction } from "../../decorators/admin";
 import { withError, type WithError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
@@ -85,7 +86,8 @@ const RawUsers: React.FC<UsersProps> = ({
 
 export const Users = pipe(
   RawUsers,
-  withError<UsersProps>,
-  withNoData<WithError<UsersProps>, "users">((p) => p.users?.length),
+  withNoData<UsersProps, "users">((p) => p.users?.length),
+  withError<WithError<UsersProps>>,
+  withAdminRestriction,
   withFetching
 );

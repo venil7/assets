@@ -10,13 +10,13 @@
 //   </div>
 // </div>
 
-@import "~/bootstrap/scss/_functions";
-@import "~/bootstrap/scss/_variables";
-
+@import "bootstrap/scss/_functions";
+@import "bootstrap/scss/_variables";
 
 .ticker-lookup-container {
   .ticker-lookup__control {
-    .ticker-lookup__input-container, .ticker-lookup__single-value {
+    .ticker-lookup__input-container,
+    .ticker-lookup__single-value {
       color: lightgray;
     }
     background-color: $dropdown-dark-bg;

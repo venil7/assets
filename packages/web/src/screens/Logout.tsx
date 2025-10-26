@@ -1,11 +1,11 @@
 import { useSignals } from "@preact/signals-react/runtime";
 import { useEffect } from "react";
-import { Navigate, useNavigate } from "react-router";
+import { Navigate /*, useNavigate*/ } from "react-router";
+import { routes } from "../components/Router";
 import { useStore } from "../stores/store";
 
 const RawLogoutScreen: React.FC = () => {
   useSignals();
-  const navigate = useNavigate();
   const { auth } = useStore();
 
   useEffect(() => {
@@ -14,7 +14,7 @@ const RawLogoutScreen: React.FC = () => {
 
   return (
     <>
-      <Navigate to="/login" />
+      <Navigate to={routes.login()} />
     </>
   );
 };

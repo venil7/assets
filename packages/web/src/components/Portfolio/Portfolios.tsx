@@ -8,9 +8,9 @@ import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Stack } from "react-bootstrap";
-import { withError, type WithError } from "../../decorators/errors";
+import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
-import { withNoData } from "../../decorators/nodata";
+import { withNoData, type WithNoData } from "../../decorators/nodata";
 import { RangeChart } from "../Charts/RangesChart";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
@@ -78,10 +78,8 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
 
 export const Portfolios = pipe(
   RawPortfolios,
-  withError<PortfoliosProps>,
-  withNoData<WithError<PortfoliosProps>, "portfolios">(
-    (p) => p.portfolios?.length
-  ),
-  withNoData<WithError<PortfoliosProps>, "summary">((p) => p.summary),
+  withNoData<PortfoliosProps, "portfolios">((p) => p.portfolios?.length),
+  withNoData<PortfoliosProps, "summary">((p) => p.summary),
+  withError<WithNoData<PortfoliosProps, "summary">>,
   withFetching
 );

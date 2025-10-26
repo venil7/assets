@@ -70,7 +70,7 @@ export const RangeDecoder = pipe(
       codecs as [
         t.LiteralC<string>,
         t.LiteralC<string>,
-        ...t.LiteralC<string>[]
+        ...t.LiteralC<string>[],
       ]
     )
 ) as t.Type<ChartRange>;
@@ -85,8 +85,8 @@ export const ChartMetaDecoder = t.type({
   regularMarketPrice: t.number,
   fiftyTwoWeekHigh: t.number,
   fiftyTwoWeekLow: t.number,
-  longName: t.string,
   shortName: t.string,
+  longName: nullableDecoder(t.string),
   previousClose: nullableDecoder(t.number),
   chartPreviousClose: t.number,
   scale: nullableDecoder(t.number),
