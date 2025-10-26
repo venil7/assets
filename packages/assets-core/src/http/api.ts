@@ -1,6 +1,6 @@
 import { pipe } from "fp-ts/lib/function";
 import {
-  GetPreferenceDecoder,
+  PreferencesDecoder,
   YahooTickerSearchResultDecoder,
 } from "../decoders";
 import { EnrichedAssetDecoder, EnrichedAssetsDecoder } from "../decoders/asset";
@@ -18,12 +18,11 @@ import type {
   Credentials,
   EnrichedAsset,
   EnrichedPortfolio,
-  GetPreference,
   GetTx,
   PostAsset,
   PostPortfolio,
-  PostPreference,
   PostTx,
+  Preferences,
   Profile,
   Summary,
   TickerSearchResult,
@@ -47,7 +46,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     return range ? `${base}?range=${range}` : base;
   };
   const PROFILE_URL = `${API_URL}/profile`;
-  const PREFERENCE_URL = `${API_URL}/preference`;
+  const PREFERENCES_URL = `${API_URL}/preference`;
   const PORTFOLIO_URL = (portfolioId: number, range?: ChartRange) => {
     const base = `${PORTFOLIOS_URL()}/${portfolioId}`;
     return range ? `${base}?range=${range}` : base;
@@ -146,10 +145,10 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const updateProfile = (body: Credentials) =>
     methods.put<Profile, Credentials>(PROFILE_URL, body, ProfileDecoder);
 
-  const getPreference = () =>
-    methods.get<GetPreference>(PREFERENCE_URL, GetPreferenceDecoder);
-  const updatePreference = (pref: PostPreference) =>
-    methods.put<PostPreference>(PREFERENCE_URL, pref, GetPreferenceDecoder);
+  const getPreferences = () =>
+    methods.get<Preferences>(PREFERENCES_URL, PreferencesDecoder);
+  const updatePreferences = (pref: Preferences) =>
+    methods.put<Preferences>(PREFERENCES_URL, pref, PreferencesDecoder);
 
   const createUser = (body: Credentials) =>
     methods.post<Profile, Credentials>(USERS_URL, body, ProfileDecoder);
@@ -179,9 +178,9 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       get: getProfile,
       update: updateProfile,
     },
-    preference: {
-      get: getPreference,
-      update: updatePreference,
+    preferences: {
+      get: getPreferences,
+      update: updatePreferences,
     },
     summary: {
       get: getSummary,

@@ -6,8 +6,8 @@ import {
   type Credentials,
   type PostAsset,
   type PostPortfolio,
-  type PostPreference,
   type PostTx,
+  type Preferences,
   type TxType,
 } from "@darkruby/assets-core";
 import faker from "faker";
@@ -16,7 +16,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 
 const BASE_URL = `http://${process.env.URL ?? "localhost:4020"}`;
 
-export const fakePreferences = (): PostPreference => ({
+export const fakePreferences = (): Preferences => ({
   base_ccy: faker.random.arrayElement(BASE_CCYS),
 });
 

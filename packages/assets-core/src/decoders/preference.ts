@@ -1,8 +1,7 @@
 import * as t from "io-ts";
 
-const preferenceTypes = {
+const preferencesTypes = {
   base_ccy: t.string,
 };
 
-export const PostPreferenceDecoder = t.type(preferenceTypes);
-export const GetPreferenceDecoder = t.type(preferenceTypes);
+export const PreferencesDecoder = t.type(preferencesTypes);

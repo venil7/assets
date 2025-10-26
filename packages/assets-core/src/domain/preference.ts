@@ -1,8 +1,7 @@
 import * as t from "io-ts";
-import type { GetPreferenceDecoder, PostPreferenceDecoder } from "../decoders";
+import type { PreferencesDecoder } from "../decoders";
 
-export type PostPreference = t.TypeOf<typeof PostPreferenceDecoder>;
-export type GetPreference = t.TypeOf<typeof GetPreferenceDecoder>;
+export type Preferences = t.TypeOf<typeof PreferencesDecoder>;
 
 export const BASE_CCYS = [
   "USD",

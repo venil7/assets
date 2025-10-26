@@ -50,7 +50,7 @@ test("Create user, login and check profile & preferences", async () => {
   expect(user.username).toBe(creds.username);
   const userApi = await run(defaultApi(creds));
   const { username } = await run(userApi.profile.get());
-  const prefs = await run(userApi.preference.get());
+  const prefs = await run(userApi.preferences.get());
   expect(username).toBe(creds.username);
   expect(prefs.base_ccy).toBe("USD");
 });

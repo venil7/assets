@@ -1,8 +1,7 @@
 import {
-  GetPreferenceDecoder,
+  PreferencesDecoder,
   type Action,
-  type GetPreference,
-  type PostPreference,
+  type Preferences,
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { UserId } from "@darkruby/assets-core/src/domain/user";
@@ -27,17 +26,17 @@ const sql = {
 
 export const getPreference =
   (db: Database) =>
-  (userId: UserId): Action<GetPreference> =>
+  (userId: UserId): Action<Preferences> =>
     pipe(
       queryOne({ userId }),
       ID.ap(sql.preference.get),
       ID.ap(db),
-      TE.chain(liftTE(GetPreferenceDecoder))
+      TE.chain(liftTE(PreferencesDecoder))
     );
 
 export const updatePreference =
   (db: Database) =>
-  (userId: UserId, preference: PostPreference): Action<ExecutionResult> => {
+  (userId: UserId, preference: Preferences): Action<ExecutionResult> => {
     return pipe(
       execute({ ...preference, userId }),
       ID.ap(sql.preference.update),
