@@ -10,10 +10,11 @@ import { NavCrumb } from "./Breadcrumb/Breadcrumb";
 
 export const TopNav = () => {
   useSignals();
-  const { profile, portfolio, asset } = useStore();
+  const { profile, portfolio, preferences, asset } = useStore();
 
   useEffect(() => {
     profile.load();
+    preferences.load();
   }, [profile]);
 
   return (

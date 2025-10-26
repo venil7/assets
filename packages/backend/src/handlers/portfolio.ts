@@ -24,12 +24,10 @@ export const getPortfolios: HandlerTask<EnrichedPortfolio[], Context> = ({
     TE.bind("userId", () => getUserId(res)),
     TE.bind("range", () => rangeFromUrl(req.query.range)),
     TE.bind("portfolios", ({ userId }) => repo.portfolio.getAll(userId)),
-    TE.let("enrichPortfolios", ({ range }) =>
-      getPortfoliosEnricher(yahooApi, range!)
-    ),
-    TE.chain(({ portfolios, enrichPortfolios, userId }) => {
+    TE.let("enrichPortfolios", ({ range }) => getPortfoliosEnricher(yahooApi)),
+    TE.chain(({ portfolios, enrichPortfolios, userId, range }) => {
       const getAssets = (p: GetPortfolio) => repo.asset.getAll(p.id, userId);
-      return enrichPortfolios(portfolios, getAssets);
+      return enrichPortfolios(portfolios, getAssets, range);
     }),
     TE.mapLeft(toWebError)
   );
@@ -46,11 +44,11 @@ export const getPortfolio: HandlerTask<
     TE.bind("userId", () => getUserId(res)),
     TE.bind("portfolio", ({ id, userId }) => repo.portfolio.get(id, userId)),
     TE.let("enrichPortfolio", ({ range }) =>
-      getOptionalPorfolioEnricher(yahooApi, range!)
+      getOptionalPorfolioEnricher(yahooApi)
     ),
-    TE.chain(({ portfolio, enrichPortfolio, userId }) => {
+    TE.chain(({ portfolio, enrichPortfolio, userId, range }) => {
       const getAssets = () => repo.asset.getAll(portfolio!.id, userId);
-      return enrichPortfolio(portfolio, getAssets);
+      return enrichPortfolio(portfolio, getAssets, range);
     }),
     TE.mapLeft(toWebError)
   );

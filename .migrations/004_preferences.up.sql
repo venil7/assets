@@ -3,7 +3,21 @@ create table
     id integer primary key autoincrement,
     user_id integer not null,
     -- preferences start here
-    base_ccy text not null,
+    base_ccy text CHECK (
+      base_ccy IN (
+        'USD',
+        'GBP',
+        'EUR',
+        'CAD',
+        'AUD',
+        'CHF',
+        'SEK',
+        'NOK',
+        'DKK',
+        'NZD',
+        'JPY'
+      )
+    ) not null default 'USD',
     -- preferences end here
     created datetime default current_timestamp,
     modified datetime default current_timestamp,

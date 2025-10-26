@@ -8,10 +8,9 @@ import type { Action } from "../utils/utils";
 
 export const baseCcyConversionRate = (
   ccy: string,
-  base: string = "GBP"
+  base: string
 ): Action<number> => {
-  if (ccy === "GBp") return TE.of(100);
-  if (ccy === "GBP") return TE.of(1);
+  if (ccy === base) return TE.of(1);
   const term = `${base}/${ccy}`;
   return pipe(
     yahooApi.search(term), //eg gbpusd
@@ -21,6 +20,11 @@ export const baseCcyConversionRate = (
       return TE.left(generalError(`${term} is not convertible`));
     }),
     TE.chain(yahooApi.chart),
-    TE.map(({ meta }) => meta.regularMarketPrice)
+    TE.map(({ meta }) => meta.regularMarketPrice),
+    TE.map((price) => {
+      // if price in pence adjust accordingly
+      if (ccy === "GBp") return price * 100;
+      return price;
+    })
   );
 };

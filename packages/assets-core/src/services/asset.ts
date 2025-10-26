@@ -3,7 +3,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as NeA from "fp-ts/lib/NonEmptyArray";
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
-import type { ChartRange } from "../decoders/yahoo/meta";
+import { DEFAULT_CHART_RANGE, type ChartRange } from "../decoders/yahoo/meta";
 import type {
   ChartData,
   EnrichedAsset,
@@ -17,16 +17,17 @@ import type { Action, Optional } from "../utils/utils";
 import { baseCcyConversionRate } from "./yahoo";
 
 export const getAssetEnricher =
-  (yahooApi: YahooApi, range?: ChartRange) =>
-  (asset: GetAsset, overrideRange = range): Action<EnrichedAsset> => {
+  (yahooApi: YahooApi) =>
+  (
+    asset: GetAsset,
+    range: ChartRange = DEFAULT_CHART_RANGE
+  ): Action<EnrichedAsset> => {
     return pipe(
       TE.Do,
       TE.apS("asset", TE.of(asset)),
-      TE.bind("enrich", ({ asset }) =>
-        yahooApi.chart(asset.ticker, overrideRange)
-      ),
+      TE.bind("enrich", ({ asset }) => yahooApi.chart(asset.ticker, range)),
       TE.bind("baseRate", ({ enrich }) =>
-        baseCcyConversionRate(enrich.meta.currency)
+        baseCcyConversionRate(enrich.meta.currency, "GBP")
       ),
       TE.map(
         ({ asset, enrich: { chart: origChart, price, meta }, baseRate }) => {
@@ -131,25 +132,25 @@ export const getAssetEnricher =
   };
 
 export const getAssetsEnricher =
-  (yahooApi: YahooApi, range?: ChartRange) =>
-  (assets: GetAsset[], overrideRange = range): Action<EnrichedAsset[]> => {
+  (yahooApi: YahooApi) =>
+  (assets: GetAsset[], range?: ChartRange): Action<EnrichedAsset[]> => {
     const enrichAsset = getAssetEnricher(yahooApi);
     return pipe(
       assets,
-      TE.traverseArray((asset) => enrichAsset(asset, overrideRange)),
+      TE.traverseArray((asset) => enrichAsset(asset, range)),
       TE.map((assets) => calcAssetWeights(assets as EnrichedAsset[]))
     ) as Action<EnrichedAsset[]>;
   };
 
 export const getOptionalAssetsEnricher =
-  (yahooApi: YahooApi, range?: ChartRange) =>
+  (yahooApi: YahooApi) =>
   (
     a: Optional<GetAsset>,
-    overrideRange = range
+    range?: ChartRange
   ): Action<Optional<EnrichedAsset>> => {
     if (a) {
       const enrichAsset = getAssetEnricher(yahooApi);
-      return enrichAsset(a, overrideRange);
+      return enrichAsset(a, range);
     }
     return TE.of(null);
   };
