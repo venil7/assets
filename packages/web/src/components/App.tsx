@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { RouterProvider } from "react-router";
-import { store, StoreContext } from "../stores/store";
+import { store, StoreContext } from "../hooks/store";
 import { router } from "./Router";
 
 export const App: React.FC = () => {

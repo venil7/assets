@@ -8,12 +8,9 @@ import {
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { identity, pipe } from "fp-ts/lib/function";
 import { Badge, type BadgeProps } from "react-bootstrap";
-import {
-  withExtraProps,
-  withMappedProps,
-  withProps,
-} from "../../decorators/props";
-import { decimal, money, percent } from "../../util/number";
+import { withProps } from "../../decorators/props";
+import { useFormatters } from "../../hooks/prefs";
+import { decimal, percent } from "../../util/number";
 
 type ChangeBadgeProps<T> = {
   value: T;
@@ -38,7 +35,7 @@ export function ChangeIndicator<T>({
 
 export const MoneyChangeIndicator = pipe(
   ChangeIndicator<number>,
-  withProps({ formatter: money, numeric: identity })
+  withProps({ numeric: identity })
 );
 
 export const PctChangeIndicator = pipe(
@@ -46,26 +43,47 @@ export const PctChangeIndicator = pipe(
   withProps({ formatter: (n) => percent(n), numeric: identity })
 );
 
-export type MoneyAndChangeIndicatorProps = ChangeBadgeProps<Totals> & {
-  range?: ChartRange;
+export type MoneyAndChangeIndicatorProps = Omit<
+  ChangeBadgeProps<Totals> & {
+    range?: ChartRange;
+  },
+  "numeric" | "formatter"
+>;
+export const MoneyAndChangeIndicator: React.FC<
+  MoneyAndChangeIndicatorProps
+> = ({ value, range }) => {
+  const { money } = useFormatters();
+  const numeric = (t: Totals) => t.changePct;
+  const formatter = ({ change, changePct }: Totals) => {
+    const pre = range ? `${range}: ` : "";
+    return `${pre}${money(change)} (${percent(changePct)})`;
+  };
+  return (
+    <ChangeIndicator<Totals>
+      value={value}
+      numeric={numeric}
+      formatter={formatter}
+    />
+  );
 };
-export const MoneyAndChangeIndicator = pipe(
-  ChangeIndicator<Totals>,
-  withExtraProps<
-    ChangeBadgeProps<Totals>,
-    Pick<MoneyAndChangeIndicatorProps, "range">
-  >(),
-  withMappedProps<
-    MoneyAndChangeIndicatorProps,
-    Pick<MoneyAndChangeIndicatorProps, "formatter" | "numeric">
-  >(({ range }) => ({
-    formatter: ({ change, changePct }) => {
-      const pre = range ? `${range}: ` : "";
-      return `${pre}${money(change)} (${percent(changePct)})`;
-    },
-    numeric: (t) => t.changePct,
-  }))
-);
+
+// export const _MoneyAndChangeIndicator = pipe(
+//   ChangeIndicator<Totals>,
+//   withExtraProps<
+//     ChangeBadgeProps<Totals>,
+//     Pick<MoneyAndChangeIndicatorProps, "range">
+//   >(),
+//   withMappedProps<
+//     MoneyAndChangeIndicatorProps,
+//     Pick<MoneyAndChangeIndicatorProps, "formatter" | "numeric">
+//   >(({ range }) => ({
+//     formatter: ({ change, changePct }) => {
+//       const pre = range ? `${range}: ` : "";
+//       return `${pre}${money(change)} (${percent(changePct)})`;
+//     },
+//     numeric: (t) => t.changePct,
+//   }))
+// );
 
 export const WeightIndicator = pipe(
   ChangeIndicator<number>,

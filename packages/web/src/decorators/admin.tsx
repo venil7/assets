@@ -1,6 +1,6 @@
 import { validationError } from "@darkruby/assets-core";
 import React, { useEffect } from "react";
-import { useStore } from "../stores/store";
+import { useStore } from "../hooks/store";
 import { Error } from "./errors";
 import type { Props } from "./fetching";
 

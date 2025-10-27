@@ -1,5 +1,11 @@
-export const money = (number: number, currency = "GBP"): string => {
-  return new Intl.NumberFormat("en-GB", {
+import type { Ccy } from "@darkruby/assets-core";
+
+export const money = (
+  number: number,
+  currency: Ccy,
+  locale = "en-GB"
+): string => {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
     // maximumFractionDigits: 2,

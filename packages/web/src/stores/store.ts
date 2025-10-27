@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 import { createAssetStore, type AssetStore } from "./asset";
 import { createAssetsStore, type AssetsStore } from "./assets";
 import { createAuthStore, type AuthStore } from "./auth";
@@ -43,10 +43,4 @@ export const createStoreContext = (): [Store, React.Context<Store>] => {
   const store = createStore();
   const context = createContext<Store>(store);
   return [store, context];
-};
-
-export const [store, StoreContext] = createStoreContext();
-
-export const useStore = () => {
-  return useContext(StoreContext);
 };

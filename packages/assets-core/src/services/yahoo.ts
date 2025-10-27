@@ -2,13 +2,14 @@ import * as A from "fp-ts/lib/Array";
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
+import type { Ccy } from "../decoders";
 import { generalError } from "../domain";
 import { yahooApi } from "../http";
 import type { Action } from "../utils/utils";
 
 export const baseCcyConversionRate = (
   ccy: string,
-  base: string
+  base: Ccy
 ): Action<number> => {
   if (ccy === base) return TE.of(1);
   const term = `${base}/${ccy}`;

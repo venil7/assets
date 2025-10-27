@@ -30,7 +30,7 @@ const RawTestScreen: React.FC = () => {
       <PortfolioMenu onDelete={handler1} onEdit={handler1} />
       <TickerLookup onSelect={console.log} />
       <ul>
-        <li>{money(40123)}</li>
+        <li>{money(40123, "AUD")}</li>
         <li>{decimal(0.012)}</li>
         <li>{percent(0.012)}</li>
       </ul>

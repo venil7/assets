@@ -6,7 +6,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { useEffect } from "react";
 import { useParams } from "react-router";
 import { PortfolioDetails } from "../components/Portfolio/PortfolioDetails";
-import { useStore } from "../stores/store";
+import { useStore } from "../hooks/store";
 
 const RawPortfolioDetails: React.FC = () => {
   useSignals();

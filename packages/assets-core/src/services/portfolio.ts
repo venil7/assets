@@ -2,6 +2,7 @@ import * as A from "fp-ts/lib/Array";
 import { pipe, type FunctionN, type LazyArg } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
 import * as TE from "fp-ts/lib/TaskEither";
+import type { Ccy } from "../decoders";
 import {
   ChartRangeOrd,
   DEFAULT_CHART_RANGE,
@@ -27,6 +28,7 @@ export const getPortfolioEnricher =
   (
     portfolio: GetPortfolio,
     getAssets: LazyArg<Action<GetAsset[]>>,
+    baseCcy: Ccy,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedPortfolio> => {
     const enrichAssets = getAssetsEnricher(yahooApi);
@@ -37,7 +39,7 @@ export const getPortfolioEnricher =
       TE.bind("assets", () => {
         return pipe(
           getAssets(),
-          TE.chain((a) => enrichAssets(a, range)),
+          TE.chain((a) => enrichAssets(a, baseCcy, range)),
           TE.map(calcAssetWeights)
         );
       }),
@@ -120,13 +122,14 @@ export const getPortfoliosEnricher =
   (
     portfolios: GetPortfolio[],
     getPortfolioAssets: FunctionN<[GetPortfolio], Action<GetAsset[]>>,
+    baseCcy: Ccy,
     range?: ChartRange
   ): Action<EnrichedPortfolio[]> => {
     const enrichPortfolio = getPortfolioEnricher(yahooApi);
     return pipe(
       portfolios,
       TE.traverseArray((p) =>
-        enrichPortfolio(p, () => getPortfolioAssets(p), range)
+        enrichPortfolio(p, () => getPortfolioAssets(p), baseCcy, range)
       ),
       TE.map((ps) => calcPortfolioWeights(ps as EnrichedPortfolio[]))
     );
@@ -137,11 +140,12 @@ export const getOptionalPorfolioEnricher =
   (
     portfolio: Optional<GetPortfolio>,
     getAssets: () => Action<GetAsset[]>,
+    baseCcy: Ccy,
     range?: ChartRange
   ): Action<Optional<EnrichedPortfolio>> => {
     if (portfolio) {
       const enrichPortfolio = getPortfolioEnricher(yahooApi);
-      return enrichPortfolio(portfolio, getAssets, range);
+      return enrichPortfolio(portfolio, getAssets, baseCcy, range);
     }
     return TE.of(null);
   };

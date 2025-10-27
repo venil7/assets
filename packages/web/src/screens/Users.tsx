@@ -1,7 +1,7 @@
 import { useSignals } from "@preact/signals-react/runtime";
 import { useEffect } from "react";
 import { Users } from "../components/Users/Users";
-import { useStore } from "../stores/store";
+import { useStore } from "../hooks/store";
 
 const RawUsersScreen: React.FC = () => {
   useSignals();

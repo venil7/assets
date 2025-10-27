@@ -1,5 +1,6 @@
 import {
   defaultBuyTx,
+  type Ccy,
   type EnrichedAsset,
   type GetTx,
   type Identity,
@@ -86,7 +87,7 @@ const RawTxTable: React.FC<TxTableProps> = ({
             <td className="d-none d-md-table-cell">{tx.id}</td>
             <td>{tx.type}</td>
             <td>{decimal(tx.quantity)}</td>
-            <td>{money(tx.price, asset.meta.currency)}</td>
+            <td>{money(tx.price, asset.meta.currency as Ccy)}</td>
             <td>{tx.comments}</td>
             <td className="d-none d-md-table-cell">{iso(tx.date)}</td>
             <td>

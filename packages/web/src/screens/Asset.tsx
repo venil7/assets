@@ -4,7 +4,7 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { use, useEffect } from "react";
 import { useParams } from "react-router";
 import { Asset } from "../components/Asset/Asset";
-import { StoreContext } from "../stores/store";
+import { StoreContext } from "../hooks/store";
 
 const RawAssetScreen: React.FC = () => {
   useSignals();
