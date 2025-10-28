@@ -1,14 +1,13 @@
 import type { Nullable } from "@darkruby/assets-core";
-import { eq as eqmod } from "fp-ts";
-import { type Eq } from "fp-ts/lib/Eq";
+import { type Eq, fromEquals } from "fp-ts/lib/Eq";
 import { useCallback } from "react";
 import Form from "react-bootstrap/Form";
 
 export type SelectProps<T> = {
   eq?: Eq<T>;
-  options: T[];
+  options: readonly T[];
   disabled?: boolean;
-  selected?: Nullable<T>;
+  value?: Nullable<T>;
   toValue?: (t: T) => string;
   toLabel?: (t: T) => string;
   onSelect: (option: T) => void;
@@ -20,8 +19,8 @@ export function Select<T>({
   disabled = false,
   toValue = String,
   toLabel = String,
-  eq = eqmod.fromEquals<T>((a, b) => a === b),
-  selected,
+  eq = fromEquals<T>((a, b) => a === b),
+  value,
 }: SelectProps<T>): ReturnType<React.FC<SelectProps<T>>> {
   const handleSelect = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -38,8 +37,9 @@ export function Select<T>({
   return (
     <Form.Select
       disabled={disabled}
-      value={selected ? toValue(selected) : undefined}
+      value={value ? toValue(value) : undefined}
       onSelect={handleSelect}
+      onChange={handleSelect}
     >
       {options.map((opt) => (
         <option key={JSON.stringify(opt)} value={toValue(opt)}>

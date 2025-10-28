@@ -9,7 +9,7 @@ import { Nav } from "react-bootstrap";
 import { withVisibility } from "../../decorators/nodata";
 
 export type TabsProps = PropsWithChildren<{
-  tabs: string[];
+  tabs: readonly string[];
 }>;
 
 const TabContext = createContext({ tab: 0 });
@@ -38,7 +38,7 @@ export const TabContent: React.FC<PropsWithChildren & { tab: number }> = ({
   children,
 }) => {
   const Div: React.FC<PropsWithChildren> = (p) => (
-    <div className="tab-pane">{p.children}</div>
+    <div className="tab-pane mt-3 mb-3">{p.children}</div>
   );
   const TabDiv = pipe(Div, withVisibility());
   const { tab: selectedTab } = useContext(TabContext);

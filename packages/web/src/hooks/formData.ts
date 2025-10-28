@@ -13,9 +13,9 @@ export const usePartialChange = <T extends Record<string, any>>(
   data: T,
   onChange: (t: T) => any
 ) => {
-  const handlePartyailChange =
+  const handlePartialChange =
     <K extends keyof T>(key: K) =>
     (val: T[K]) =>
       onChange({ ...data, [key]: val });
-  return handlePartyailChange;
+  return handlePartialChange;
 };
