@@ -36,3 +36,32 @@ const prefssTypes = {
 };
 
 export const PrefsDecoder = t.type(prefssTypes);
+
+export const ccyToLocale = (ccy: Ccy): string => {
+  switch (ccy) {
+    case "GBP":
+      return "en-GB";
+
+    case "EUR":
+      return "de-DE";
+    case "CAD":
+      return "en-CA";
+    case "AUD":
+      return "en-AU";
+    case "CHF":
+      return "de-CH";
+    case "SEK":
+      return "sv-SE";
+    case "NOK":
+      return "no-NO";
+    case "DKK":
+      return "da-DK";
+    case "NZD":
+      return "en-NZ";
+    case "JPY":
+      return "ja-JP";
+    case "USD":
+    default:
+      return "en-US";
+  }
+};

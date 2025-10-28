@@ -37,9 +37,9 @@ const RawTestScreen: React.FC = () => {
         </TabContent>
         <TabContent tab={2}>
           <ul>
-            <li>{money(40123, "AUD")}</li>
-            <li>{decimal(0.012)}</li>
-            <li>{percent(0.012)}</li>
+            <li>{money(40123, "AUD", "fr-FR")}</li>
+            <li>{decimal(0.012, 2, "de-DE")}</li>
+            <li>{percent(0.012, 2, "de-DE")}</li>
           </ul>
         </TabContent>
       </Tabs>

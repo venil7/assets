@@ -1,4 +1,5 @@
 import type { Identity } from "@darkruby/assets-core";
+import { useFormatters } from "../hooks/prefs";
 import type { Props } from "./fetching";
 
 export type UnmappedProps<P extends Props, Part extends Partial<P>> = Identity<
@@ -16,6 +17,17 @@ export function withProps<P extends Props, Pr extends Partial<P>>(
   };
 }
 
+export function withFormatters<P extends Props, Pr extends Partial<P>>(
+  f: (fmts: ReturnType<typeof useFormatters>) => Pr
+) {
+  return function (Component: React.FC<P>): React.FC<UnmappedProps<P, Pr>> {
+    return (props: UnmappedProps<P, Pr>) => {
+      const fmts = useFormatters();
+      const combined = { ...f(fmts), ...props } as unknown as P;
+      return <Component {...combined} />;
+    };
+  };
+}
 export function withMappedProps<P extends Props, Z extends Partial<P>>(
   mapper: (p: UnmappedProps<P, Z>) => Z
 ) {
