@@ -22,7 +22,7 @@ export const getPortfolios: HandlerTask<EnrichedPortfolio[], Context> = ({
   return pipe(
     TE.Do,
     TE.bind("userId", () => getUserId(res)),
-    TE.bind("pref", ({ userId }) => repo.preference.get(userId)),
+    TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("range", () => rangeFromUrl(req.query.range)),
     TE.bind("portfolios", ({ userId }) => repo.portfolio.getAll(userId)),
     TE.let("enrichPortfolios", ({ range }) => getPortfoliosEnricher(yahooApi)),
@@ -43,7 +43,7 @@ export const getPortfolio: HandlerTask<
     TE.bind("id", () => numberFromUrl(req.params.id)),
     TE.bind("range", () => rangeFromUrl(req.query.range)),
     TE.bind("userId", () => getUserId(res)),
-    TE.bind("pref", ({ userId }) => repo.preference.get(userId)),
+    TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("portfolio", ({ id, userId }) => repo.portfolio.get(id, userId)),
     TE.let("enrichPortfolio", ({ range }) =>
       getOptionalPorfolioEnricher(yahooApi)
@@ -63,7 +63,7 @@ export const createPortfolio: HandlerTask<
   return pipe(
     TE.Do,
     TE.bind("userId", () => getUserId(res)),
-    TE.bind("pref", ({ userId }) => repo.preference.get(userId)),
+    TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("body", () => pipe(req.body, liftTE(PostPortfolioDecoder))),
     TE.bind("execution", ({ body, userId }) =>
       repo.portfolio.create(body, userId)
@@ -102,7 +102,7 @@ export const updatePortfolio: HandlerTask<
     TE.bind("id", () => numberFromUrl(req.params.id)),
     TE.bind("body", () => pipe(req.body, liftTE(PostPortfolioDecoder))),
     TE.bind("userId", () => getUserId(res)),
-    TE.bind("pref", ({ userId }) => repo.preference.get(userId)),
+    TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("execution", ({ id, body, userId }) =>
       repo.portfolio.update(id, body, userId)
     ),

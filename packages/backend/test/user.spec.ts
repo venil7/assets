@@ -44,13 +44,13 @@ test("Delete user", async () => {
   expect(E.isLeft(deleted)).toBeTrue();
 });
 
-test("Create user, login and check profile & preferences", async () => {
+test("Create user, login and check profile & prefs", async () => {
   const creds = fakeCredentials();
   const user = await run(api.user.create(creds));
   expect(user.username).toBe(creds.username);
   const userApi = await run(defaultApi(creds));
   const { username } = await run(userApi.profile.get());
-  const prefs = await run(userApi.preferences.get());
+  const prefs = await run(userApi.prefs.get());
   expect(username).toBe(creds.username);
   expect(prefs.base_ccy).toBe("USD");
 });

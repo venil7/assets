@@ -1,7 +1,7 @@
 import type Database from "bun:sqlite";
 import * as asset from "./asset";
 import * as portfolio from "./portfolio";
-import * as preferences from "./preferences";
+import * as prefs from "./prefs";
 import * as tx from "./transaction";
 import * as user from "./user";
 
@@ -39,9 +39,9 @@ export const createRepository = (db: Database) => {
       loginAttempt: user.loginAttempt(db),
       loginSuccess: user.loginSuccess(db),
     },
-    preference: {
-      get: preferences.getPreference(db),
-      update: preferences.updatePreference(db),
+    prefs: {
+      get: prefs.getPrefs(db),
+      update: prefs.updatePrefs(db),
     },
   };
 };

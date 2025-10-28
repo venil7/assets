@@ -2,7 +2,7 @@ export * from "./asset";
 export * from "./error";
 export * from "./id";
 export * from "./portfolio";
-export * from "./preference";
+export * from "./prefs";
 export * from "./summary";
 export * from "./ticker";
 export * from "./token";

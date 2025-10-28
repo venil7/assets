@@ -1,10 +1,10 @@
-import { defaultPreferenes } from "@darkruby/assets-core";
+import { defaultPrefs } from "@darkruby/assets-core";
 import { decimal, money, percent } from "../util/number";
 import { useStore } from "./store";
 
 export const usePrefs = () => {
-  const { preferences } = useStore();
-  return preferences.data.value ?? defaultPreferenes();
+  const { prefs } = useStore();
+  return prefs.data.value ?? defaultPrefs();
 };
 
 export const useFormatters = () => {

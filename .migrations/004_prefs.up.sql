@@ -1,8 +1,8 @@
 create table
-  preferences (
+  prefs (
     id integer primary key autoincrement,
     user_id integer not null,
-    -- preferences start here
+    -- prefs start here
     base_ccy text CHECK (
       base_ccy IN (
         'USD',
@@ -18,7 +18,7 @@ create table
         'JPY'
       )
     ) not null default 'USD',
-    -- preferences end here
+    -- prefs end here
     created datetime default current_timestamp,
     modified datetime default current_timestamp,
     foreign key (user_id) references users (id) ON DELETE CASCADE,
@@ -27,7 +27,7 @@ create table
 
 --- insert defaults
 INSERT INTO
-  preferences (user_id, base_ccy)
+  prefs (user_id, base_ccy)
 SELECT
   id,
   'USD'
@@ -35,19 +35,19 @@ FROM
   users;
 
 -- triggers
-drop trigger if exists insert_user_preferences;
+drop trigger if exists insert_user_prefs;
 
-CREATE TRIGGER insert_user_preferences AFTER INSERT ON users FOR EACH ROW BEGIN
+CREATE TRIGGER insert_user_prefs AFTER INSERT ON users FOR EACH ROW BEGIN
 INSERT INTO
-  preferences (user_id, base_ccy)
+  prefs (user_id, base_ccy)
 VALUES
   (NEW.id, 'USD');
 
 END;
 
--- drop trigger if exists delete_user_preferences;
--- create trigger delete_user_preferences after delete on users for each row BEGIN
--- delete from preferences p
+-- drop trigger if exists delete_user_prefs;
+-- create trigger delete_user_prefs after delete on users for each row BEGIN
+-- delete from prefs p
 -- where
 --   p.id = OLD.id;
 -- END;

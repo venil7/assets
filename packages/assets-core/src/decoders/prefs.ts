@@ -31,8 +31,8 @@ export const CcyDecoder = pipe(
     )
 ) as t.Type<Ccy>;
 
-const preferencesTypes = {
+const prefssTypes = {
   base_ccy: CcyDecoder,
 };
 
-export const PreferencesDecoder = t.type(preferencesTypes);
+export const PrefsDecoder = t.type(prefssTypes);

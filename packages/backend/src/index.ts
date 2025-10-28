@@ -91,12 +91,12 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       profile.put("/", handlers.profile.update);
       api.use("/profile", profile);
 
-      const preference = express();
-      preference.get("/", handlers.preference.get);
-      preference.put("/", handlers.preference.update);
-      api.use("/preference", preference);
+      const prefs = express();
+      prefs.get("/", handlers.prefs.get);
+      prefs.put("/", handlers.prefs.update);
+      api.use("/prefs", prefs);
 
-      const user = express(); // also preferences
+      const user = express(); // also prefs
       user.post("/", handlers.user.create);
       user.get("/", handlers.user.getMany);
       user.get("/:id", handlers.user.get);

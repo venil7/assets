@@ -1,6 +1,6 @@
 import {
   type Credentials as CredentialsData,
-  type Preferences,
+  type Prefs as PrefsData,
   type Profile,
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
@@ -17,9 +17,9 @@ const TABS = ["Profile", "Credentials", "Prefs"] as const;
 
 type ProfileProps = {
   profile: Profile;
-  prefs: Preferences;
+  prefs: PrefsData;
   onCredentialsUpdate: (p: CredentialsData) => void;
-  onPrefsUpdate: (p: Preferences) => void;
+  onPrefsUpdate: (p: PrefsData) => void;
   innerFetching: [profile: boolean, prefs: boolean];
 };
 

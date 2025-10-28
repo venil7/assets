@@ -1,8 +1,5 @@
 import { pipe } from "fp-ts/lib/function";
-import {
-  PreferencesDecoder,
-  YahooTickerSearchResultDecoder,
-} from "../decoders";
+import { PrefsDecoder, YahooTickerSearchResultDecoder } from "../decoders";
 import { EnrichedAssetDecoder, EnrichedAssetsDecoder } from "../decoders/asset";
 import { IdDecoder } from "../decoders/id";
 import {
@@ -22,7 +19,7 @@ import type {
   PostAsset,
   PostPortfolio,
   PostTx,
-  Preferences,
+  Prefs,
   Profile,
   Summary,
   TickerSearchResult,
@@ -46,7 +43,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     return range ? `${base}?range=${range}` : base;
   };
   const PROFILE_URL = `${API_URL}/profile`;
-  const PREFERENCES_URL = `${API_URL}/preference`;
+  const PREFS_URL = `${API_URL}/prefs`;
   const PORTFOLIO_URL = (portfolioId: number, range?: ChartRange) => {
     const base = `${PORTFOLIOS_URL()}/${portfolioId}`;
     return range ? `${base}?range=${range}` : base;
@@ -145,10 +142,9 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const updateProfile = (body: Credentials) =>
     methods.put<Profile, Credentials>(PROFILE_URL, body, ProfileDecoder);
 
-  const getPreferences = () =>
-    methods.get<Preferences>(PREFERENCES_URL, PreferencesDecoder);
-  const updatePreferences = (pref: Preferences) =>
-    methods.put<Preferences>(PREFERENCES_URL, pref, PreferencesDecoder);
+  const getPrefs = () => methods.get<Prefs>(PREFS_URL, PrefsDecoder);
+  const updatePrefs = (pref: Prefs) =>
+    methods.put<Prefs>(PREFS_URL, pref, PrefsDecoder);
 
   const createUser = (body: Credentials) =>
     methods.post<Profile, Credentials>(USERS_URL, body, ProfileDecoder);
@@ -178,9 +174,9 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       get: getProfile,
       update: updateProfile,
     },
-    preferences: {
-      get: getPreferences,
-      update: updatePreferences,
+    prefs: {
+      get: getPrefs,
+      update: updatePrefs,
     },
     summary: {
       get: getSummary,

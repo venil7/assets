@@ -4,7 +4,7 @@ import { createAssetsStore, type AssetsStore } from "./assets";
 import { createAuthStore, type AuthStore } from "./auth";
 import { createPortfolioStore, type PortfolioStore } from "./portfolio";
 import { createPortfoliosStore, type PortfoliosStore } from "./portfolios";
-import { createPreferencesStore, type PreferencesStore } from "./preferences";
+import { createPrefsStore, type PrefsStore } from "./prefs";
 import { createProfileStore, type ProfileStore } from "./profile";
 import { createSummaryStore, type SummaryStore } from "./summary";
 import { createTxStore, type TxStore } from "./tx";
@@ -22,7 +22,7 @@ export type Store = {
   profile: ProfileStore;
   portfolio: PortfolioStore;
   portfolios: PortfoliosStore;
-  preferences: PreferencesStore;
+  prefs: PrefsStore;
 };
 
 export const createStore = (): Store => ({
@@ -36,7 +36,7 @@ export const createStore = (): Store => ({
   profile: createProfileStore(),
   portfolio: createPortfolioStore(),
   portfolios: createPortfoliosStore(),
-  preferences: createPreferencesStore(),
+  prefs: createPrefsStore(),
 });
 
 export const createStoreContext = (): [Store, React.Context<Store>] => {

@@ -1,4 +1,4 @@
 select id, base_ccy
-from preferences p
+from prefs p
 where p.user_id = $userId
 limit 1;
