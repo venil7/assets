@@ -1,5 +1,5 @@
 name: CHECKS-AND-INTEGRATION-TESTS
-run-name: Tests for ${{ github.ref_name }}
+run-name: Run tests for ${{ github.ref_name }}
 on:
   workflow_dispatch:
   push:
@@ -23,8 +23,6 @@ jobs:
           ~/go/bin/migrate -path ./.migrations -database=sqlite3://assets.db up
       - name: INSTALL BUN
         uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.0
       - name: INSTALL DEPENDENCIES
         run: bun install
       - name: RUN STATIC CHECKS

@@ -1,21 +1,26 @@
 import { pipe } from "fp-ts/lib/function";
-import { PrefsDecoder, YahooTickerSearchResultDecoder } from "../decoders";
-import { EnrichedAssetDecoder, EnrichedAssetsDecoder } from "../decoders/asset";
-import { IdDecoder } from "../decoders/id";
 import {
+  EnrichedAssetDecoder,
+  EnrichedAssetsDecoder,
   EnrichedPortfolioDecoder,
   EnrichedPortfoliosDecoder,
-} from "../decoders/portfolio";
-import { SummaryDecoder } from "../decoders/summary";
-import { TokenDecoder } from "../decoders/token";
-import { GetTxDecoder, GetTxsDecoder } from "../decoders/transaction";
-import { ProfileDecoder, ProfilesDecoder } from "../decoders/user";
-import type { ChartRange } from "../decoders/yahoo/meta";
+  GetTxDecoder,
+  GetTxsDecoder,
+  IdDecoder,
+  PrefsDecoder,
+  ProfileDecoder,
+  ProfilesDecoder,
+  SummaryDecoder,
+  TokenDecoder,
+  YahooTickerSearchResultDecoder,
+  type ChartRange,
+} from "../decoders";
 import type {
   Credentials,
   EnrichedAsset,
   EnrichedPortfolio,
   GetTx,
+  Id,
   PostAsset,
   PostPortfolio,
   PostTx,
@@ -23,10 +28,9 @@ import type {
   Profile,
   Summary,
   TickerSearchResult,
+  Token,
   UserId,
 } from "../domain";
-import type { Id } from "../domain/id";
-import type { Token } from "../domain/token";
 import type { Action } from "../utils/utils";
 import * as rest from "./rest";
 

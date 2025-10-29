@@ -31,17 +31,16 @@ export const CcyDecoder = pipe(
     )
 ) as t.Type<Ccy>;
 
-const prefssTypes = {
+const prefsTypes = {
   base_ccy: CcyDecoder,
 };
 
-export const PrefsDecoder = t.type(prefssTypes);
+export const PrefsDecoder = t.type(prefsTypes);
 
 export const ccyToLocale = (ccy: Ccy): string => {
   switch (ccy) {
     case "GBP":
       return "en-GB";
-
     case "EUR":
       return "de-DE";
     case "CAD":

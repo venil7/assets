@@ -13,7 +13,7 @@ import {
   DateFromUnixTime,
   date,
 } from "io-ts-types";
-import { validationErrors, type AppError } from "../domain";
+import { validationErrors, type AppError } from "../domain/error";
 import type { Optional } from "../utils/utils";
 
 export const liftE = <T, U = unknown>(decoder: t.Decoder<U, T>) => {
