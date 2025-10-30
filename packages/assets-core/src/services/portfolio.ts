@@ -2,6 +2,7 @@ import * as A from "fp-ts/lib/Array";
 import { pipe, type FunctionN, type LazyArg } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
 import * as TE from "fp-ts/lib/TaskEither";
+import type { Ccy } from "../decoders";
 import {
   ChartRangeOrd,
   DEFAULT_CHART_RANGE,
@@ -23,13 +24,14 @@ import { calcAssetWeights, getAssetsEnricher } from "./asset";
 import { combineAssetCharts, commonAssetRanges } from "./chart";
 
 export const getPortfolioEnricher =
-  (yahooApi: YahooApi, range?: ChartRange) =>
+  (yahooApi: YahooApi) =>
   (
     portfolio: GetPortfolio,
     getAssets: LazyArg<Action<GetAsset[]>>,
-    overrideRange = range
+    baseCcy: Ccy,
+    range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedPortfolio> => {
-    const enrichAssets = getAssetsEnricher(yahooApi, overrideRange);
+    const enrichAssets = getAssetsEnricher(yahooApi);
 
     return pipe(
       TE.Do,
@@ -37,7 +39,7 @@ export const getPortfolioEnricher =
       TE.bind("assets", () => {
         return pipe(
           getAssets(),
-          TE.chain(enrichAssets),
+          TE.chain((a) => enrichAssets(a, baseCcy, range)),
           TE.map(calcAssetWeights)
         );
       }),
@@ -116,30 +118,34 @@ export const getPortfolioEnricher =
   };
 
 export const getPortfoliosEnricher =
-  (yahooApi: YahooApi, range?: ChartRange) =>
+  (yahooApi: YahooApi) =>
   (
     portfolios: GetPortfolio[],
     getPortfolioAssets: FunctionN<[GetPortfolio], Action<GetAsset[]>>,
-    overrideRange = range
+    baseCcy: Ccy,
+    range?: ChartRange
   ): Action<EnrichedPortfolio[]> => {
-    const enrichPortfolio = getPortfolioEnricher(yahooApi, overrideRange);
+    const enrichPortfolio = getPortfolioEnricher(yahooApi);
     return pipe(
       portfolios,
-      TE.traverseArray((p) => enrichPortfolio(p, () => getPortfolioAssets(p))),
+      TE.traverseArray((p) =>
+        enrichPortfolio(p, () => getPortfolioAssets(p), baseCcy, range)
+      ),
       TE.map((ps) => calcPortfolioWeights(ps as EnrichedPortfolio[]))
     );
   };
 
 export const getOptionalPorfolioEnricher =
-  (yahooApi: YahooApi, range?: ChartRange) =>
+  (yahooApi: YahooApi) =>
   (
     portfolio: Optional<GetPortfolio>,
     getAssets: () => Action<GetAsset[]>,
-    overrideRange = range
+    baseCcy: Ccy,
+    range?: ChartRange
   ): Action<Optional<EnrichedPortfolio>> => {
     if (portfolio) {
-      const enrichPortfolio = getPortfolioEnricher(yahooApi, overrideRange);
-      return enrichPortfolio(portfolio, getAssets);
+      const enrichPortfolio = getPortfolioEnricher(yahooApi);
+      return enrichPortfolio(portfolio, getAssets, baseCcy, range);
     }
     return TE.of(null);
   };

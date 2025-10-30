@@ -1,47 +1,65 @@
 import {
-  defaultPasswordChange,
-  type Credentials,
+  type Credentials as CredentialsData,
+  type Prefs as PrefsData,
   type Profile,
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
-import { useState } from "react";
+import { Col, Row } from "react-bootstrap";
 import { withError } from "../../decorators/errors";
-import { withFetching } from "../../decorators/fetching";
 import { withNoData, type WithNoData } from "../../decorators/nodata";
-import { passwordChangeValidator } from "../../validation/credentials";
-import { PrimaryButton } from "../Form/FormControl";
-import { FormErrors } from "../Form/FormErrors";
-import { PasswordChangeForm } from "./PasswordChangeForm";
+import { TabContent, Tabs } from "../Form/Tabs";
+import { Credentials } from "./Credentials";
+import { Prefs } from "./Prefs";
+import { ProfileDetails } from "./ProfileDetails";
+
+const TABS = ["Profile", "Credentials", "Prefs"] as const;
 
 type ProfileProps = {
   profile: Profile;
-  onUpdate: (p: Credentials) => void;
+  prefs: PrefsData;
+  onCredentialsUpdate: (p: CredentialsData) => void;
+  onPrefsUpdate: (p: PrefsData) => void;
+  innerFetching: [profile: boolean, prefs: boolean];
 };
 
 const RawProfile: React.FC<ProfileProps> = ({
   profile,
-  onUpdate,
+  onCredentialsUpdate,
+  prefs,
+  onPrefsUpdate,
+  innerFetching: [profileFetching, prefsFetching],
 }: ProfileProps) => {
-  const [pwd, setPwd] = useState(defaultPasswordChange());
-  const { valid, errors } = passwordChangeValidator(pwd);
-  const handlePassChange = () =>
-    onUpdate({ username: profile.username, password: pwd.password });
   return (
-    <>
-      <pre>{JSON.stringify(profile, null, 2)}</pre>
-      <PasswordChangeForm data={pwd} onChange={setPwd} />
-      <PrimaryButton disabled={!valid} onClick={handlePassChange}>
-        Submit
-      </PrimaryButton>
-      <FormErrors errors={errors} valid={valid} />
-    </>
+    <Row>
+      <Col md={4}>
+        <Tabs tabs={TABS}>
+          <TabContent tab={0}>
+            <ProfileDetails profile={profile} fetching={profileFetching} />
+          </TabContent>
+          <TabContent tab={1}>
+            <Credentials
+              profile={profile}
+              onUpdate={onCredentialsUpdate}
+              fetching={profileFetching}
+            />
+          </TabContent>
+          <TabContent tab={2}>
+            <Prefs
+              prefs={prefs}
+              onUpdate={onPrefsUpdate}
+              fetching={prefsFetching}
+            />
+          </TabContent>
+        </Tabs>
+      </Col>
+    </Row>
   );
 };
 
 export const UserProfile = pipe(
   RawProfile,
-  withNoData<ProfileProps, "profile">((p) => p.profile),
-  withError<WithNoData<ProfileProps, "profile">>,
-  withFetching
+  withNoData<ProfileProps, "profile" | "prefs">((p) => p.profile ?? p.prefs),
+  withError<WithNoData<ProfileProps, "profile" | "prefs">>
+  // withFetching
 );

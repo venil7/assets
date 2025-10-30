@@ -1,0 +1,23 @@
+# docker buildx build -t assets-test -f ./Dockerfile.test .
+# docker run -it assets-test
+FROM golang:1.24 AS migrate
+WORKDIR /app
+COPY .migrations /app/.migrations
+RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+RUN /go/bin/migrate -path .migrations -database=sqlite3://assets.db up
+
+FROM oven/bun:1.3 AS builder
+WORKDIR /app
+COPY . .
+COPY --from=migrate /app/assets.db ./assets.db
+RUN bun install
+RUN bun run check
+
+ENV ASSETS_APP="./public"
+ENV ASSETS_PORT=4020
+ENV ASSETS_DB=/app/assets.db
+ENV ASSETS_JWT_SECRET=secret
+ENV ASSETS_JWT_EXPIRES_IN=7d
+ENV ASSETS_JWT_REFRESH_BEFORE=6d
+
+CMD ["sh", "-c", "bun run backend:dev & echo $! >/tmp/backend.pid && sleep 1 &&bun test"]

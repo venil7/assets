@@ -1,31 +1,36 @@
 import { pipe } from "fp-ts/lib/function";
-import { YahooTickerSearchResultDecoder } from "../decoders";
-import { EnrichedAssetDecoder, EnrichedAssetsDecoder } from "../decoders/asset";
-import { IdDecoder } from "../decoders/id";
 import {
+  EnrichedAssetDecoder,
+  EnrichedAssetsDecoder,
   EnrichedPortfolioDecoder,
   EnrichedPortfoliosDecoder,
-} from "../decoders/portfolio";
-import { SummaryDecoder } from "../decoders/summary";
-import { TokenDecoder } from "../decoders/token";
-import { GetTxDecoder, GetTxsDecoder } from "../decoders/transaction";
-import { ProfileDecoder, ProfilesDecoder } from "../decoders/user";
-import type { ChartRange } from "../decoders/yahoo/meta";
+  GetTxDecoder,
+  GetTxsDecoder,
+  IdDecoder,
+  PrefsDecoder,
+  ProfileDecoder,
+  ProfilesDecoder,
+  SummaryDecoder,
+  TokenDecoder,
+  YahooTickerSearchResultDecoder,
+  type ChartRange,
+} from "../decoders";
 import type {
   Credentials,
   EnrichedAsset,
   EnrichedPortfolio,
   GetTx,
+  Id,
   PostAsset,
   PostPortfolio,
   PostTx,
+  Prefs,
   Profile,
   Summary,
   TickerSearchResult,
+  Token,
   UserId,
 } from "../domain";
-import type { Id } from "../domain/id";
-import type { Token } from "../domain/token";
 import type { Action } from "../utils/utils";
 import * as rest from "./rest";
 
@@ -42,6 +47,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     return range ? `${base}?range=${range}` : base;
   };
   const PROFILE_URL = `${API_URL}/profile`;
+  const PREFS_URL = `${API_URL}/prefs`;
   const PORTFOLIO_URL = (portfolioId: number, range?: ChartRange) => {
     const base = `${PORTFOLIOS_URL()}/${portfolioId}`;
     return range ? `${base}?range=${range}` : base;
@@ -140,6 +146,10 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const updateProfile = (body: Credentials) =>
     methods.put<Profile, Credentials>(PROFILE_URL, body, ProfileDecoder);
 
+  const getPrefs = () => methods.get<Prefs>(PREFS_URL, PrefsDecoder);
+  const updatePrefs = (pref: Prefs) =>
+    methods.put<Prefs>(PREFS_URL, pref, PrefsDecoder);
+
   const createUser = (body: Credentials) =>
     methods.post<Profile, Credentials>(USERS_URL, body, ProfileDecoder);
   const updateUser = (uid: UserId, body: Credentials) =>
@@ -167,6 +177,10 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     profile: {
       get: getProfile,
       update: updateProfile,
+    },
+    prefs: {
+      get: getPrefs,
+      update: updatePrefs,
     },
     summary: {
       get: getSummary,

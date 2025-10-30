@@ -34,3 +34,6 @@ export const updateUserSql = getSql("user/update");
 export const deleteUserSql = getSql("user/delete");
 export const getUnlockedUserSql = getSql("user/get-unlocked");
 export const loginAttemptUserSql = getSql("user/login-attempt");
+
+export const getPrefsSql = getSql("prefs/get");
+export const updatePrefsSql = getSql("prefs/update");

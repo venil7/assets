@@ -24,12 +24,15 @@ export const getAssets: HandlerTask<EnrichedAsset[], Context> = ({
     TE.Do,
     TE.bind("userId", () => getUserId(res)),
     TE.bind("range", () => rangeFromUrl(req.query.range)),
+    TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
     TE.bind("assets", ({ userId, portfolioId }) =>
       repo.asset.getAll(portfolioId, userId)
     ),
     TE.let("enrichAssets", () => getAssetsEnricher(yahooApi)),
-    TE.chain(({ assets, range, enrichAssets }) => enrichAssets(assets, range!)),
+    TE.chain(({ assets, pref, range, enrichAssets }) =>
+      enrichAssets(assets, pref.base_ccy, range!)
+    ),
     TE.mapLeft(toWebError)
   );
 
@@ -42,12 +45,15 @@ export const getAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
     TE.bind("id", () => numberFromUrl(req.params.id)),
     TE.bind("range", () => rangeFromUrl(req.query.range)),
     TE.bind("userId", () => getUserId(res)),
+    TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
     TE.bind("asset", ({ id, portfolioId, userId }) =>
       repo.asset.get(id, portfolioId, userId)
     ),
-    TE.let("enrichAssets", () => getOptionalAssetsEnricher(yahooApi)),
-    TE.chain(({ asset, enrichAssets, range }) => enrichAssets(asset, range!)),
+    TE.let("enrichAsset", () => getOptionalAssetsEnricher(yahooApi)),
+    TE.chain(({ asset, enrichAsset, pref, range }) =>
+      enrichAsset(asset, pref.base_ccy, range!)
+    ),
     TE.mapLeft(toWebError)
   );
 
@@ -59,17 +65,21 @@ export const createAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
     TE.Do,
     TE.bind("userId", () => getUserId(res)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
+    TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("asset", () => pipe(req.body, liftTE(PostAssetDecoder))),
     TE.bind("yahooCheck", ({ asset }) =>
       pipe(asset.ticker, checkTickerExists(yahooApi))
     ),
-    TE.bind("execution", ({ asset, portfolioId }) =>
-      repo.asset.create(asset, portfolioId)
+    TE.let("enrichAsset", () => getOptionalAssetsEnricher(yahooApi)),
+    TE.bind("createdAsset", ({ asset, portfolioId, userId }) => {
+      return pipe(
+        repo.asset.create(asset, portfolioId),
+        TE.chain(([id]) => repo.asset.get(id, portfolioId, userId))
+      );
+    }),
+    TE.chain(({ createdAsset, enrichAsset, pref }) =>
+      enrichAsset(createdAsset, pref.base_ccy)
     ),
-    TE.chain(({ execution: [id], portfolioId, userId }) =>
-      repo.asset.get(id, portfolioId, userId)
-    ),
-    TE.chain(getOptionalAssetsEnricher(yahooApi)),
     TE.mapLeft(toWebError)
   );
 
@@ -97,17 +107,21 @@ export const updateAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
     TE.bind("userId", () => getUserId(res)),
+    TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
     TE.bind("asset", () => pipe(req.body, liftTE(PostAssetDecoder))),
     TE.bind("yahooCheck", ({ asset }) =>
       pipe(asset.ticker, checkTickerExists(yahooApi))
     ),
-    TE.bind("update", ({ id, portfolioId, asset }) =>
-      repo.asset.update(id, asset, portfolioId)
+    TE.let("enrichAsset", () => getOptionalAssetsEnricher(yahooApi)),
+    TE.bind("updatedAsset", ({ id, portfolioId, asset, userId }) => {
+      return pipe(
+        repo.asset.update(id, asset, portfolioId),
+        TE.chain(() => repo.asset.get(id, portfolioId, userId))
+      );
+    }),
+    TE.chain(({ enrichAsset, pref, updatedAsset }) =>
+      enrichAsset(updatedAsset, pref.base_ccy)
     ),
-    TE.chain(({ id, portfolioId, userId }) =>
-      repo.asset.get(id, portfolioId, userId)
-    ),
-    TE.chain(getOptionalAssetsEnricher(yahooApi)),
     TE.mapLeft(toWebError)
   );

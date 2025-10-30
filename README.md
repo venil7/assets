@@ -2,14 +2,14 @@
 
 A self-hosted net worth and portfolio manager.
 Track multiple portfolios (ISA, General, Pension, Crypto, etc.) and monitor individual or total performance.
-Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.com/)
+Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.com/), automatically converts to your base major currency.
 
 ---
 
-<img width="235" height="500" alt="screenshot#0" src="https://github.com/user-attachments/assets/e3f5a0d5-b51d-434c-8142-8b7fc686fc14" />
-<img width="235" height="500" alt="screenshot#1" src="https://github.com/user-attachments/assets/9cd1a5b4-c351-441b-80d5-0afee9b321a7" />
-<img width="235" height="500" alt="screenshot#2" src="https://github.com/user-attachments/assets/20ce10c9-96ba-4bcc-84fc-0b9a9d9eda76" />
-<img width="235" height="500" alt="screenshot#3" src="https://github.com/user-attachments/assets/dbbe952e-6618-4022-a588-812d1b5e6a5f" />
+<img width="235" height="500" alt="screenshot#3" src="https://github.com/user-attachments/assets/e535c660-9e40-4eae-a54b-821075ac8264" />
+<img width="235" height="500" alt="screenshot#0" src="https://github.com/user-attachments/assets/6bb7314c-e858-4ff1-8a4a-29107e88cda8" />
+<img width="235" height="500" alt="screenshot#2" src="https://github.com/user-attachments/assets/246dcc01-5d05-4740-9dbc-af818c9479f0" />
+<img width="235" height="500" alt="screenshot#1" src="https://github.com/user-attachments/assets/caa7c233-2a21-4479-bb15-732fcfcb1fc4" />
 
 ---
 
@@ -102,8 +102,17 @@ The following `migrate` commands are available
 ```sh
 migrate create -ext sql -dir .migrations/ -seq -digits 3 <name>
 migrate -path ./.migrations -database=sqlite3://assets.db up
-migrate -path ./.migrations -database=sqlite3://assets.db down
+migrate -path ./.migrations -database=sqlite3://assets.db down <number>
 migrate -path ./.migrations -database=sqlite3://assets.db version
+```
+
+### Running tests
+
+```sh
+# Build a test container
+docker buildx build -t assets-test -f ./Dockerfile.test .
+# Run tests in a container
+docker run -it assets-test
 ```
 
 ## API-First Design

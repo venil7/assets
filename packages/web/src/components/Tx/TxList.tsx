@@ -1,5 +1,7 @@
 import {
+  ccyToLocale,
   defaultBuyTx,
+  type Ccy,
   type EnrichedAsset,
   type GetTx,
   type Identity,
@@ -57,6 +59,7 @@ const RawTxTable: React.FC<TxTableProps> = ({
   onDelete,
   onEdit,
 }) => {
+  const locale = ccyToLocale(asset.meta.currency as Ccy);
   const handleEdit = (txid: number, tx: PostTx) =>
     pipe(
       () => txModal(tx, asset),
@@ -85,8 +88,8 @@ const RawTxTable: React.FC<TxTableProps> = ({
           <tr key={tx.id}>
             <td className="d-none d-md-table-cell">{tx.id}</td>
             <td>{tx.type}</td>
-            <td>{decimal(tx.quantity)}</td>
-            <td>{money(tx.price, asset.meta.currency)}</td>
+            <td>{decimal(tx.quantity, 5, locale)}</td>
+            <td>{money(tx.price, asset.meta.currency as Ccy, locale)}</td>
             <td>{tx.comments}</td>
             <td className="d-none d-md-table-cell">{iso(tx.date)}</td>
             <td>

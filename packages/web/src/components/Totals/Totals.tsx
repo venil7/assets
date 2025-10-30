@@ -4,7 +4,7 @@ import type {
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import * as React from "react";
-import { money } from "../../util/number";
+import { useFormatters } from "../../hooks/prefs";
 import { MoneyAndChangeIndicator } from "../Badge/Badges";
 import "./Totals.scss";
 
@@ -19,6 +19,8 @@ export const Totals: React.FC<TotalsProps> = ({
   change,
   range,
 }: TotalsProps) => {
+  const { money } = useFormatters();
+
   return (
     <div className="totals">
       <h4 className="value">{money(change.current)}</h4>

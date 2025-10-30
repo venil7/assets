@@ -6,7 +6,7 @@ import { useNavigate } from "react-router";
 import { Login } from "../components/Auth/Login";
 import { routes } from "../components/Router";
 import { Error } from "../decorators/errors";
-import { useStore } from "../stores/store";
+import { useStore } from "../hooks/store";
 
 const RawLoginScreen: React.FC = () => {
   useSignals();

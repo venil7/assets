@@ -1,24 +1,28 @@
 import { useSignals } from "@preact/signals-react/runtime";
 import { use, useEffect } from "react";
 import { UserProfile } from "../components/Profile/Profile";
-import { StoreContext } from "../stores/store";
+import { StoreContext } from "../hooks/store";
 
 const RawProfileScreen: React.FC = () => {
   useSignals();
-  const { profile } = use(StoreContext);
+  const { profile, prefs } = use(StoreContext);
 
-  const handleUpdate = profile.update;
+  const handleCredentialsUpdate = profile.update;
+  const handlePrefsUpdate = prefs.update;
 
   useEffect(() => {
     profile.load();
-  }, [profile]);
+    prefs.load();
+  }, [profile, prefs]);
 
   return (
     <UserProfile
-      error={profile.error.value}
       profile={profile.data.value}
-      fetching={profile.fetching.value}
-      onUpdate={handleUpdate}
+      prefs={prefs.data.value}
+      onPrefsUpdate={handlePrefsUpdate}
+      onCredentialsUpdate={handleCredentialsUpdate}
+      error={profile.error.value || prefs.error.value}
+      innerFetching={[profile.fetching.value, prefs.fetching.value]}
     />
   );
 };

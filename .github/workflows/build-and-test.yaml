@@ -1,5 +1,5 @@
 name: CHECKS-AND-INTEGRATION-TESTS
-run-name: Tests for ${{ github.sha }}
+run-name: Run tests for ${{ github.ref_name }}
 on:
   workflow_dispatch:
   push:

@@ -13,7 +13,7 @@ import {
   Row,
 } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
-import { money } from "../../util/number";
+import { useFormatters } from "../../hooks/prefs";
 import { TextArea } from "../Form/FormControl";
 import { FormNumber } from "../Form/NumberEdit";
 
@@ -27,6 +27,7 @@ export const TxForm: React.FC<TxFormProps> = ({ tx, asset, onChange }) => {
   const setField = usePartialChange(tx, onChange);
   const setPrice = setField("price") as (n: Nullable<number>) => void;
   const setQuantity = setField("quantity") as (n: Nullable<number>) => void;
+  const { money } = useFormatters();
 
   const basePrice = money(tx.price / asset.value.baseRate);
 

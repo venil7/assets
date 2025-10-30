@@ -1,11 +1,13 @@
 import {
   api,
+  BASE_CCYS,
   login,
   type Api,
   type Credentials,
   type PostAsset,
   type PostPortfolio,
   type PostTx,
+  type Prefs,
   type TxType,
 } from "@darkruby/assets-core";
 import faker from "faker";
@@ -13,6 +15,10 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 
 const BASE_URL = `http://${process.env.URL ?? "localhost:4020"}`;
+
+export const fakePrefs = (): Prefs => ({
+  base_ccy: faker.random.arrayElement(BASE_CCYS),
+});
 
 export const fakeCredentials = (): Credentials => ({
   username: faker.internet.email(),

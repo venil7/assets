@@ -1,6 +1,7 @@
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import { createBrowserRouter, Navigate } from "react-router";
+import { store } from "../hooks/store";
 import { AssetScreen } from "../screens/Asset";
 import { LoginScreen } from "../screens/Login";
 import { LogoutScreen } from "../screens/Logout";
@@ -10,7 +11,6 @@ import { ProfileScreen } from "../screens/Profile";
 import { TestScreen } from "../screens/Test";
 import { UsersScreen } from "../screens/Users";
 import { env } from "../services/env";
-import { store } from "../stores/store";
 import { AuthRouteWrapper } from "./Layout/AuthRouteWrapper";
 import { UnauthRouteWrapper } from "./Layout/UnauthRouteWrapper";
 

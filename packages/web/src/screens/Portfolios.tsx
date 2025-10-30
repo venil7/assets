@@ -3,7 +3,7 @@ import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useEffect } from "react";
 import { Portfolios } from "../components/Portfolio/Portfolios";
-import { useStore } from "../stores/store";
+import { useStore } from "../hooks/store";
 
 const RawPortfoliosScreen: React.FC = () => {
   useSignals();

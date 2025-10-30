@@ -1,5 +1,5 @@
 name: RELEASE-DOCKER-CONTAINER
-run-name: ${{ github.actor }} building and pushing docker container
+run-name: Build container for ${{ github.ref_name }}
 on:
   workflow_dispatch:
   push:

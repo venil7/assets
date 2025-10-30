@@ -12,27 +12,25 @@ import {
   YAxis,
 } from "recharts";
 import { withVisibility } from "../../decorators/nodata";
-import { money } from "../../util/number";
+import { useFormatters } from "../../hooks/prefs";
 
 export type ChartProps = {
   data: ChartData;
   timeFormatter: (n: ChartDataItem["timestamp"]) => string;
-  priceFormatter?: (n: ChartDataItem["price"]) => string;
-  volumeFormatter?: (n: ChartDataItem["volume"]) => string;
 };
 
 const RawChart: React.FC<ChartProps> = ({
   data,
   timeFormatter,
-  priceFormatter = (n) => money(n),
-  volumeFormatter = (n) => money(n),
 }: ChartProps) => {
+  const { money } = useFormatters();
+
   const tooltipValueFormatter = (v: number, n: keyof ChartDataItem) => {
     switch (n) {
       case "price":
-        return priceFormatter(v);
+        return money(v);
       case "volume":
-        return volumeFormatter(v);
+        return money(v);
       default:
         String(v);
     }
@@ -64,7 +62,7 @@ const RawChart: React.FC<ChartProps> = ({
             hide
             yAxisId="price"
             dataKey="price"
-            tickFormatter={priceFormatter}
+            tickFormatter={money}
             domain={["dataMin", "dataMax"]}
             orientation="left"
           />
@@ -72,7 +70,7 @@ const RawChart: React.FC<ChartProps> = ({
             hide
             yAxisId="volume"
             dataKey="volume"
-            tickFormatter={priceFormatter}
+            tickFormatter={money}
             domain={["dataMin", "dataMax"]}
             orientation="right"
           />
