@@ -2,7 +2,7 @@
 
 A self-hosted net worth and portfolio manager.
 Track multiple portfolios (ISA, General, Pension, Crypto, etc.) and monitor individual or total performance.
-Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.com/)
+Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.com/), automatically converts to your base major currency.
 
 ---
 
@@ -102,8 +102,17 @@ The following `migrate` commands are available
 ```sh
 migrate create -ext sql -dir .migrations/ -seq -digits 3 <name>
 migrate -path ./.migrations -database=sqlite3://assets.db up
-migrate -path ./.migrations -database=sqlite3://assets.db down
+migrate -path ./.migrations -database=sqlite3://assets.db down <number>
 migrate -path ./.migrations -database=sqlite3://assets.db version
+```
+
+### Running tests
+
+```sh
+# Build a test container
+docker buildx build -t assets-test -f ./Dockerfile.test .
+# Run tests in a container
+docker run -it assets-test
 ```
 
 ## API-First Design

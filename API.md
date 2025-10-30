@@ -1,16 +1,18 @@
 **API**
 
-| Method | Endpoint                               | Description                        | Request Body                         | Response Body                                                 |
-|--------|----------------------------------------|------------------------------------|--------------------------------------|---------------------------------------------------------------|
-| POST   | `/login`                               | Authenticate and get a bearer token| `{ username, passord }` | `{ token }`                                        |
-| POST   | `/portfolios`                          | Create a new portfolio             | `{ name, description }` | `{ id,  user_id,  name, description, created, modified, total_invested, num_assets }` |
-| GET    | `/portfolios`                          | List all portfolios                | —                      | `[{ id,  user_id,  name, description, created, modified, total_invested, num_assets }]`|
-| GET    | `/portfolios/{portfolio_id}`           | Get a portfolio by ID              | —                      | `{ id,  user_id,  name, description, created, modified, total_invested, num_assets }`|
-| DELETE | `/portfolios/{portfolio_id}`           | Delete a portfolio                 | —                      | `{ id }`                                                 |
-| GET    | `/portfolios/{portfolio_id}/assets`    | List assets in a portfolio         | —                      | `[{ id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }]`                         |
-| POST   | `/portfolios/{portfolio_id}/assets`    | Add an asset to a portfolio        | `{ name, ticker }`      | `{ id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }` |
-| GET    | `/portfolios/{portfolio_id}/assets/{asset_id}` | Get an asset by ID         | —                      | `{ id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }`                           |
-| DELETE | `/portfolios/{portfolio_id}/assets/{asset_id}` | Delete an asset by ID      | —                      | `{ id }`                                                 |
+| Method | Endpoint                                       | Description                         | Request Body            | Response Body                                                                                                    |
+| ------ | ---------------------------------------------- | ----------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| POST   | `/login`                                       | Authenticate and get a bearer token | `{ username, passord }` | `{ token }`                                                                                                      |
+| POST   | `/portfolios`                                  | Create a new portfolio              | `{ name, description }` | `{ id,  user_id,  name, description, created, modified, total_invested, num_assets }`                            |
+| GET    | `/portfolios`                                  | List all portfolios                 | —                       | `[{ id,  user_id,  name, description, created, modified, total_invested, num_assets }]`                          |
+| GET    | `/portfolios/{portfolio_id}`                   | Get a portfolio by ID               | —                       | `{ id,  user_id,  name, description, created, modified, total_invested, num_assets }`                            |
+| DELETE | `/portfolios/{portfolio_id}`                   | Delete a portfolio                  | —                       | `{ id }`                                                                                                         |
+| GET    | `/portfolios/{portfolio_id}/assets`            | List assets in a portfolio          | —                       | `[{ id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }]` |
+| POST   | `/portfolios/{portfolio_id}/assets`            | Add an asset to a portfolio         | `{ name, ticker }`      | `{ id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }`   |
+| GET    | `/portfolios/{portfolio_id}/assets/{asset_id}` | Get an asset by ID                  | —                       | `{ id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }`   |
+| DELETE | `/portfolios/{portfolio_id}/assets/{asset_id}` | Delete an asset by ID               | —                       | `{ id }`                                                                                                         |
+| GET    | `/profile`                                     | Gets profile details                | --                      | `{ id, username, admin , login_attempts , locked }`                                                              |
+| GET    | `/prefs`                                       | Gets prefs details                  | --                      | `{ id, base_ccy }`                                                                                               |
 
 ---
 
