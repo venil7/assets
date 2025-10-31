@@ -4,7 +4,7 @@ import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { toWebError } from "../domain/error";
-import { getUserId } from "./auth";
+import { requireUserId } from "./auth";
 import type { Context } from "./context";
 
 export const getPrefs: HandlerTask<Prefs, Context> = ({
@@ -13,7 +13,7 @@ export const getPrefs: HandlerTask<Prefs, Context> = ({
 }) =>
   pipe(
     TE.Do,
-    TE.bind("userId", () => getUserId(res)),
+    TE.bind("userId", () => requireUserId(res)),
     TE.bind("prefs", ({ userId }) => repo.prefs.get(userId)),
     TE.chain(({ prefs }) => liftTE(PrefsDecoder)(prefs)),
     TE.mapLeft(toWebError)
@@ -25,7 +25,7 @@ export const updatePrefs: HandlerTask<Prefs, Context> = ({
 }) =>
   pipe(
     TE.Do,
-    TE.bind("userId", () => getUserId(res)),
+    TE.bind("userId", () => requireUserId(res)),
     TE.bind("prefs", () => pipe(req.body, liftTE(PrefsDecoder))),
     TE.chain(({ userId, prefs }) =>
       pipe(

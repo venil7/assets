@@ -89,6 +89,7 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       const profile = express();
       profile.get("/", handlers.profile.get);
       profile.put("/", handlers.profile.update);
+      profile.delete("/", handlers.profile.delete);
       api.use("/profile", profile);
 
       const prefs = express();

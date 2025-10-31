@@ -18,19 +18,21 @@ import { toWebError } from "../domain/error";
 import { createToken, verifyBearer, verifyPassword } from "../services/auth";
 import type { Context } from "./context";
 
-export const getProfile = (
+export const requireProfile = (
   res: Parameters<RequestHandler>[1]
 ): Action<Profile> => pipe(res.locals["profile"], liftTE(ProfileDecoder));
 
-export const getUserId = (res: Parameters<RequestHandler>[1]): Action<UserId> =>
+export const requireUserId = (
+  res: Parameters<RequestHandler>[1]
+): Action<UserId> =>
   pipe(
-    getProfile(res),
+    requireProfile(res),
     TE.map((p) => p.id)
   );
 
-export const getAdminProfile = (res: Parameters<RequestHandler>[1]) =>
+export const requireAdminProfile = (res: Parameters<RequestHandler>[1]) =>
   pipe(
-    getProfile(res),
+    requireProfile(res),
     TE.filterOrElse(
       (u) => u.admin,
       () => authError(`not an admin`)
@@ -57,20 +59,26 @@ export const refreshToken: HandlerTask<Token, Context> = ({
 }) =>
   pipe(
     TE.Do,
-    TE.bind("profile", () => getProfile(res)),
+    TE.bind("profile", () => requireProfile(res)),
     TE.chain(({ profile }) => createToken(profile)),
     TE.mapLeft(toWebError)
   );
 
 export const verifyToken: HandlerTask<void, Context> = ({
   params: [req, res],
+  context: { repo },
 }) =>
   pipe(
     TE.Do,
     TE.bind("jwt", () => verifyBearer(req.header("authorization"))),
-    TE.chain(({ jwt }) => pipe(jwt.payload, liftTE(ProfileDecoder))),
+    TE.bind("payload", ({ jwt }) => pipe(jwt.payload, liftTE(ProfileDecoder))),
+    TE.bind("profile", ({ payload: { id } }) => repo.user.get(id)),
+    TE.filterOrElse(
+      ({ profile }) => !profile.locked,
+      () => authError("User restricted")
+    ),
     TE.mapLeft(toWebError),
-    TE.chain((profile) => {
+    TE.chain(({ profile }) => {
       res.locals["profile"] = profile;
       return TE.left(next());
     })

@@ -7,7 +7,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { numberFromUrl } from "../decoders/params";
 import { toWebError } from "../domain/error";
-import { getProfile } from "./auth";
+import { requireProfile } from "./auth";
 import type { Context } from "./context";
 
 export const getTxs: HandlerTask<GetTx[], Context> = ({
@@ -17,7 +17,7 @@ export const getTxs: HandlerTask<GetTx[], Context> = ({
   pipe(
     TE.Do,
     TE.bind("assetId", () => numberFromUrl(req.params.asset_id)),
-    TE.bind("profile", () => getProfile(res)),
+    TE.bind("profile", () => requireProfile(res)),
     TE.bind("txs", ({ assetId, profile }) =>
       repo.tx.getAll(assetId, profile.id)
     ),
@@ -32,7 +32,7 @@ export const getTx: HandlerTask<Optional<GetTx>, Context> = ({
   pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("profile", () => getProfile(res)),
+    TE.bind("profile", () => requireProfile(res)),
     TE.bind("assetId", () => numberFromUrl(req.params.asset_id)),
     TE.chain(({ id, assetId, profile }) =>
       repo.tx.get(id, assetId, profile.id)
@@ -48,7 +48,7 @@ export const createTx: HandlerTask<Optional<GetTx>, Context> = ({
     TE.Do,
     TE.bind("body", () => pipe(req.body, liftTE(PostTxDecoder))),
     TE.bind("assetId", () => numberFromUrl(req.params.asset_id)),
-    TE.bind("profile", () => getProfile(res)),
+    TE.bind("profile", () => requireProfile(res)),
     TE.bind("execution", ({ body, assetId, profile }) =>
       repo.tx.create(body, assetId, profile.id)
     ),
@@ -65,7 +65,7 @@ export const deleteTx: HandlerTask<Optional<Id>, Context> = ({
   pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("profile", () => getProfile(res)),
+    TE.bind("profile", () => requireProfile(res)),
     TE.bind("delete", ({ id, profile }) => repo.tx.delete(id, profile.id)),
     TE.map(({ id, delete: [_, rowsDeleted] }) => (rowsDeleted ? { id } : null)),
     TE.mapLeft(toWebError)
@@ -79,7 +79,7 @@ export const updateTx: HandlerTask<Optional<GetTx>, Context> = ({
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
     TE.bind("assetId", () => numberFromUrl(req.params.asset_id)),
-    TE.bind("profile", () => getProfile(res)),
+    TE.bind("profile", () => requireProfile(res)),
     TE.bind("body", () => pipe(req.body, liftTE(PostTxDecoder))),
     TE.bind("update", ({ id, assetId, body, profile }) =>
       repo.tx.update(id, body, assetId, profile.id)
