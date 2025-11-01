@@ -52,8 +52,9 @@ export const createHandlers = (
     get: pipe(summary.getSummary, expressify),
   },
   profile: {
-    get: pipe(profile.getOwnProfile, expressify),
-    update: pipe(profile.updateOwnProfile, expressify),
+    get: pipe(profile.getProfile, expressify),
+    update: pipe(profile.updateProfile, expressify),
+    delete: pipe(profile.deleteProfile, expressify),
   },
   auth: {
     login: pipe(auth.login, expressify),

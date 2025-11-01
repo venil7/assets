@@ -13,7 +13,7 @@ import * as TE from "fp-ts/TaskEither";
 import { numberFromUrl, rangeFromUrl } from "../decoders/params";
 import { toWebError } from "../domain/error";
 import { checkTickerExists } from "../services/yahoo";
-import { getProfile, getUserId } from "./auth";
+import { requireProfile, requireUserId } from "./auth";
 import type { Context } from "./context";
 
 export const getAssets: HandlerTask<EnrichedAsset[], Context> = ({
@@ -22,7 +22,7 @@ export const getAssets: HandlerTask<EnrichedAsset[], Context> = ({
 }) =>
   pipe(
     TE.Do,
-    TE.bind("userId", () => getUserId(res)),
+    TE.bind("userId", () => requireUserId(res)),
     TE.bind("range", () => rangeFromUrl(req.query.range)),
     TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
@@ -44,7 +44,7 @@ export const getAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
     TE.bind("range", () => rangeFromUrl(req.query.range)),
-    TE.bind("userId", () => getUserId(res)),
+    TE.bind("userId", () => requireUserId(res)),
     TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
     TE.bind("asset", ({ id, portfolioId, userId }) =>
@@ -63,7 +63,7 @@ export const createAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
 }) =>
   pipe(
     TE.Do,
-    TE.bind("userId", () => getUserId(res)),
+    TE.bind("userId", () => requireUserId(res)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
     TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("asset", () => pipe(req.body, liftTE(PostAssetDecoder))),
@@ -91,7 +91,7 @@ export const deleteAsset: HandlerTask<Optional<Id>, Context> = ({
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
-    TE.bind("profile", () => getProfile(res)),
+    TE.bind("profile", () => requireProfile(res)),
     TE.bind("delete", ({ id, portfolioId, profile }) =>
       repo.asset.delete(id, portfolioId, profile.id)
     ),
@@ -106,7 +106,7 @@ export const updateAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
   pipe(
     TE.Do,
     TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("userId", () => getUserId(res)),
+    TE.bind("userId", () => requireUserId(res)),
     TE.bind("pref", ({ userId }) => repo.prefs.get(userId)),
     TE.bind("portfolioId", () => numberFromUrl(req.params.portfolio_id)),
     TE.bind("asset", () => pipe(req.body, liftTE(PostAssetDecoder))),

@@ -1,9 +1,12 @@
-import { authError, type Action } from "@darkruby/assets-core";
+import { authError, type Action, type Optional } from "@darkruby/assets-core";
 import {
   GetUserDecoder,
   GetUsersDecoder,
 } from "@darkruby/assets-core/src/decoders/user";
-import { liftTE } from "@darkruby/assets-core/src/decoders/util";
+import {
+  liftTE,
+  nullableDecoder,
+} from "@darkruby/assets-core/src/decoders/util";
 import type {
   GetUser,
   PostUser,
@@ -63,7 +66,7 @@ export const loginAttempt =
           return getUser.get({ username });
         })(db)
       ),
-      TE.filterOrElse(Boolean, () => authError("could not authenticate")),
+      TE.filterOrElse(Boolean, () => authError("Could not authenticate.")),
       TE.chain(liftTE(GetUserDecoder))
     );
   };
@@ -92,12 +95,12 @@ export const getUsers =
 
 export const getUser =
   (db: Database) =>
-  (userId: UserId): Action<GetUser> =>
+  (userId: UserId): Action<Optional<GetUser>> =>
     pipe(
       queryOne({ userId }),
       ID.ap(sql.user.get),
       ID.ap(db),
-      TE.chain(liftTE(GetUserDecoder))
+      TE.chain(liftTE(nullableDecoder(GetUserDecoder)))
     );
 
 export const createUser =

@@ -69,7 +69,7 @@ export const verifyBearer = (
   );
 };
 
-const toUser =
+const credentialsToUser =
   (admin: boolean = false) =>
   ({ username, password }: Credentials): Action<PostUser> => {
     return pipe(
@@ -83,5 +83,5 @@ const toUser =
     );
   };
 
-export const toNonAdminUser = toUser(false);
-export const toAdminUser = toUser(true);
+export const toNonAdminUser = credentialsToUser(false);
+export const toAdminUser = credentialsToUser(true);

@@ -1,4 +1,4 @@
-import type { Profile } from "@darkruby/assets-core";
+import type { Id, Optional, Profile } from "@darkruby/assets-core";
 import {
   CredenatialsDecoder,
   ProfileDecoder,
@@ -9,28 +9,28 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { toWebError } from "../domain/error";
 import * as userService from "../services/auth";
-import { getUserId } from "./auth";
+import { requireUserId } from "./auth";
 import type { Context } from "./context";
 
-export const getOwnProfile: HandlerTask<Profile, Context> = ({
+export const getProfile: HandlerTask<Profile, Context> = ({
   params: [, res],
   context: { repo },
 }) =>
   pipe(
     TE.Do,
-    TE.bind("userId", () => getUserId(res)),
+    TE.bind("userId", () => requireUserId(res)),
     TE.bind("user", ({ userId }) => repo.user.get(userId)),
     TE.chain(({ user }) => liftTE(ProfileDecoder)(user)),
     TE.mapLeft(toWebError)
   );
 
-export const updateOwnProfile: HandlerTask<Profile, Context> = ({
+export const updateProfile: HandlerTask<Optional<Profile>, Context> = ({
   params: [req, res],
   context: { repo },
 }) =>
   pipe(
     TE.Do,
-    TE.bind("userId", () => getUserId(res)),
+    TE.bind("userId", () => requireUserId(res)),
     TE.bind("credentials", () => pipe(req.body, liftTE(CredenatialsDecoder))),
     TE.bind("usr", ({ credentials }) =>
       userService.toNonAdminUser(credentials)
@@ -41,5 +41,17 @@ export const updateOwnProfile: HandlerTask<Profile, Context> = ({
         TE.chain(() => repo.user.get(userId))
       )
     ),
+    TE.mapLeft(toWebError)
+  );
+
+export const deleteProfile: HandlerTask<Optional<Id>, Context> = ({
+  params: [, res],
+  context: { repo },
+}) =>
+  pipe(
+    TE.Do,
+    TE.bind("userId", () => requireUserId(res)),
+    TE.chain(({ userId }) => repo.user.delete(userId)),
+    TE.map(([userId, rowsDeleted]) => (rowsDeleted ? { id: userId } : null)),
     TE.mapLeft(toWebError)
   );
