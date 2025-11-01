@@ -1,4 +1,4 @@
-import type { Profile } from "@darkruby/assets-core";
+import type { Id, Optional, Profile } from "@darkruby/assets-core";
 import {
   CredenatialsDecoder,
   ProfileDecoder,
@@ -8,7 +8,6 @@ import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { toWebError } from "../domain/error";
-import type { ExecutionResult } from "../repository/database";
 import * as userService from "../services/auth";
 import { requireUserId } from "./auth";
 import type { Context } from "./context";
@@ -25,7 +24,7 @@ export const getProfile: HandlerTask<Profile, Context> = ({
     TE.mapLeft(toWebError)
   );
 
-export const updateProfile: HandlerTask<Profile, Context> = ({
+export const updateProfile: HandlerTask<Optional<Profile>, Context> = ({
   params: [req, res],
   context: { repo },
 }) =>
@@ -45,7 +44,7 @@ export const updateProfile: HandlerTask<Profile, Context> = ({
     TE.mapLeft(toWebError)
   );
 
-export const deleteProfile: HandlerTask<ExecutionResult, Context> = ({
+export const deleteProfile: HandlerTask<Optional<Id>, Context> = ({
   params: [, res],
   context: { repo },
 }) =>
@@ -53,5 +52,6 @@ export const deleteProfile: HandlerTask<ExecutionResult, Context> = ({
     TE.Do,
     TE.bind("userId", () => requireUserId(res)),
     TE.chain(({ userId }) => repo.user.delete(userId)),
+    TE.map(([userId, rowsDeleted]) => (rowsDeleted ? { id: userId } : null)),
     TE.mapLeft(toWebError)
   );

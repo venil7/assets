@@ -56,3 +56,8 @@ export const SecondaryButton = pipe(
   NonSubmittingButton,
   withProps({ variant: "secondary", type: "button" })
 ) as React.FC<React.PropsWithChildren & ButtonProps>;
+
+export const DangerButton = pipe(
+  NonSubmittingButton,
+  withProps({ variant: "danger", type: "button" })
+) as React.FC<React.PropsWithChildren & ButtonProps>;

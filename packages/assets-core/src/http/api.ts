@@ -145,6 +145,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const getProfile = () => methods.get<Profile>(PROFILE_URL, ProfileDecoder);
   const updateProfile = (body: Credentials) =>
     methods.put<Profile, Credentials>(PROFILE_URL, body, ProfileDecoder);
+  const deleteProfile = () => methods.delete<Id>(PROFILE_URL, IdDecoder);
 
   const getPrefs = () => methods.get<Prefs>(PREFS_URL, PrefsDecoder);
   const updatePrefs = (pref: Prefs) =>
@@ -177,6 +178,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     profile: {
       get: getProfile,
       update: updateProfile,
+      delete: deleteProfile,
     },
     prefs: {
       get: getPrefs,

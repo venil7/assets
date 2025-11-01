@@ -18,16 +18,18 @@ const TABS = ["Profile", "Credentials", "Prefs"] as const;
 type ProfileProps = {
   profile: Profile;
   prefs: PrefsData;
-  onCredentialsUpdate: (p: CredentialsData) => void;
+  onProfileDetele: () => void;
   onPrefsUpdate: (p: PrefsData) => void;
+  onCredentialsUpdate: (p: CredentialsData) => void;
   innerFetching: [profile: boolean, prefs: boolean];
 };
 
 const RawProfile: React.FC<ProfileProps> = ({
-  profile,
-  onCredentialsUpdate,
   prefs,
+  profile,
   onPrefsUpdate,
+  onProfileDetele,
+  onCredentialsUpdate,
   innerFetching: [profileFetching, prefsFetching],
 }: ProfileProps) => {
   return (
@@ -35,7 +37,11 @@ const RawProfile: React.FC<ProfileProps> = ({
       <Col md={4}>
         <Tabs tabs={TABS}>
           <TabContent tab={0}>
-            <ProfileDetails profile={profile} fetching={profileFetching} />
+            <ProfileDetails
+              profile={profile}
+              onDelete={onProfileDetele}
+              fetching={profileFetching}
+            />
           </TabContent>
           <TabContent tab={1}>
             <Credentials
@@ -59,7 +65,6 @@ const RawProfile: React.FC<ProfileProps> = ({
 
 export const UserProfile = pipe(
   RawProfile,
-  withNoData<ProfileProps, "profile" | "prefs">((p) => p.profile ?? p.prefs),
+  withNoData<ProfileProps, "profile" | "prefs">((p) => p.profile || p.prefs),
   withError<WithNoData<ProfileProps, "profile" | "prefs">>
-  // withFetching
 );

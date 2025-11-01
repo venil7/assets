@@ -74,7 +74,7 @@ export const verifyToken: HandlerTask<void, Context> = ({
     TE.bind("payload", ({ jwt }) => pipe(jwt.payload, liftTE(ProfileDecoder))),
     TE.bind("profile", ({ payload: { id } }) => repo.user.get(id)),
     TE.filterOrElse(
-      ({ profile }) => !profile.locked,
+      ({ profile }) => !!profile && !profile.locked,
       () => authError("User restricted")
     ),
     TE.mapLeft(toWebError),
