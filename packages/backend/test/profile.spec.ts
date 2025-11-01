@@ -1,5 +1,6 @@
-import { run } from "@darkruby/assets-core";
+import { run, type UserId } from "@darkruby/assets-core";
 import { beforeAll, expect, test } from "bun:test";
+import * as E from "fp-ts/Either";
 import {
   defaultApi,
   fakeCredentials,
@@ -27,4 +28,16 @@ test("Update own profile", async () => {
   expect(username).toBe(creds.username);
   expect(admin).toBeFalse();
   expect(id).toBeNumber();
+});
+
+test("Delete own profile", async () => {
+  const adminApi = await run(defaultApi());
+  const creds = fakeCredentials();
+  const user = await run(adminApi.user.create(creds));
+  const userApi = await run(defaultApi(creds));
+  const { id } = await run(userApi.profile.delete());
+
+  expect(user.id).toBe(id as UserId);
+  const profile = await userApi.profile.get()();
+  expect(E.isLeft(profile)).toBe(true);
 });

@@ -1,4 +1,4 @@
-import type { UserId } from "@darkruby/assets-core";
+import { authError, type UserId } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import type { Repository } from "../repository";
@@ -17,7 +17,17 @@ export const initializeApp = (repo: Repository) => {
   // if not create with default values
   return pipe(
     TE.Do,
-    TE.bind("user", () => repo.user.get(1 as UserId)),
-    TE.orElseW(() => pipe(defaultUser, TE.chain(repo.user.create)))
+    TE.bind("users", () => repo.user.getAll()),
+    TE.filterOrElse(
+      ({ users }) => users.length > 0,
+      () => authError("Admin user not found")
+    ),
+    TE.orElseW(() =>
+      pipe(
+        defaultUser,
+        TE.chain(repo.user.create),
+        TE.chain(([id, _]) => repo.user.get(id as UserId))
+      )
+    )
   );
 };

@@ -66,7 +66,7 @@ export const loginAttempt =
           return getUser.get({ username });
         })(db)
       ),
-      TE.filterOrElse(Boolean, () => authError("could not authenticate")),
+      TE.filterOrElse(Boolean, () => authError("Could not authenticate.")),
       TE.chain(liftTE(GetUserDecoder))
     );
   };
