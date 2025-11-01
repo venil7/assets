@@ -25,7 +25,7 @@ export const CredentialsModal: React.FC<CredentialsModalProps> = ({
 
   return (
     <Modal show={open}>
-      <ModalHeader>Credentials</ModalHeader>
+      <ModalHeader>User</ModalHeader>
       <ModalBody>
         <CredentailsForm data={creds} onChange={setCreds} />
         <FormErrors errors={errors} valid={valid} />

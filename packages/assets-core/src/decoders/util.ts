@@ -92,14 +92,14 @@ export function nonEmptyArray<T>(codec: t.Type<T>) {
   return mapDecoder(t.array(codec), (a) =>
     a.length
       ? E.of(a as NonEmptyArray<T>)
-      : E.left([validationErr(`empty array ${codec.name}`)])
+      : E.left([validationErr(`Array ${codec.name} can't be empty array`)])
   );
 }
 
 export const nonEmptyString = mapDecoder(t.string, (s) =>
-  s.trim() === "" ? E.left([validationErr(`cant be empty`)]) : E.of(s)
+  s.trim() === "" ? E.left([validationErr(`Can't be empty`)]) : E.of(s)
 );
 
 export const nonNegative = mapDecoder(t.number, (n) =>
-  n <= 0 ? E.left([validationErr(`cant be empty`)]) : E.of(n)
+  n <= 0 ? E.left([validationErr(`Can't be negative`)]) : E.of(n)
 );

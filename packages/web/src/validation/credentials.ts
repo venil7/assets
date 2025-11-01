@@ -14,17 +14,17 @@ const filter = (predicate: () => boolean, message: string) =>
   E.filterOrElse(predicate, () => [validationErr(message)]);
 
 const match = (pwd: string, pwd2: string) =>
-  filter(() => pwd == pwd2, `paswords do not match`);
+  filter(() => pwd == pwd2, `Passwords do not match`);
 const length = (n: number) => (pwd: string) =>
-  filter(() => pwd.length >= n, `length must be >=${n}`);
+  filter(() => pwd.length >= n, `Length must be >=${n}`);
 const upper = (pwd: string) =>
-  filter(() => /[A-Z]/.test(pwd), `uppercase characters missing`);
+  filter(() => /[A-Z]/.test(pwd), `Uppercase characters missing`);
 const lower = (pwd: string) =>
-  filter(() => /[a-z]/.test(pwd), `lower characters missing`);
+  filter(() => /[a-z]/.test(pwd), `Lower characters missing`);
 const numbers = (pwd: string) =>
-  filter(() => /\d/.test(pwd), `number characters missing`);
+  filter(() => /\d/.test(pwd), `Number characters missing`);
 const special = (pwd: string) =>
-  filter(() => /\W/.test(pwd), `special characters missing`);
+  filter(() => /\W/.test(pwd), `Special characters missing`);
 
 const PasswordChangeValidation = mapDecoder(
   PasswordChangeDecoder,
