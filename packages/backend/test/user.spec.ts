@@ -1,11 +1,14 @@
 import { run, type UserId } from "@darkruby/assets-core";
-import { beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, expect, test } from "bun:test";
 import * as E from "fp-ts/Either";
 import { defaultApi, fakeCredentials, type TestApi } from "./helper";
 
 let api: TestApi;
 beforeAll(async () => {
   api = await run(defaultApi());
+});
+afterAll(async () => {
+  await run(api.deleteAllNonAdminUsers());
 });
 
 test("List users", async () => {

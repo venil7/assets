@@ -1,6 +1,6 @@
 import type { AppError, PostTx } from "@darkruby/assets-core";
 import { run } from "@darkruby/assets-core";
-import { beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, expect, test } from "bun:test";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { fakeBuy, fakeSell, nonAdminApi, type TestApi } from "./helper";
@@ -8,6 +8,9 @@ import { fakeBuy, fakeSell, nonAdminApi, type TestApi } from "./helper";
 let api: TestApi;
 beforeAll(async () => {
   api = await run(nonAdminApi());
+});
+afterAll(async () => {
+  await run(api.profile.delete());
 });
 
 const buyTx: PostTx = fakeBuy(10, 100);

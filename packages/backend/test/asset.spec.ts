@@ -1,5 +1,5 @@
 import { run, type PostTx } from "@darkruby/assets-core";
-import { beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, expect, test } from "bun:test";
 import { pipe } from "fp-ts/lib/function";
 import * as A from "fp-ts/lib/ReadonlyArray";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -14,6 +14,9 @@ import {
 let api: TestApi;
 beforeAll(async () => {
   api = await run(nonAdminApi());
+});
+afterAll(async () => {
+  await run(api.profile.delete());
 });
 
 test("Create asset", async () => {

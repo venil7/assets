@@ -2,16 +2,19 @@ import {
   api,
   BASE_CCYS,
   login,
+  type Action,
   type Api,
   type Credentials,
   type PostAsset,
   type PostPortfolio,
   type PostTx,
   type Prefs,
+  type Profile,
   type TxType,
 } from "@darkruby/assets-core";
 import faker from "faker";
 import { pipe } from "fp-ts/lib/function";
+import * as A from "fp-ts/lib/ReadonlyArray";
 import * as TE from "fp-ts/lib/TaskEither";
 
 const BASE_URL = `http://${process.env.URL ?? "localhost:4020"}`;
@@ -95,12 +98,25 @@ const createPortfolioAssetTxs =
       )
     );
 
+const deleteAllNonAdminUsers = (api: Api) => () =>
+  pipe(
+    TE.Do,
+    TE.bind("users", () => api.user.getMany()),
+    TE.chain(
+      ({ users }) =>
+        TE.of(users.filter(({ id }) => id > 1)) as Action<readonly Profile[]>
+    ),
+    TE.map(A.map((u) => u.id)),
+    TE.chain(TE.traverseArray(api.user.delete))
+  );
+
 export const getExtendedApi = (api: Api) => {
   return {
     ...api,
     createPortfolioAsset: createPortfolioAsset(api),
     createPortfolioAssetTx: createPortfolioAssetTx(api),
     createPortfolioAssetTxs: createPortfolioAssetTxs(api),
+    deleteAllNonAdminUsers: deleteAllNonAdminUsers(api),
   };
 };
 

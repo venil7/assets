@@ -1,10 +1,13 @@
 import { run } from "@darkruby/assets-core";
-import { beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, expect, test } from "bun:test";
 import { fakePortfolio, nonAdminApi, type TestApi } from "./helper";
 
 let api: TestApi;
 beforeAll(async () => {
   api = await run(nonAdminApi());
+});
+afterAll(async () => {
+  await run(api.profile.delete());
 });
 
 test("Get Summary", async () => {

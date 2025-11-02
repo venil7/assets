@@ -1,5 +1,5 @@
 import { run, type UserId } from "@darkruby/assets-core";
-import { beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, expect, test } from "bun:test";
 import * as E from "fp-ts/Either";
 import {
   defaultApi,
@@ -11,6 +11,9 @@ import {
 let api: TestApi;
 beforeAll(async () => {
   api = await run(nonAdminApi());
+});
+afterAll(async () => {
+  await run(api.profile.delete());
 });
 
 test("Get own profile", async () => {
