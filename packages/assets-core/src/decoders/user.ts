@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/lib/function";
 import type { Refinement } from "fp-ts/lib/Refinement";
 import * as t from "io-ts";
-import { boolean, dateDecoder, nonEmptyString } from "./util";
+import { boolean, dateDecoder, nonEmptyString, nullableDecoder } from "./util";
 
 export const UserIdDecoder = t.brand(
   t.number,
@@ -15,6 +15,8 @@ export const UserIdDecoder = t.brand(
 const credentialsTypes = {
   username: nonEmptyString,
   password: nonEmptyString,
+  admin: nullableDecoder(t.boolean),
+  locked: nullableDecoder(t.boolean),
 };
 
 const passwordChangeTypes = {

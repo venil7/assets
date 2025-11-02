@@ -69,19 +69,33 @@ export const verifyBearer = (
   );
 };
 
-const credentialsToUser =
+export const toUser =
   (admin: boolean = false) =>
-  ({ username, password }: Credentials): Action<PostUser> => {
+  ({
+    username,
+    password,
+    locked,
+  }: Pick<
+    Credentials,
+    "username" | "password" | "locked"
+  >): Action<PostUser> => {
     return pipe(
       TE.Do,
       TE.bind("psalt", () => TE.of(genSaltSync())),
       TE.bind("phash", ({ psalt }) => TE.of(hashSync(password, psalt))),
       TE.chain(({ phash, psalt }) =>
-        TE.of({ phash, psalt, username, admin, login_attempts: 0, locked: 0 })
+        TE.of({
+          phash,
+          psalt,
+          username,
+          admin,
+          locked: !!locked,
+          login_attempts: 0,
+        })
       ),
       TE.chain(liftTE(PostUserDecoder))
     );
   };
 
-export const toNonAdminUser = credentialsToUser(false);
-export const toAdminUser = credentialsToUser(true);
+export const toNonAdminUser = toUser(false);
+export const toAdminUser = toUser(true);

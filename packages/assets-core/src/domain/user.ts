@@ -19,12 +19,16 @@ export const profile = ({ phash, psalt, ...profile }: GetUser): Profile =>
   profile;
 
 export const defaultCredentials = (): Credentials => ({
+  admin: false,
+  locked: false,
   username: "",
   password: "",
 });
 
 export const fromProfile = (p: Profile): Credentials => ({
   ...defaultCredentials(),
+  admin: p.admin,
+  locked: p.locked,
   username: p.username,
 });
 

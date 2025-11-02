@@ -29,14 +29,14 @@ const Error: React.FC<{ error: AppError }> = ({ error }) => {
   switch (error.type) {
     case AppErrorType.Validation:
       return (
-        <Warning>
+        <Warning dismissible>
           <Alert.Heading>{error.type}</Alert.Heading>
           <p>{error.message}</p>
         </Warning>
       );
     default:
       return (
-        <Danger>
+        <Danger dismissible onClose={() => console.log("closed")}>
           <Alert.Heading>{error.type}</Alert.Heading>
           <p>{error.message}</p>
           {error.type === AppErrorType.Auth ? (

@@ -23,6 +23,8 @@ export const fakePrefs = (): Prefs => ({
 export const fakeCredentials = (): Credentials => ({
   username: faker.internet.email(),
   password: faker.internet.password(),
+  admin: false,
+  locked: false,
 });
 
 export const fakePortfolio = (): PostPortfolio => ({
@@ -105,6 +107,8 @@ export const getExtendedApi = (api: Api) => {
 const defaultAdminCredentials: Credentials = {
   username: "admin",
   password: "admin",
+  admin: true,
+  locked: false,
 };
 
 export const defaultLogin = (creds = defaultAdminCredentials) =>

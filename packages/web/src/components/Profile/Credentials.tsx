@@ -1,4 +1,5 @@
 import {
+  defaultCredentials,
   defaultPasswordChange,
   type Credentials as CredentialsData,
   type Profile,
@@ -21,7 +22,11 @@ const RawCredentials: React.FC<Props> = ({ profile, onUpdate }) => {
   const [pwd, setPwd] = useState(defaultPasswordChange());
   const { valid, errors } = passwordChangeValidator(pwd);
   const handlePassChange = () =>
-    onUpdate({ username: profile.username, password: pwd.password });
+    onUpdate({
+      ...defaultCredentials(),
+      username: profile.username,
+      password: pwd.password,
+    });
   return (
     <>
       <FormErrors errors={errors} valid={valid} />

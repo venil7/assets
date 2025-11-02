@@ -9,6 +9,7 @@ const defaultUser = pipe(
   TE.Do,
   TE.apS("username", env("ASSETS_USERNAME", "admin")),
   TE.apS("password", env("ASSETS_PASSWORD", "admin")),
+  TE.apS("locked", TE.of(false)),
   TE.chain(toAdminUser)
 );
 

@@ -1,4 +1,4 @@
-import type { Id, Optional, Profile } from "@darkruby/assets-core";
+import { type Id, type Optional, type Profile } from "@darkruby/assets-core";
 import {
   CredenatialsDecoder,
   ProfileDecoder,
@@ -9,7 +9,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { toWebError } from "../domain/error";
 import * as userService from "../services/auth";
-import { requireUserId } from "./auth";
+import { requireProfile, requireUserId } from "./auth";
 import type { Context } from "./context";
 
 export const getProfile: HandlerTask<Profile, Context> = ({
@@ -30,15 +30,15 @@ export const updateProfile: HandlerTask<Optional<Profile>, Context> = ({
 }) =>
   pipe(
     TE.Do,
-    TE.bind("userId", () => requireUserId(res)),
+    TE.bind("profile", () => requireProfile(res)),
     TE.bind("credentials", () => pipe(req.body, liftTE(CredenatialsDecoder))),
-    TE.bind("usr", ({ credentials }) =>
-      userService.toNonAdminUser(credentials)
+    TE.bind("user", ({ credentials, profile }) =>
+      pipe(credentials, userService.toUser(profile.admin))
     ),
-    TE.chain(({ usr, userId }) =>
+    TE.chain(({ user, profile }) =>
       pipe(
-        repo.user.update(userId, usr),
-        TE.chain(() => repo.user.get(userId))
+        repo.user.update(profile.id, user),
+        TE.chain(() => repo.user.get(profile.id))
       )
     ),
     TE.mapLeft(toWebError)

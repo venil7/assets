@@ -60,7 +60,9 @@ export const createUser: HandlerTask<Profile, Context> = ({
     TE.Do,
     TE.bind("admin", () => requireAdminProfile(res)),
     TE.bind("payload", () => pipe(req.body, liftTE(CredenatialsDecoder))),
-    TE.bind("user", ({ payload }) => userService.toNonAdminUser(payload)),
+    TE.bind("user", ({ payload }) =>
+      pipe(payload, userService.toUser(!!payload.admin))
+    ),
     TE.chain(({ user }) => repo.user.create(user)),
     TE.chain(([id]) => repo.user.get(id as UserId)),
     TE.chain(liftTE(ProfileDecoder)),
@@ -76,7 +78,9 @@ export const updateUser: HandlerTask<Profile, Context> = ({
     TE.bind("admin", () => requireAdminProfile(res)),
     TE.bind("id", () => numberFromUrl(req.params.id)),
     TE.bind("payload", () => pipe(req.body, liftTE(CredenatialsDecoder))),
-    TE.bind("user", ({ payload }) => userService.toNonAdminUser(payload)),
+    TE.bind("user", ({ payload }) =>
+      pipe(payload, userService.toUser(!!payload.admin))
+    ),
     TE.bind("update", ({ id, user }) => repo.user.update(id as UserId, user)),
     TE.chain(({ id }) => repo.user.get(id as UserId)),
     TE.chain(liftTE(ProfileDecoder)),
