@@ -60,7 +60,7 @@ test("Delete transaction", async () => {
   expect(tx.id).toBe(id);
 });
 
-test("Update but tx", async () => {
+test("Update buy tx", async () => {
   const { asset, tx } = await run(api.createPortfolioAssetTx(fakeBuy()));
 
   const updateTx = fakeBuy();

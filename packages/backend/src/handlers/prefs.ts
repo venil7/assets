@@ -1,37 +1,22 @@
-import { PrefsDecoder, type Prefs } from "@darkruby/assets-core";
-import { liftTE } from "@darkruby/assets-core/src/decoders/util";
+import { type Prefs } from "@darkruby/assets-core";
 import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { toWebError } from "../domain/error";
-import { requireUserId } from "./auth";
+import { mapWebError } from "../domain/error";
 import type { Context } from "./context";
 
 export const getPrefs: HandlerTask<Prefs, Context> = ({
   params: [, res],
-  context: { repo },
+  context: { repo, service },
 }) =>
-  pipe(
-    TE.Do,
-    TE.bind("userId", () => requireUserId(res)),
-    TE.bind("prefs", ({ userId }) => repo.prefs.get(userId)),
-    TE.chain(({ prefs }) => liftTE(PrefsDecoder)(prefs)),
-    TE.mapLeft(toWebError)
-  );
+  pipe(service.auth.requireUserId(res), TE.chain(repo.prefs.get), mapWebError);
 
 export const updatePrefs: HandlerTask<Prefs, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, service },
 }) =>
   pipe(
-    TE.Do,
-    TE.bind("userId", () => requireUserId(res)),
-    TE.bind("prefs", () => pipe(req.body, liftTE(PrefsDecoder))),
-    TE.chain(({ userId, prefs }) =>
-      pipe(
-        repo.prefs.update(userId, prefs),
-        TE.chain(() => repo.prefs.get(userId))
-      )
-    ),
-    TE.mapLeft(toWebError)
+    service.auth.requireUserId(res),
+    mapWebError,
+    TE.chain((userId) => service.prefs.update(userId, req.body))
   );

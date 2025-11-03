@@ -2,37 +2,44 @@ import * as t from "io-ts";
 import type {
   CredenatialsDecoder,
   GetUserDecoder,
+  NewUserDecoder,
   PasswordChangeDecoder,
   PostUserDecoder,
   ProfileDecoder,
+  RawInUserDecoder,
+  RawOutUserDecoder,
   UserIdDecoder,
 } from "../decoders/user";
 
 export type Credentials = t.TypeOf<typeof CredenatialsDecoder>;
 export type PasswordChange = t.TypeOf<typeof PasswordChangeDecoder>;
+export type RawInUser = t.TypeOf<typeof RawInUserDecoder>;
+export type RawOutUser = t.TypeOf<typeof RawOutUserDecoder>;
+export type NewUser = t.TypeOf<typeof NewUserDecoder>;
 export type GetUser = t.TypeOf<typeof GetUserDecoder>;
 export type PostUser = t.TypeOf<typeof PostUserDecoder>;
 export type Profile = t.TypeOf<typeof ProfileDecoder>;
 export type UserId = t.TypeOf<typeof UserIdDecoder>;
 
-export const profile = ({ phash, psalt, ...profile }: GetUser): Profile =>
-  profile;
+export const profile = ({ id, username, admin }: GetUser): Profile => ({
+  id,
+  username,
+  admin,
+});
 
 export const defaultCredentials = (): Credentials => ({
-  admin: false,
-  locked: false,
   username: "",
   password: "",
 });
 
-export const fromProfile = (p: Profile): Credentials => ({
+export const defaultNewUser = (): NewUser => ({
   ...defaultCredentials(),
-  admin: p.admin,
-  locked: p.locked,
-  username: p.username,
+  admin: false,
+  locked: false,
 });
 
 export const defaultPasswordChange = (): PasswordChange => ({
-  password: "",
+  oldPassword: "",
+  newPassword: "",
   repeat: "",
 });

@@ -1,16 +1,17 @@
-import { authError, type UserId } from "@darkruby/assets-core";
+import { authError } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import type { Repository } from "../repository";
-import { toAdminUser } from "./auth";
 import { env } from "./env";
+import { toRawInUser } from "./user";
 
 const defaultUser = pipe(
   TE.Do,
   TE.apS("username", env("ASSETS_USERNAME", "admin")),
   TE.apS("password", env("ASSETS_PASSWORD", "admin")),
+  TE.apS("admin", TE.of(true)),
   TE.apS("locked", TE.of(false)),
-  TE.chain(toAdminUser)
+  TE.chain(toRawInUser)
 );
 
 export const initializeApp = (repo: Repository) => {
@@ -23,12 +24,6 @@ export const initializeApp = (repo: Repository) => {
       ({ users }) => users.length > 0,
       () => authError("Admin user not found")
     ),
-    TE.orElseW(() =>
-      pipe(
-        defaultUser,
-        TE.chain(repo.user.create),
-        TE.chain(([id, _]) => repo.user.get(id as UserId))
-      )
-    )
+    TE.orElseW(() => pipe(defaultUser, TE.chain(repo.user.create)))
   );
 };

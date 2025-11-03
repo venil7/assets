@@ -12,5 +12,5 @@ SELECT id,
 FROM assets_contributions A
 WHERE A.portfolio_id = $portfolioId
   AND A.user_id = $userId
-  AND A.id = $id
+  AND A.id = $assetId
 LIMIT 1;

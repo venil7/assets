@@ -1,3 +1,3 @@
 delete from portfolios
-where id = $id
+where id = $portfolioId
   AND user_id = $userId;

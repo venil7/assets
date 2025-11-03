@@ -55,6 +55,7 @@ export const createHandlers = (
     get: pipe(profile.getProfile, expressify),
     update: pipe(profile.updateProfile, expressify),
     delete: pipe(profile.deleteProfile, expressify),
+    updatePassword: pipe(profile.updatePassword, expressify),
   },
   auth: {
     login: pipe(auth.login, expressify),

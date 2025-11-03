@@ -7,7 +7,7 @@ const RawProfileScreen: React.FC = () => {
   useSignals();
   const { profile, prefs, auth } = use(StoreContext);
 
-  const handleCredentialsUpdate = profile.update;
+  const handlePasswordUpdate = profile.password;
   const handlePrefsUpdate = prefs.update;
   const handleProfileDelete = () => {
     profile.delete();
@@ -25,7 +25,7 @@ const RawProfileScreen: React.FC = () => {
       profile={profile.data.value}
       onPrefsUpdate={handlePrefsUpdate}
       onProfileDetele={handleProfileDelete}
-      onCredentialsUpdate={handleCredentialsUpdate}
+      onPasswordUpdate={handlePasswordUpdate}
       error={profile.error.value || prefs.error.value}
       innerFetching={[profile.fetching.value, prefs.fetching.value]}
     />

@@ -1,4 +1,5 @@
 import type { EnrichedAsset, Identity, PostTx } from "@darkruby/assets-core";
+import { txValidator } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import { useState } from "react";
 import { Modal, ModalBody, ModalHeader } from "react-bootstrap";
@@ -6,7 +7,6 @@ import {
   createDialog,
   type DialogDrivenComponentProps,
 } from "../../util/modal";
-import { txValidator } from "../../validation/tx";
 import { FormErrors } from "../Form/FormErrors";
 import { ConfirmationModalFooter } from "../Modals/Footer";
 import { TxForm } from "./TxForm";

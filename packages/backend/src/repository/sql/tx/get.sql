@@ -8,7 +8,7 @@ select id,
   modified,
   comments
 from asset_transactions at
-where at.id = $id
+where at.id = $txId
   and at.asset_id = $assetId
   and at.user_id = $userId
 order by at.date desc

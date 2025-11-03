@@ -1,7 +1,8 @@
 import { run, type UserId } from "@darkruby/assets-core";
 import { afterAll, beforeAll, expect, test } from "bun:test";
+import faker from "faker";
 import * as E from "fp-ts/Either";
-import { defaultApi, fakeCredentials, type TestApi } from "./helper";
+import { defaultApi, fakeNewUser, type TestApi } from "./helper";
 
 let api: TestApi;
 beforeAll(async () => {
@@ -17,29 +18,29 @@ test("List users", async () => {
 });
 
 test("Create user", async () => {
-  const creds = fakeCredentials();
+  const creds = fakeNewUser();
   const user = await run(api.user.create(creds));
   expect(user.username).toBe(creds.username);
 });
 
 test("Get user", async () => {
-  const creds = fakeCredentials();
+  const creds = fakeNewUser();
   const { id } = await run(api.user.create(creds));
   const user = await run(api.user.get(id));
   expect(user.id).toBe(id);
 });
 
-test("Update user", async () => {
-  const creds = fakeCredentials();
+test("Update user profile", async () => {
+  const creds = fakeNewUser();
   const user = await run(api.user.create(creds));
-  const newCreds = fakeCredentials();
+  const newCreds = { ...user, username: faker.internet.email() };
   const updatedUser = await run(api.user.update(user.id, newCreds));
   expect(user.id).toBe(updatedUser.id);
   expect(newCreds.username).toBe(updatedUser.username);
 });
 
 test("Delete user", async () => {
-  const creds = fakeCredentials();
+  const creds = fakeNewUser();
   const user = await run(api.user.create(creds));
   const { id } = await run(api.user.delete(user.id));
   expect(user.id).toBe(id as UserId);
@@ -48,7 +49,7 @@ test("Delete user", async () => {
 });
 
 test("Create user, login and check profile & prefs", async () => {
-  const creds = fakeCredentials();
+  const creds = fakeNewUser();
   const user = await run(api.user.create(creds));
   expect(user.username).toBe(creds.username);
   const userApi = await run(defaultApi(creds));

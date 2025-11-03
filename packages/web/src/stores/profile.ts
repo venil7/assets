@@ -1,9 +1,10 @@
 import type {
   ActionResult,
-  Credentials,
+  GetUser,
   Identity,
   Nullable,
-  Profile,
+  PasswordChange,
+  PostUser,
 } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
 import { pipe } from "fp-ts/lib/function";
@@ -11,26 +12,29 @@ import * as TE from "fp-ts/lib/TaskEither";
 import {
   deleteProfile,
   getProfile,
-  updateCredentials,
+  updatePassword,
+  updateProfile,
 } from "../services/profile";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type ProfileStore = Identity<
-  StoreBase<Nullable<Profile>> & {
-    load: () => ActionResult<Nullable<Profile>>;
-    update: (c: Credentials) => ActionResult<Nullable<Profile>>;
-    delete: () => ActionResult<Nullable<Profile>>;
+  StoreBase<Nullable<GetUser>> & {
+    load: () => ActionResult<Nullable<GetUser>>;
+    update: (c: PostUser) => ActionResult<Nullable<GetUser>>;
+    password: (c: PasswordChange) => ActionResult<Nullable<GetUser>>;
+    delete: () => ActionResult<Nullable<GetUser>>;
   }
 >;
 
 export const createProfileStore = (): ProfileStore => {
-  const data = signal<Nullable<Profile>>(null);
+  const data = signal<Nullable<GetUser>>(null);
   const storeBase = createStoreBase(data);
 
   return {
     ...storeBase,
     load: () => storeBase.run(getProfile()),
-    update: (c: Credentials) => storeBase.run(updateCredentials(c)),
+    update: (c: PostUser) => storeBase.run(updateProfile(c)),
+    password: (c: PasswordChange) => storeBase.run(updatePassword(c)),
     delete: () =>
       storeBase.run(
         pipe(

@@ -5,6 +5,7 @@ import {
   type Action,
   type Api,
   type Credentials,
+  type NewUser,
   type PostAsset,
   type PostPortfolio,
   type PostTx,
@@ -23,10 +24,10 @@ export const fakePrefs = (): Prefs => ({
   base_ccy: faker.random.arrayElement(BASE_CCYS),
 });
 
-export const fakeCredentials = (): Credentials => ({
+export const fakeNewUser = (admin = false): NewUser => ({
   username: faker.internet.email(),
   password: faker.internet.password(),
-  admin: false,
+  admin,
   locked: false,
 });
 
@@ -123,8 +124,6 @@ export const getExtendedApi = (api: Api) => {
 const defaultAdminCredentials: Credentials = {
   username: "admin",
   password: "admin",
-  admin: true,
-  locked: false,
 };
 
 export const defaultLogin = (creds = defaultAdminCredentials) =>
@@ -136,11 +135,11 @@ export const nonAdminApi = () =>
   pipe(
     TE.Do,
     TE.bind("adminApi", () => defaultApi()),
-    TE.bind("credentials", () => TE.of(fakeCredentials())),
-    TE.bind("user", ({ adminApi, credentials }) =>
-      adminApi.user.create(credentials)
+    TE.bind("nonAdminUser", () => TE.of(fakeNewUser())),
+    TE.bind("user", ({ adminApi, nonAdminUser }) =>
+      adminApi.user.create(nonAdminUser)
     ),
-    TE.chain(({ credentials }) => defaultApi(credentials))
+    TE.chain(({ nonAdminUser }) => defaultApi(nonAdminUser))
   );
 
 export type TestApi = ReturnType<typeof getExtendedApi>;

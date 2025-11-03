@@ -5,5 +5,5 @@ SET type = $type,
   comments = $comments,
   date = $date,
   modified = CURRENT_TIMESTAMP
-WHERE id = $transactionId
+WHERE id = $txId
   and asset_id = $assetId;

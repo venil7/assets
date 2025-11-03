@@ -1,4 +1,4 @@
-import { type PostPortfolio } from "@darkruby/assets-core";
+import { portfolioValidator, type PostPortfolio } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import { useState } from "react";
 import { Modal, ModalBody, ModalHeader } from "react-bootstrap";
@@ -6,7 +6,6 @@ import {
   createDialog,
   type DialogDrivenComponentProps,
 } from "../../util/modal";
-import { portfolioValidator } from "../../validation/portfolio";
 import { FormErrors } from "../Form/FormErrors";
 import { ConfirmationModalFooter } from "../Modals/Footer";
 import { PortfolioForm } from "./PortfolioForm";

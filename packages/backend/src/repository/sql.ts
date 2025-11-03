@@ -20,11 +20,11 @@ export const insertPortfolioSql = getSql("portfolio/insert");
 export const updatePortfolioSql = getSql("portfolio/update");
 export const deletePortfolioSql = getSql("portfolio/delete");
 
-export const getTxSql = getSql("transaction/get");
-export const getTxsSql = getSql("transaction/get-many");
-export const insertTxSql = getSql("transaction/insert");
-export const updateTxSql = getSql("transaction/update");
-export const deleteTxSql = getSql("transaction/delete");
+export const getTxSql = getSql("tx/get");
+export const getTxsSql = getSql("tx/get-many");
+export const insertTxSql = getSql("tx/insert");
+export const updateTxSql = getSql("tx/update");
+export const deleteTxSql = getSql("tx/delete");
 
 export const getUserSql = getSql("user/get");
 export const getUsersSql = getSql("user/get-many");
@@ -34,6 +34,7 @@ export const updateUserSql = getSql("user/update");
 export const deleteUserSql = getSql("user/delete");
 export const getUnlockedUserSql = getSql("user/get-unlocked");
 export const loginAttemptUserSql = getSql("user/login-attempt");
+export const updateProfileOnlySql = getSql("user/update-profile-only");
 
 export const getPrefsSql = getSql("prefs/get");
 export const updatePrefsSql = getSql("prefs/update");

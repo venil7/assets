@@ -1,88 +1,60 @@
-import type { Id, Optional, Profile, UserId } from "@darkruby/assets-core";
-import {
-  CredenatialsDecoder,
-  ProfileDecoder,
-  ProfilesDecoder,
-} from "@darkruby/assets-core/src/decoders/user";
-import { liftTE } from "@darkruby/assets-core/src/decoders/util";
+import { type GetUser, type Id, type Optional } from "@darkruby/assets-core";
 import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { numberFromUrl } from "../decoders/params";
-import { toWebError } from "../domain/error";
-import * as userService from "../services/auth";
-import { requireAdminProfile } from "./auth";
+import { userIdFromUrl } from "../decoders/params";
+import { mapWebError } from "../domain/error";
 import type { Context } from "./context";
 
 export const deleteUser: HandlerTask<Optional<Id>, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, service },
 }) =>
   pipe(
-    TE.Do,
-    TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("admin", () => requireAdminProfile(res)),
-    TE.bind("delete", ({ id }) => repo.user.delete(id as UserId)),
-    TE.map(({ id, delete: [_, rowsDeleted] }) => (rowsDeleted ? { id } : null)),
-    TE.mapLeft(toWebError)
+    service.auth.requireAdminProfile(res),
+    TE.chain(() => userIdFromUrl(req.params.id)),
+    mapWebError,
+    TE.chain(service.user.delete)
   );
 
-export const getUsers: HandlerTask<Profile[], Context> = ({
+export const getUsers: HandlerTask<readonly GetUser[], Context> = ({
   params: [, res],
-  context: { repo },
+  context: { repo, service },
 }) =>
   pipe(
-    TE.Do,
-    TE.bind("admin", () => requireAdminProfile(res)),
-    TE.chain(() => repo.user.getAll()),
-    TE.chain(liftTE(ProfilesDecoder)),
-    TE.mapLeft(toWebError)
+    service.auth.requireAdminProfile(res),
+    mapWebError,
+    TE.chain(() => service.user.getMany())
   );
 
-export const getUser: HandlerTask<Profile, Context> = ({
+export const getUser: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, service },
 }) =>
   pipe(
-    TE.Do,
-    TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("admin", () => requireAdminProfile(res)),
-    TE.chain(({ id }) => repo.user.get(id as UserId)),
-    TE.chain(liftTE(ProfileDecoder)),
-    TE.mapLeft(toWebError)
+    service.auth.requireAdminProfile(res),
+    TE.chain(() => userIdFromUrl(req.params.id)),
+    mapWebError,
+    TE.chain(service.user.get)
   );
 
-export const createUser: HandlerTask<Profile, Context> = ({
+export const createUser: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, service },
 }) =>
   pipe(
-    TE.Do,
-    TE.bind("admin", () => requireAdminProfile(res)),
-    TE.bind("payload", () => pipe(req.body, liftTE(CredenatialsDecoder))),
-    TE.bind("user", ({ payload }) =>
-      pipe(payload, userService.toUser(!!payload.admin))
-    ),
-    TE.chain(({ user }) => repo.user.create(user)),
-    TE.chain(([id]) => repo.user.get(id as UserId)),
-    TE.chain(liftTE(ProfileDecoder)),
-    TE.mapLeft(toWebError)
+    service.auth.requireAdminProfile(res),
+    mapWebError,
+    TE.chain(() => service.user.create(req.body))
   );
 
-export const updateUser: HandlerTask<Profile, Context> = ({
+export const updateUser: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, service },
 }) =>
   pipe(
-    TE.Do,
-    TE.bind("admin", () => requireAdminProfile(res)),
-    TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("payload", () => pipe(req.body, liftTE(CredenatialsDecoder))),
-    TE.bind("user", ({ payload }) =>
-      pipe(payload, userService.toUser(!!payload.admin))
-    ),
-    TE.bind("update", ({ id, user }) => repo.user.update(id as UserId, user)),
-    TE.chain(({ id }) => repo.user.get(id as UserId)),
-    TE.chain(liftTE(ProfileDecoder)),
-    TE.mapLeft(toWebError)
+    service.auth.requireAdminProfile(res),
+    TE.chain(() => userIdFromUrl(req.params.id)),
+    mapWebError,
+    TE.chain((id) => service.user.updateProfileOnly(id, req.body))
   );

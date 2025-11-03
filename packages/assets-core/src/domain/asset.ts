@@ -20,3 +20,5 @@ export const byAssetChangePct: Ord<EnrichedAsset> = pipe(
   reverse,
   contramap<number, EnrichedAsset>((a) => a.value.ccy.changePct)
 );
+
+export type AssetId = GetAsset["id"];

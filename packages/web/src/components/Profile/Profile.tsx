@@ -1,5 +1,5 @@
 import {
-  type Credentials as CredentialsData,
+  type PasswordChange as PasswordChangeData,
   type Prefs as PrefsData,
   type Profile,
 } from "@darkruby/assets-core";
@@ -9,18 +9,18 @@ import { Col, Row } from "react-bootstrap";
 import { withError } from "../../decorators/errors";
 import { withNoData, type WithNoData } from "../../decorators/nodata";
 import { TabContent, Tabs } from "../Form/Tabs";
-import { Credentials } from "./Credentials";
+import { PasswordChange } from "./PasswordChange";
 import { Prefs } from "./Prefs";
 import { ProfileDetails } from "./ProfileDetails";
 
-const TABS = ["Profile", "Credentials", "Prefs"] as const;
+const TABS = ["Profile", "Password", "Prefs"] as const;
 
 type ProfileProps = {
   profile: Profile;
   prefs: PrefsData;
   onProfileDetele: () => void;
   onPrefsUpdate: (p: PrefsData) => void;
-  onCredentialsUpdate: (p: CredentialsData) => void;
+  onPasswordUpdate: (p: PasswordChangeData) => void;
   innerFetching: [profile: boolean, prefs: boolean];
 };
 
@@ -29,7 +29,7 @@ const RawProfile: React.FC<ProfileProps> = ({
   profile,
   onPrefsUpdate,
   onProfileDetele,
-  onCredentialsUpdate,
+  onPasswordUpdate,
   innerFetching: [profileFetching, prefsFetching],
 }: ProfileProps) => {
   return (
@@ -44,9 +44,8 @@ const RawProfile: React.FC<ProfileProps> = ({
             />
           </TabContent>
           <TabContent tab={1}>
-            <Credentials
-              profile={profile}
-              onUpdate={onCredentialsUpdate}
+            <PasswordChange
+              onSubmit={onPasswordUpdate}
               fetching={profileFetching}
             />
           </TabContent>

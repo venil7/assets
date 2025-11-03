@@ -7,6 +7,7 @@ import {
   type YahooChartData,
   type YahooTickerSearchResult,
 } from "../domain/yahoo";
+import type { Action } from "../utils/utils";
 import { methods, type Methods } from "./rest";
 
 export const getYahooApi = (methods: Methods) => {
@@ -20,14 +21,19 @@ export const getYahooApi = (methods: Methods) => {
     return `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=${range}&interval=${interval}`;
   };
 
-  const search = (term: string) => {
-    return methods.get<YahooTickerSearchResult>(
-      SEARCH_URL(term),
-      YahooTickerSearchResultDecoder
+  const search = (term: string): Action<YahooTickerSearchResult> => {
+    return pipe(
+      methods.get<YahooTickerSearchResult>(
+        SEARCH_URL(term),
+        YahooTickerSearchResultDecoder
+      )
     );
   };
 
-  const chart = (symbol: string, range?: ChartRange) => {
+  const chart = (
+    symbol: string,
+    range?: ChartRange
+  ): Action<YahooChartData> => {
     return methods.get<YahooChartData>(
       CHART_URL(symbol, range),
       YahooChartDataDecoder

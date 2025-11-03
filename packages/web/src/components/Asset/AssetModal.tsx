@@ -1,4 +1,4 @@
-import type { PostAsset } from "@darkruby/assets-core";
+import { assetValidator, type PostAsset } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import { useState } from "react";
 import { Modal, ModalBody, ModalHeader } from "react-bootstrap";
@@ -6,7 +6,6 @@ import {
   createDialog,
   type DialogDrivenComponentProps,
 } from "../../util/modal";
-import { assetValidator } from "../../validation/asset";
 import { FormErrors } from "../Form/FormErrors";
 import { ConfirmationModalFooter } from "../Modals/Footer";
 import { AssetForm } from "./AssetForm";

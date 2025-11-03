@@ -1,21 +1,20 @@
-import type { Credentials } from "@darkruby/assets-core";
+import type { PostUser } from "@darkruby/assets-core";
 import * as React from "react";
 import { Form } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
 import { CheckBox, FormEdit } from "../Form/FormControl";
-import { PasswordEdit } from "../Form/Password";
 
-type CredentialsFormProps = {
-  data: Credentials;
-  onChange: (c: Credentials) => void;
+type UserFormProps = {
+  data: PostUser;
+  onChange: (c: PostUser) => void;
   disabled?: boolean;
 };
 
-export const CredentailsForm: React.FC<CredentialsFormProps> = ({
+export const UserForm: React.FC<UserFormProps> = ({
   data,
   onChange,
   disabled,
-}: CredentialsFormProps) => {
+}: UserFormProps) => {
   const setField = usePartialChange(data, onChange);
   return (
     <Form>
@@ -27,14 +26,14 @@ export const CredentailsForm: React.FC<CredentialsFormProps> = ({
           disabled={disabled}
         />
       </Form.Group>
-      <Form.Group className="mb-3">
+      {/* <Form.Group className="mb-3">
         <Form.Label>Password</Form.Label>
         <PasswordEdit
           value={data.password}
           onChange={setField("password")}
           disabled={disabled}
         />
-      </Form.Group>
+      </Form.Group> */}
       <Form.Group className="mb-3">
         <Form.Label>Admin &nbsp;</Form.Label>
         <CheckBox

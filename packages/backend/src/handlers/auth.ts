@@ -1,43 +1,16 @@
-import {
-  authError,
-  type Action,
-  type Profile,
-  type UserId,
-} from "@darkruby/assets-core";
+import { authError } from "@darkruby/assets-core";
 import {
   CredenatialsDecoder,
   ProfileDecoder,
 } from "@darkruby/assets-core/src/decoders/user";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { Token } from "@darkruby/assets-core/src/domain/token";
-import { next, type HandlerTask } from "@darkruby/fp-express";
-import type { RequestHandler } from "express";
+import { type HandlerTask, next } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { toWebError } from "../domain/error";
+import { mapWebError } from "../domain/error";
 import { createToken, verifyBearer, verifyPassword } from "../services/auth";
 import type { Context } from "./context";
-
-export const requireProfile = (
-  res: Parameters<RequestHandler>[1]
-): Action<Profile> => pipe(res.locals["profile"], liftTE(ProfileDecoder));
-
-export const requireUserId = (
-  res: Parameters<RequestHandler>[1]
-): Action<UserId> =>
-  pipe(
-    requireProfile(res),
-    TE.map((p) => p.id)
-  );
-
-export const requireAdminProfile = (res: Parameters<RequestHandler>[1]) =>
-  pipe(
-    requireProfile(res),
-    TE.filterOrElse(
-      (u) => u.admin,
-      () => authError(`not an admin`)
-    )
-  );
 
 export const login: HandlerTask<Token, Context> = ({
   params: [req],
@@ -47,21 +20,24 @@ export const login: HandlerTask<Token, Context> = ({
     TE.Do,
     TE.bind("creds", () => pipe(req.body, liftTE(CredenatialsDecoder))),
     TE.bind("user", ({ creds }) => repo.user.loginAttempt(creds.username)),
-    TE.bind("auth", ({ creds, user }) => verifyPassword(user, creds)),
+    TE.bind("auth", ({ creds, user }) =>
+      verifyPassword(user.phash, creds.password)
+    ),
     TE.bind("reset", ({ user }) => repo.user.loginSuccess(user.username)),
     TE.bind("profile", ({ user }) => liftTE(ProfileDecoder)(user)),
     TE.chain(({ profile }) => createToken(profile)),
-    TE.mapLeft(toWebError)
+    mapWebError
   );
 
 export const refreshToken: HandlerTask<Token, Context> = ({
   params: [, res],
+  context: { service },
 }) =>
   pipe(
     TE.Do,
-    TE.bind("profile", () => requireProfile(res)),
+    TE.bind("profile", () => service.auth.requireProfile(res)),
     TE.chain(({ profile }) => createToken(profile)),
-    TE.mapLeft(toWebError)
+    mapWebError
   );
 
 export const verifyToken: HandlerTask<void, Context> = ({
@@ -77,7 +53,7 @@ export const verifyToken: HandlerTask<void, Context> = ({
       ({ profile }) => !!profile && !profile.locked,
       () => authError("User restricted")
     ),
-    TE.mapLeft(toWebError),
+    mapWebError,
     TE.chain(({ profile }) => {
       res.locals["profile"] = profile;
       return TE.left(next());

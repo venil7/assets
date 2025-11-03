@@ -1,4 +1,7 @@
-import { type PasswordChange as PasswordChangeData } from "@darkruby/assets-core";
+import {
+  passwordChangeValidator,
+  type PasswordChange as PasswordChangeData,
+} from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import { useState } from "react";
 import { Modal, ModalBody, ModalHeader } from "react-bootstrap";
@@ -6,10 +9,9 @@ import {
   createDialog,
   type DialogDrivenComponentProps,
 } from "../../util/modal";
-import { passwordChangeValidator } from "../../validation/credentials";
 import { FormErrors } from "../Form/FormErrors";
 import { ConfirmationModalFooter } from "../Modals/Footer";
-import { PasswordChangeForm } from "./PasswordChangeForm";
+import { PasswordChangeForm } from "./PasswordChange";
 
 export type PasswordChangeModalProps =
   DialogDrivenComponentProps<PasswordChangeData>;

@@ -1,10 +1,13 @@
 import {
+  handleError,
   validationError,
   type Action,
   type AppError,
+  type AssetId,
   type GetTx,
   type Optional,
   type PostTx,
+  type TxId,
   type UserId,
 } from "@darkruby/assets-core";
 import {
@@ -44,7 +47,7 @@ const sql = {
 export const getTxs =
   (db: Database) =>
   (
-    assetId: number,
+    assetId: AssetId,
     userId: UserId,
     paging = defaultPaging()
   ): Action<GetTx[]> =>
@@ -57,9 +60,9 @@ export const getTxs =
 
 export const getTx =
   (db: Database) =>
-  (id: number, assetId: number, userId: UserId): Action<Optional<GetTx>> => {
+  (txId: TxId, assetId: AssetId, userId: UserId): Action<Optional<GetTx>> => {
     return pipe(
-      queryOne({ id, assetId, userId }),
+      queryOne({ txId, assetId, userId }),
       ID.ap(sql.tx.get),
       ID.ap(db),
       TE.chain(liftTE(nullableDecoder(GetTxDecoder)))
@@ -68,7 +71,7 @@ export const getTx =
 
 export const createTx =
   (db: Database) =>
-  (tx: PostTx, assetId: number, userId: UserId): Action<ExecutionResult> =>
+  (tx: PostTx, assetId: AssetId, userId: UserId): Action<GetTx> =>
     pipe(
       execute<unknown[]>({
         assetId,
@@ -77,33 +80,38 @@ export const createTx =
       } as Record<string, any>),
       ID.ap(sql.tx.insert),
       ID.ap(db),
-      TE.mapLeft(insufficientHoldingCheck)
+      TE.mapLeft(insufficientHoldingCheck),
+      TE.chain(([txId]) => getTx(db)(txId, assetId, userId)),
+      TE.filterOrElse(
+        (t): t is GetTx => Boolean(t),
+        handleError("Failed to create portfolio")
+      )
     );
 
 export const updateTx =
   (db: Database) =>
-  (
-    transactionId: number,
-    tx: PostTx,
-    assetId: number,
-    userId: UserId
-  ): Action<ExecutionResult> =>
+  (txId: TxId, tx: PostTx, assetId: number, userId: UserId): Action<GetTx> =>
     pipe(
       execute<unknown[]>({
         assetId,
         ...PostTxDecoder.encode(tx),
-        transactionId,
+        txId,
         date: tx.date.toISOString(),
       } as Record<string, any>),
       ID.ap(sql.tx.update),
       ID.ap(db),
-      TE.mapLeft(insufficientHoldingCheck)
+      TE.mapLeft(insufficientHoldingCheck),
+      TE.chain(() => getTx(db)(txId, assetId, userId)),
+      TE.filterOrElse(
+        (t): t is GetTx => Boolean(t),
+        handleError("Failed to update transaction")
+      )
     );
 
 export const deleteTx =
   (db: Database) =>
-  (id: number, userId: UserId): Action<ExecutionResult> =>
-    pipe(execute<unknown[]>({ id, userId }), ID.ap(sql.tx.delete), ID.ap(db));
+  (txId: TxId, userId: UserId): Action<ExecutionResult> =>
+    pipe(execute<unknown[]>({ txId, userId }), ID.ap(sql.tx.delete), ID.ap(db));
 
 const insufficientHoldingCheck = (err: AppError) => {
   switch (true) {

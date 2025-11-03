@@ -1,7 +1,10 @@
 import {
+  handleError,
   type Action,
+  type AssetId,
   type GetAsset,
   type Optional,
+  type PortfolioId,
   type PostAsset,
   type UserId,
 } from "@darkruby/assets-core";
@@ -40,7 +43,7 @@ const sql = {
 export const getAssets =
   (db: Database) =>
   (
-    portfolioId: number,
+    portfolioId: PortfolioId,
     userId: UserId,
     paging = defaultPaging()
   ): Action<GetAsset[]> =>
@@ -54,12 +57,12 @@ export const getAssets =
 export const getAsset =
   (db: Database) =>
   (
-    id: number,
-    portfolioId: number,
+    assetId: AssetId,
+    portfolioId: PortfolioId,
     userId: UserId
   ): Action<Optional<GetAsset>> => {
     return pipe(
-      queryOne({ id, portfolioId, userId }),
+      queryOne({ assetId, portfolioId, userId }),
       ID.ap(sql.asset.get),
       ID.ap(db),
       TE.chain(liftTE(nullableDecoder(GetAssetDecoder)))
@@ -68,31 +71,50 @@ export const getAsset =
 
 export const createAsset =
   (db: Database) =>
-  (body: PostAsset, portfolioId: number): Action<ExecutionResult> =>
+  (
+    body: PostAsset,
+    portfolioId: PortfolioId,
+    userId: UserId
+  ): Action<GetAsset> =>
     pipe(
       execute<unknown[]>({ ...body, portfolioId }),
       ID.ap(sql.asset.insert),
-      ID.ap(db)
+      ID.ap(db),
+      TE.chain(([assetId]) => getAsset(db)(assetId, portfolioId, userId)),
+      TE.filterOrElse(
+        (a): a is GetAsset => Boolean(a),
+        handleError("Failed to create asset")
+      )
     );
 
 export const updateAsset =
   (db: Database) =>
   (
-    assetId: number,
-    body: PostAsset,
-    portfolioId: number
-  ): Action<ExecutionResult> =>
+    assetId: AssetId,
+    portfolioId: PortfolioId,
+    userId: UserId,
+    body: PostAsset
+  ): Action<GetAsset> =>
     pipe(
       execute<unknown[]>({ ...body, assetId, portfolioId }),
       ID.ap(sql.asset.update),
-      ID.ap(db)
+      ID.ap(db),
+      TE.chain(() => getAsset(db)(assetId, portfolioId, userId)),
+      TE.filterOrElse(
+        (a): a is GetAsset => Boolean(a),
+        handleError("Failed to update asset")
+      )
     );
 
 export const deleteAsset =
   (db: Database) =>
-  (id: number, portfolioId: number, userId: UserId): Action<ExecutionResult> =>
+  (
+    assetId: AssetId,
+    portfolioId: PortfolioId,
+    userId: UserId
+  ): Action<ExecutionResult> =>
     pipe(
-      execute<unknown>({ id, portfolioId, userId }),
+      execute<unknown>({ assetId, portfolioId, userId }),
       ID.ap(sql.asset.delete),
       ID.ap(db)
     );
