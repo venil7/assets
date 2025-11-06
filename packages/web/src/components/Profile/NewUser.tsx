@@ -1,21 +1,26 @@
-import type { NewUser } from "@darkruby/assets-core";
+import { newUserValidator, type NewUser } from "@darkruby/assets-core";
+import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
 import { Form } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
+import { createDialog } from "../../util/modal";
+import type { PropsOf } from "../../util/props";
+import { createForm } from "../Form/Form";
 import { CheckBox, FormEdit } from "../Form/FormControl";
 import { PasswordEdit } from "../Form/Password";
+import { createModal } from "../Modals/Modal";
 
-type NewUserFormProps = {
+type NewUserFieldsProps = {
   data: NewUser;
   onChange: (c: NewUser) => void;
   disabled?: boolean;
 };
 
-export const NewUserForm: React.FC<NewUserFormProps> = ({
+export const NewUserFields: React.FC<NewUserFieldsProps> = ({
   data,
   onChange,
   disabled,
-}: NewUserFormProps) => {
+}: NewUserFieldsProps) => {
   const setField = usePartialChange(data, onChange);
   return (
     <Form>
@@ -54,3 +59,16 @@ export const NewUserForm: React.FC<NewUserFormProps> = ({
     </Form>
   );
 };
+
+export const NewUserForm = createForm(NewUserFields, newUserValidator);
+export const NewUserModal = createModal(
+  NewUserFields,
+  newUserValidator,
+  "User"
+);
+
+export const newUserModal = (value: NewUser) =>
+  pipe(
+    { value },
+    createDialog<NewUser, PropsOf<typeof NewUserModal>>(NewUserModal)
+  );

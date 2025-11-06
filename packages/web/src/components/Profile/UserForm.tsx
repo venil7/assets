@@ -1,20 +1,25 @@
-import type { PostUser } from "@darkruby/assets-core";
+import { postUserValidator, type PostUser } from "@darkruby/assets-core";
+import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
 import { Form } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
+import { createDialog } from "../../util/modal";
+import type { PropsOf } from "../../util/props";
+import { createForm } from "../Form/Form";
 import { CheckBox, FormEdit } from "../Form/FormControl";
+import { createModal } from "../Modals/Modal";
 
-type UserFormProps = {
+type UserFieldsProps = {
   data: PostUser;
   onChange: (c: PostUser) => void;
   disabled?: boolean;
 };
 
-export const UserForm: React.FC<UserFormProps> = ({
+export const UserFields: React.FC<UserFieldsProps> = ({
   data,
   onChange,
   disabled,
-}: UserFormProps) => {
+}: UserFieldsProps) => {
   const setField = usePartialChange(data, onChange);
   return (
     <Form>
@@ -26,14 +31,6 @@ export const UserForm: React.FC<UserFormProps> = ({
           disabled={disabled}
         />
       </Form.Group>
-      {/* <Form.Group className="mb-3">
-        <Form.Label>Password</Form.Label>
-        <PasswordEdit
-          value={data.password}
-          onChange={setField("password")}
-          disabled={disabled}
-        />
-      </Form.Group> */}
       <Form.Group className="mb-3">
         <Form.Label>Admin &nbsp;</Form.Label>
         <CheckBox
@@ -53,3 +50,10 @@ export const UserForm: React.FC<UserFormProps> = ({
     </Form>
   );
 };
+
+export const UserForm = createForm(UserFields, postUserValidator);
+
+export const UserModal = createModal(UserFields, postUserValidator, "User");
+
+export const userModal = (value: PostUser) =>
+  pipe({ value }, createDialog<PostUser, PropsOf<typeof UserModal>>(UserModal));

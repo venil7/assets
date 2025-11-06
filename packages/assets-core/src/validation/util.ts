@@ -2,6 +2,8 @@ import * as E from "fp-ts/lib/Either";
 import * as t from "io-ts";
 import { validationErr } from "../decoders/util";
 
+export type Validator = ReturnType<typeof createValidator>;
+
 export const createValidator =
   <T>(decoder: t.Decoder<unknown, T>) =>
   (value: unknown) => {

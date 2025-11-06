@@ -5,29 +5,34 @@ import {
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
-import { useState } from "react";
 import { Form } from "react-bootstrap";
 import { withFetching } from "../../decorators/fetching";
+import { withProps } from "../../decorators/props";
 import { usePartialChange } from "../../hooks/formData";
-import { PrimaryButton } from "../Form/FormControl";
-import { FormErrors } from "../Form/FormErrors";
+import { createDialog } from "../../util/modal";
+import type { PropsOf } from "../../util/props";
+import { createForm } from "../Form/Form";
 import { PasswordEdit } from "../Form/Password";
+import { createModal } from "../Modals/Modal";
 
-type PasswordChangeFormProps = {
+type PasswordChangeFieldsProps = {
   data: PasswordChangeData;
   onChange: (pcd: PasswordChangeData) => void;
+  disabled?: boolean;
 };
 
-export const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({
+export const PasswordChangeFields: React.FC<PasswordChangeFieldsProps> = ({
   data,
   onChange,
-}: PasswordChangeFormProps) => {
+  disabled,
+}: PasswordChangeFieldsProps) => {
   const setField = usePartialChange(data, onChange);
   return (
     <Form>
       <Form.Group className="mb-3">
         <Form.Label>Old password</Form.Label>
         <PasswordEdit
+          disabled={disabled}
           value={data.oldPassword}
           onChange={setField("oldPassword")}
         />
@@ -35,37 +40,38 @@ export const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({
       <Form.Group className="mb-3">
         <Form.Label>New Password</Form.Label>
         <PasswordEdit
+          disabled={disabled}
           value={data.newPassword}
           onChange={setField("newPassword")}
         />
       </Form.Group>
       <Form.Group className="mb-3">
         <Form.Label>Repeat Password</Form.Label>
-        <PasswordEdit value={data.repeat} onChange={setField("repeat")} />
+        <PasswordEdit
+          disabled={disabled}
+          value={data.repeat}
+          onChange={setField("repeat")}
+        />
       </Form.Group>
     </Form>
   );
 };
 
-type PasswordChangeProps = {
-  onSubmit: (pcd: PasswordChangeData) => void;
-};
+export const PasswordChange = pipe(
+  createForm(PasswordChangeFields, passwordChangeValidator),
+  withProps({ data: defaultPasswordChange() }),
+  withFetching
+);
 
-const RawPasswordChange: React.FC<PasswordChangeProps> = ({
-  onSubmit,
-}: PasswordChangeProps) => {
-  const [data, setData] = useState<PasswordChangeData>(defaultPasswordChange());
-  const handleOk = () => onSubmit(data);
-  const { valid, errors } = passwordChangeValidator(data);
-  return (
-    <>
-      <PasswordChangeForm data={data} onChange={setData} />
-      <FormErrors errors={errors} valid={valid} />
-      <PrimaryButton disabled={!valid} onClick={handleOk}>
-        Submit
-      </PrimaryButton>
-    </>
+export const PasswordChangeModal = createModal(
+  PasswordChangeFields,
+  passwordChangeValidator
+);
+
+export const passwordChangeModal = (value: PasswordChangeData) =>
+  pipe(
+    { value },
+    createDialog<PasswordChangeData, PropsOf<typeof PasswordChangeModal>>(
+      PasswordChangeModal
+    )
   );
-};
-
-export const PasswordChange = pipe(RawPasswordChange, withFetching);

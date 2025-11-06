@@ -17,8 +17,8 @@ import { AddBtn } from "../Form/Button";
 import { HorizontalStack } from "../Layout/Stack";
 import { confirmationModal } from "../Modals/Confirmation";
 import { PortfolioMenu } from "../Portfolio/Menu";
-import { newUserModal } from "../Profile/NewUserModal";
-import { userModal } from "../Profile/UserModal";
+import { newUserModal } from "../Profile/NewUser";
+import { userModal } from "../Profile/UserForm";
 
 type UsersProps = {
   users: GetUser[];
