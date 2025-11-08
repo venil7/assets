@@ -7,6 +7,7 @@ import {
   PasswordChangeDecoder,
   PostUserDecoder,
   RawInUserDecoder,
+  validationError,
   type Action,
   type GetUser,
   type Id,
@@ -131,17 +132,21 @@ export const updateOwnPasswordOnly =
   (profile: Profile, payload: unknown): WebAction<GetUser> =>
     pipe(
       TE.Do,
+      TE.tap(() => repo.user.resetAttempts(profile.username)),
       TE.bind("user", () => repo.user.loginAttempt(profile.username)),
-      TE.bind("credentials", () =>
+      TE.bind("passwordChange", () =>
         pipe(payload, liftTE(PasswordChangeDecoder))
       ),
-      TE.tap(({ user, credentials }) =>
-        verifyPassword(user.phash, credentials.oldPassword)
+      TE.tap(({ user, passwordChange }) =>
+        pipe(
+          verifyPassword(user.phash, passwordChange.oldPassword),
+          TE.mapLeft(() => validationError("Wrong old password"))
+        )
       ),
-      TE.chain(({ user, credentials }) =>
+      TE.chain(({ user, passwordChange }) =>
         toRawInUser({
           username: user.username,
-          password: credentials.newPassword,
+          password: passwordChange.newPassword,
           admin: user.admin,
           locked: user.locked,
         })

@@ -16,32 +16,47 @@ import { withNoData } from "./nodata";
 export type WithError<TProps extends Props> = Identity<
   TProps & {
     error: Nullable<AppError>;
+    onErrorDismiss?: () => void;
   }
 >;
 export function withError<P extends Props>(
   Component: React.FC<P>
 ): React.FC<WithError<P>> {
-  return ({ error, ...rest }: WithError<P>) =>
-    error ? <Error error={error} /> : <Component {...(rest as unknown as P)} />;
+  return ({ error, onErrorDismiss, ...rest }: WithError<P>) =>
+    error ? (
+      <Error error={error} onDismiss={onErrorDismiss} />
+    ) : (
+      <Component {...(rest as unknown as P)} />
+    );
 }
 
-const Error: React.FC<{ error: AppError }> = ({ error }) => {
+export type ErrorProps = {
+  error: AppError;
+  onDismiss?: () => void;
+};
+const Error: React.FC<ErrorProps> = ({ error, onDismiss }) => {
+  const dismissible = !!onDismiss;
   switch (error.type) {
     case AppErrorType.Validation:
       return (
-        <Warning dismissible>
+        <Warning dismissible={dismissible} onClose={onDismiss}>
           <Alert.Heading>{error.type}</Alert.Heading>
           <p>{error.message}</p>
         </Warning>
       );
-    default:
+    case AppErrorType.Auth:
       return (
-        <Danger dismissible onClose={() => console.log("closed")}>
+        <Danger dismissible={dismissible} onClose={onDismiss}>
           <Alert.Heading>{error.type}</Alert.Heading>
           <p>{error.message}</p>
-          {error.type === AppErrorType.Auth ? (
-            <Link to={routes.login()}>Login</Link>
-          ) : null}
+          <Link to={routes.login()}>Login</Link>
+        </Danger>
+      );
+    default:
+      return (
+        <Danger dismissible={dismissible} onClose={onDismiss}>
+          <Alert.Heading>Error</Alert.Heading>
+          <p>{error.message}</p>
         </Danger>
       );
   }

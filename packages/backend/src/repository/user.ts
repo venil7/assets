@@ -81,7 +81,7 @@ export const loginAttempt =
     );
   };
 
-export const loginSuccess =
+export const resetAttempts =
   (db: Database) =>
   (username: string): Action<any> =>
     pipe(

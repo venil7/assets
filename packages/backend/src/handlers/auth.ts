@@ -23,7 +23,7 @@ export const login: HandlerTask<Token, Context> = ({
     TE.bind("auth", ({ creds, user }) =>
       verifyPassword(user.phash, creds.password)
     ),
-    TE.bind("reset", ({ user }) => repo.user.loginSuccess(user.username)),
+    TE.bind("reset", ({ user }) => repo.user.resetAttempts(user.username)),
     TE.bind("profile", ({ user }) => liftTE(ProfileDecoder)(user)),
     TE.chain(({ profile }) => createToken(profile)),
     mapWebError

@@ -28,6 +28,7 @@ const RawProfileScreen: React.FC = () => {
       onPasswordUpdate={handlePasswordUpdate}
       error={profile.error.value || prefs.error.value}
       innerFetching={[profile.fetching.value, prefs.fetching.value]}
+      onErrorDismiss={profile.load}
     />
   );
 };

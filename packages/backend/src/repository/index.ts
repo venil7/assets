@@ -38,7 +38,7 @@ export const createRepository = (db: Database) => {
       delete: user.deleteUser(db),
       updateProfileOnly: user.updateProfileOnly(db),
       loginAttempt: user.loginAttempt(db),
-      loginSuccess: user.loginSuccess(db),
+      resetAttempts: user.resetAttempts(db),
     },
     prefs: {
       get: prefs.getPrefs(db),
