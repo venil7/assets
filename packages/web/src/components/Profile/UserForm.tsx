@@ -5,15 +5,11 @@ import { Form } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
-import { createForm } from "../Form/Form";
+import { createForm, type FieldsProps } from "../Form/Form";
 import { CheckBox, FormEdit } from "../Form/FormControl";
 import { createModal } from "../Modals/Modal";
 
-type UserFieldsProps = {
-  data: PostUser;
-  onChange: (c: PostUser) => void;
-  disabled?: boolean;
-};
+type UserFieldsProps = FieldsProps<PostUser>;
 
 export const UserFields: React.FC<UserFieldsProps> = ({
   data,
@@ -51,9 +47,13 @@ export const UserFields: React.FC<UserFieldsProps> = ({
   );
 };
 
-export const UserForm = createForm(UserFields, postUserValidator);
+export const UserForm = createForm<PostUser>(UserFields, postUserValidator);
 
-export const UserModal = createModal(UserFields, postUserValidator, "User");
+export const UserModal = createModal<PostUser>(
+  UserFields,
+  postUserValidator,
+  "User"
+);
 
 export const userModal = (value: PostUser) =>
   pipe({ value }, createDialog<PostUser, PropsOf<typeof UserModal>>(UserModal));

@@ -1,5 +1,6 @@
 # docker buildx build -t assets-test -f ./Dockerfile.test .
 # docker run -it assets-test
+
 FROM golang:1.24 AS migrate
 WORKDIR /app
 COPY .migrations /app/.migrations
@@ -20,4 +21,4 @@ ENV ASSETS_JWT_SECRET=secret
 ENV ASSETS_JWT_EXPIRES_IN=7d
 ENV ASSETS_JWT_REFRESH_BEFORE=6d
 
-CMD ["sh", "-c", "bun run backend:dev & echo $! >/tmp/backend.pid && sleep 1 &&bun test"]
+CMD ["sh", "-c", "bun run backend:dev & echo $! >/tmp/backend.pid && sleep 1 && bun test"]

@@ -1,4 +1,3 @@
-import * as A from "fp-ts/lib/Array";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
@@ -56,15 +55,6 @@ export const boolean: t.Type<boolean, any> = t.union([
   BooleanFromString,
   t.boolean,
 ]);
-
-export const EnumDecoder = <TEnum extends string>(enumObj: {
-  [k in string]: TEnum;
-}): t.Type<TEnum, string> =>
-  pipe(
-    Object.values(enumObj) as string[],
-    A.map((v: string) => t.literal(v) as t.Mixed),
-    (codecs) => t.union(codecs as [t.Mixed, t.Mixed, ...t.Mixed[]])
-  );
 
 export function mapDecoder<A, R>(
   codec: t.Type<A>,

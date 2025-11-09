@@ -9,6 +9,8 @@ lerna-debug.log*
 
 */**/tsconfig.tsbuildinfo
 
+*.svg
+
 .bruno
 .vscode
 design

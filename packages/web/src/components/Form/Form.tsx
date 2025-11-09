@@ -1,3 +1,4 @@
+import type { Identity } from "@darkruby/assets-core";
 import type { Validator } from "@darkruby/assets-core/src/validation/util";
 import { useState } from "react";
 import { PrimaryButton } from "./FormControl";
@@ -9,28 +10,39 @@ export type FieldsProps<T> = {
   disabled?: boolean;
 };
 
-export type FormProps<T> = Omit<FieldsProps<T>, "onChange"> & {
-  onSubmit: (t: T) => void;
-};
+export type FormProps<FieldProps> =
+  FieldProps extends FieldsProps<infer T>
+    ? Identity<
+        Omit<FieldProps, "onChange"> & {
+          onSubmit: (t: T) => void;
+        }
+      >
+    : never;
 
-export type Form<T> = React.FC<FormProps<T>>;
+export type Form<T> = React.FC<FormProps<FieldsProps<T>>>;
 
-export function createForm<T>(
-  Fields: React.FC<FieldsProps<T>>,
+export function createForm<T, FP extends FieldsProps<T> = FieldsProps<T>>(
+  Fields: React.FC<FP>,
   validator: Validator
 ): Form<T> {
-  return ({ data, disabled, onSubmit }: FormProps<T>) => {
+  return (({ data, disabled, onSubmit, ...rest }: FormProps<FP>) => {
     const [inner, setInner] = useState(data);
     const { valid, errors } = validator(inner);
     const handleSubmit = () => onSubmit(inner);
+    const fpProps = {
+      ...rest,
+      data: inner,
+      onChange: setInner,
+      disabled: disabled,
+    } as unknown as FP;
     return (
       <>
         <FormErrors errors={errors} valid={valid} />
-        <Fields data={inner} onChange={setInner} disabled={disabled} />
+        <Fields {...fpProps} />
         <PrimaryButton disabled={!valid || disabled} onClick={handleSubmit}>
           Submit
         </PrimaryButton>
       </>
     );
-  };
+  }) as Form<T>;
 }

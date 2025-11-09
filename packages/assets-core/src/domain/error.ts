@@ -4,9 +4,9 @@ import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { type ValidationError, type Errors as ValidationErrors } from "io-ts";
 import { formatValidationErrors } from "io-ts-reporters";
-import { AppErrorDecoder, AppErrorType } from "../decoders";
+import { AppErrorDecoder, AppErrorType } from "../decoders/error";
 
-export type AppError = t.TypeOf<typeof AppErrorDecoder>; //{ type: AppErrorType; message: string };
+export type AppError = t.TypeOf<typeof AppErrorDecoder>;
 
 export const authError = (message: string): AppError => ({
   message,

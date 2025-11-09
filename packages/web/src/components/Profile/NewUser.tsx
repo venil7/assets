@@ -5,16 +5,12 @@ import { Form } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
-import { createForm } from "../Form/Form";
+import { createForm, type FieldsProps } from "../Form/Form";
 import { CheckBox, FormEdit } from "../Form/FormControl";
 import { PasswordEdit } from "../Form/Password";
 import { createModal } from "../Modals/Modal";
 
-type NewUserFieldsProps = {
-  data: NewUser;
-  onChange: (c: NewUser) => void;
-  disabled?: boolean;
-};
+type NewUserFieldsProps = FieldsProps<NewUser>;
 
 export const NewUserFields: React.FC<NewUserFieldsProps> = ({
   data,
@@ -60,8 +56,8 @@ export const NewUserFields: React.FC<NewUserFieldsProps> = ({
   );
 };
 
-export const NewUserForm = createForm(NewUserFields, newUserValidator);
-export const NewUserModal = createModal(
+export const NewUserForm = createForm<NewUser>(NewUserFields, newUserValidator);
+export const NewUserModal = createModal<NewUser>(
   NewUserFields,
   newUserValidator,
   "User"

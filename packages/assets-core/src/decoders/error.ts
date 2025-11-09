@@ -1,5 +1,5 @@
 import * as t from "io-ts";
-import { EnumDecoder } from "./util";
+import { EnumDecoder } from "./enum";
 
 export enum AppErrorType {
   General = "General",

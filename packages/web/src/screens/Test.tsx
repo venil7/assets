@@ -5,7 +5,7 @@ import { PrimaryButton, SecondaryButton } from "../components/Form/FormControl";
 import { TabContent, Tabs } from "../components/Form/Tabs";
 import { confirmationModal } from "../components/Modals/Confirmation";
 import { PortfolioMenu } from "../components/Portfolio/Menu";
-import { portfolioModal } from "../components/Portfolio/PortfolioModal";
+import { portfolioModal } from "../components/Portfolio/PortfolioFields";
 import { TickerLookup } from "../components/Tx/TickerLookup";
 import { decimal, money, percent } from "../util/number";
 

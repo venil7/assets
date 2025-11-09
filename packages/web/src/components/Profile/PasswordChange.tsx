@@ -11,15 +11,11 @@ import { withProps } from "../../decorators/props";
 import { usePartialChange } from "../../hooks/formData";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
-import { createForm } from "../Form/Form";
+import { createForm, type FieldsProps } from "../Form/Form";
 import { PasswordEdit } from "../Form/Password";
 import { createModal } from "../Modals/Modal";
 
-type PasswordChangeFieldsProps = {
-  data: PasswordChangeData;
-  onChange: (pcd: PasswordChangeData) => void;
-  disabled?: boolean;
-};
+type PasswordChangeFieldsProps = FieldsProps<PasswordChangeData>;
 
 export const PasswordChangeFields: React.FC<PasswordChangeFieldsProps> = ({
   data,
@@ -58,12 +54,12 @@ export const PasswordChangeFields: React.FC<PasswordChangeFieldsProps> = ({
 };
 
 export const PasswordChange = pipe(
-  createForm(PasswordChangeFields, passwordChangeValidator),
+  createForm<PasswordChangeData>(PasswordChangeFields, passwordChangeValidator),
   withProps({ data: defaultPasswordChange() }),
   withFetching
 );
 
-export const PasswordChangeModal = createModal(
+export const PasswordChangeModal = createModal<PasswordChangeData>(
   PasswordChangeFields,
   passwordChangeValidator
 );
