@@ -59,6 +59,7 @@ export const fakeBuy = (
   quantity = faker.datatype.number(100),
   price = faker.datatype.number(100)
 ) => fakeTx("buy", quantity, price);
+
 export const fakeSell = (
   quantity = faker.datatype.number(100),
   price = faker.datatype.number(100)

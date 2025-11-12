@@ -1,6 +1,7 @@
 import { defaultPortfolio } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import { CsvDropzone } from "../components/Csv/CsvUpload";
 import { PrimaryButton, SecondaryButton } from "../components/Form/FormControl";
 import { TabContent, Tabs } from "../components/Form/Tabs";
 import { confirmationModal } from "../components/Modals/Confirmation";
@@ -26,7 +27,7 @@ const RawTestScreen: React.FC = () => {
 
   return (
     <>
-      <Tabs tabs={["Buttons", "Menus", "Formatting"]}>
+      <Tabs tabs={["Buttons", "Menus", "Formatting", "Upload"]}>
         <TabContent tab={0}>
           <PrimaryButton onClick={handler1}>click</PrimaryButton>
           <SecondaryButton onClick={handler2}>click</SecondaryButton>
@@ -41,6 +42,9 @@ const RawTestScreen: React.FC = () => {
             <li>{decimal(0.012, 2, "de-DE")}</li>
             <li>{percent(0.012, 2, "de-DE")}</li>
           </ul>
+        </TabContent>
+        <TabContent tab={3}>
+          <CsvDropzone />
         </TabContent>
       </Tabs>
     </>
