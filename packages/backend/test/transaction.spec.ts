@@ -1,8 +1,10 @@
 import type { AppError, PostTx } from "@darkruby/assets-core";
 import { run } from "@darkruby/assets-core";
+import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import { beforeAll, expect, test } from "bun:test";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import { CsvPostTxDecoder } from "../src/decoders/tx";
 import { fakeBuy, fakeSell, nonAdminApi, type TestApi } from "./helper";
 
 let api: TestApi;
@@ -92,4 +94,11 @@ test("Insufficient holdings when updating existing transaction", async () => {
     run
   );
   expect((error as AppError).message).toContain("Insufficient holdings");
+});
+
+test("CSV roundtrip", async () => {
+  const txs = [fakeBuy(), fakeSell()];
+  const csv = CsvPostTxDecoder.encode(txs);
+  const txs2 = await pipe(csv, liftTE(CsvPostTxDecoder), run);
+  expect(txs2).toEqual(txs);
 });

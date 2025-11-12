@@ -13,13 +13,14 @@
     "@darkruby/assets-core": "workspace:*",
     "@preact/signals-react": "^3.0.1",
     "bootstrap": "^5.3.3",
+    "csv-parse": "^6.1.0",
+    "io-ts": "^2.2.22",
     "jose": "^6.0.11",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
     "react-dom": "^19.0.0",
     "react-router": "^7.3.0",
-    "react-select": "^5.10.1",
-    "io-ts": "^2.2.22"
+    "react-select": "^5.10.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

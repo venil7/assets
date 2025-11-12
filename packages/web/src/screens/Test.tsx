@@ -1,4 +1,5 @@
 import { defaultPortfolio } from "@darkruby/assets-core";
+import * as csv from "csv-parse/browser/esm/sync";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { PrimaryButton, SecondaryButton } from "../components/Form/FormControl";
@@ -26,7 +27,7 @@ const RawTestScreen: React.FC = () => {
 
   return (
     <>
-      <Tabs tabs={["Buttons", "Menus", "Formatting"]}>
+      <Tabs tabs={["Buttons", "Menus", "Formatting", "csv"]}>
         <TabContent tab={0}>
           <PrimaryButton onClick={handler1}>click</PrimaryButton>
           <SecondaryButton onClick={handler2}>click</SecondaryButton>
@@ -41,6 +42,16 @@ const RawTestScreen: React.FC = () => {
             <li>{decimal(0.012, 2, "de-DE")}</li>
             <li>{percent(0.012, 2, "de-DE")}</li>
           </ul>
+        </TabContent>
+        <TabContent tab={3}>
+          {JSON.stringify(
+            csv.parse(
+              ` a,b,c
+    1,2,3
+              4, 5,"abc,def" `,
+              { columns: true }
+            )
+          )}
         </TabContent>
       </Tabs>
     </>
