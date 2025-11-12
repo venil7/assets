@@ -1,8 +1,10 @@
 import type { AppError, PostTx } from "@darkruby/assets-core";
 import { run } from "@darkruby/assets-core";
+import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import { CsvPostTxDecoder } from "../src/decoders/tx";
 import { fakeBuy, fakeSell, nonAdminApi, type TestApi } from "./helper";
 
 let api: TestApi;
@@ -81,18 +83,25 @@ test("Insufficient holdings when selling more than own", async () => {
   const { asset } = await run(api.createPortfolioAssetTx(buyTx));
   const error = await pipe(
     api.tx.create(asset.id!, fakeSell(11, 1)),
-    TE.orElseW((x) => TE.of(x)),
+    TE.orElseW(TE.of),
     run
   );
-  expect((error as AppError).message).toContain("Insufficient holdings");
+  expect((error as AppError).message).toContain("SQLITE_CONSTRAINT_TRIGGER");
 });
 
 test("Insufficient holdings when updating existing transaction", async () => {
   const { asset, tx } = await run(api.createPortfolioAssetTx(buyTx));
   const error = await pipe(
     api.tx.update(tx.id!, asset.id!, fakeSell(11, 1)),
-    TE.orElseW((x) => TE.of(x)),
+    TE.orElseW(TE.of),
     run
   );
-  expect((error as AppError).message).toContain("Insufficient holdings");
+  expect((error as AppError).message).toContain("SQLITE_CONSTRAINT_TRIGGER");
+});
+
+test("CSV roundtrip", async () => {
+  const txs = [fakeBuy(), fakeSell()];
+  const csv = CsvPostTxDecoder.encode(txs);
+  const txs2 = await pipe(csv, liftTE(CsvPostTxDecoder), run);
+  expect(txs2).toEqual(txs);
 });

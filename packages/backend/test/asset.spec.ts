@@ -1,8 +1,10 @@
 import { run, type PostTx } from "@darkruby/assets-core";
+import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import { pipe } from "fp-ts/lib/function";
 import * as A from "fp-ts/lib/ReadonlyArray";
 import * as TE from "fp-ts/lib/TaskEither";
+import { CsvPostAssetDecoder } from "../src/decoders/asset";
 import {
   fakeAsset,
   fakeBuy,
@@ -128,4 +130,11 @@ test("Update asset", async () => {
   expect(newId).toBe(asset.id);
   expect(name).toBe(updateAsset.name);
   expect(ticker).toBe(updateAsset.ticker);
+});
+
+test("CSV roundtrip", async () => {
+  const txs = [fakeAsset(), fakeAsset()];
+  const csv = CsvPostAssetDecoder.encode(txs);
+  const txs2 = await pipe(csv, liftTE(CsvPostAssetDecoder), run);
+  expect(txs2).toEqual(txs);
 });
