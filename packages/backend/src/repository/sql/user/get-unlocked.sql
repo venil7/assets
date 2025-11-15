@@ -1,12 +1,13 @@
-select phash,
-  psalt,
-  created,
-  modified,
+select
   id,
   username,
   admin,
+  psalt,
+  phash,
   login_attempts,
-  locked
+  locked,
+  created,
+  modified
 from users u
 where u.username = $username
   and u.login_attempts < 3

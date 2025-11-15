@@ -2,34 +2,52 @@ import {
   AppErrorType,
   authError,
   handleError,
+  ProfileDecoder,
   type Action,
   type Optional,
+  type Profile,
+  type UserId,
 } from "@darkruby/assets-core";
-import { PostUserDecoder } from "@darkruby/assets-core/src/decoders/user";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { Token } from "@darkruby/assets-core/src/domain/token";
-import {
-  type Credentials,
-  type GetUser,
-  type PostUser,
-  type Profile,
-} from "@darkruby/assets-core/src/domain/user";
-import { compare, genSaltSync, hashSync } from "bcrypt";
+import { compare } from "bcrypt";
+import type { RequestHandler } from "express";
 import { identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { sign, verify, type Jwt } from "jsonwebtoken";
 import { env, envDurationSec } from "./env";
 
+export type WebRequest = Parameters<RequestHandler>[0];
+export type WebResponse = Parameters<RequestHandler>[1];
+
+export const requireProfile = (res: WebResponse): Action<Profile> =>
+  pipe(res.locals["profile"], liftTE(ProfileDecoder));
+
+export const requireUserId = (res: WebResponse): Action<UserId> =>
+  pipe(
+    requireProfile(res),
+    TE.map((p) => p.id)
+  );
+
+export const requireAdminProfile = (res: WebResponse) =>
+  pipe(
+    requireProfile(res),
+    TE.filterOrElse(
+      (u) => u.admin,
+      () => authError(`Requires admin role.`)
+    )
+  );
+
 export const verifyPassword = (
-  { phash }: GetUser,
-  { password }: Credentials
+  phash: string, // <-- actual pasword
+  password: string // <--- provided password
 ): Action<boolean> => {
   return pipe(
     TE.tryCatch(
       () => compare(password, phash),
       handleError("Unable to auth", AppErrorType.Auth)
     ),
-    TE.filterOrElse(identity, (e) => authError("wrong password?"))
+    TE.filterOrElse(identity, () => authError("Wrong password?"))
   );
 };
 
@@ -68,20 +86,3 @@ export const verifyBearer = (
     )
   );
 };
-
-const toUser =
-  (admin: boolean = false) =>
-  ({ username, password }: Credentials): Action<PostUser> => {
-    return pipe(
-      TE.Do,
-      TE.bind("psalt", () => TE.of(genSaltSync())),
-      TE.bind("phash", ({ psalt }) => TE.of(hashSync(password, psalt))),
-      TE.chain(({ phash, psalt }) =>
-        TE.of({ phash, psalt, username, admin, login_attempts: 0, locked: 0 })
-      ),
-      TE.chain(liftTE(PostUserDecoder))
-    );
-  };
-
-export const toNonAdminUser = toUser(false);
-export const toAdminUser = toUser(true);

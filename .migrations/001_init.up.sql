@@ -19,7 +19,7 @@ create table
         name text not null,
         created datetime default current_timestamp,
         modified datetime default current_timestamp,
-        foreign key (portfolio_id) references portfolios (id),
+        foreign key (portfolio_id) references portfolios (id) ON DELETE CASCADE,
         unique (ticker, portfolio_id)
     );
 
@@ -31,7 +31,7 @@ create table
         description text,
         created datetime default current_timestamp,
         modified datetime default current_timestamp,
-        foreign key (user_id) references users (id),
+        foreign key (user_id) references users (id) ON DELETE CASCADE,
         unique (user_id, name)
     );
 
@@ -45,7 +45,7 @@ create table
         date date default current_timestamp,
         created datetime default current_timestamp,
         modified datetime default current_timestamp,
-        foreign key (asset_id) references assets (id)
+        foreign key (asset_id) references assets (id) ON DELETE CASCADE
     );
 
 -- views

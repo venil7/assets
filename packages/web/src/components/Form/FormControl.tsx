@@ -3,6 +3,7 @@ import {
   Button,
   Form,
   type ButtonProps,
+  type FormCheckProps,
   type FormControlProps,
 } from "react-bootstrap";
 import { withOverridenProps, withProps } from "../../decorators/props";
@@ -56,3 +57,26 @@ export const SecondaryButton = pipe(
   NonSubmittingButton,
   withProps({ variant: "secondary", type: "button" })
 ) as React.FC<React.PropsWithChildren & ButtonProps>;
+
+export const DangerButton = pipe(
+  NonSubmittingButton,
+  withProps({ variant: "danger", type: "button" })
+) as React.FC<React.PropsWithChildren & ButtonProps>;
+
+export const CheckBox = pipe(
+  Form.Check as React.FC<FormCheckProps>,
+  withProps({ type: "switch" }),
+  withOverridenProps<
+    FormCheckProps,
+    "onChange",
+    {
+      onChange: (
+        f: (v: boolean) => void
+      ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
+    }
+  >({
+    onChange:
+      (f: (v: boolean) => void) => (e: React.ChangeEvent<HTMLInputElement>) =>
+        f(e.target.checked),
+  })
+);

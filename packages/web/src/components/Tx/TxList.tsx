@@ -19,7 +19,7 @@ import { AddBtn } from "../Form/Button";
 import { HorizontalStack } from "../Layout/Stack";
 import { confirmationModal } from "../Modals/Confirmation";
 import { PortfolioMenu } from "../Portfolio/Menu";
-import { txModal } from "./TxModal";
+import { txModal } from "./TxFields";
 
 type TxListProps = Identity<
   TxTableProps & {

@@ -26,3 +26,5 @@ export const byPortfolioChangePct: Ord<EnrichedPortfolio> = pipe(
   reverse,
   contramap<number, EnrichedPortfolio>((p) => p.value.changePct)
 );
+
+export type PortfolioId = GetPortfolio["id"];

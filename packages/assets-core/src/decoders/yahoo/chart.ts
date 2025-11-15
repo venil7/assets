@@ -5,7 +5,6 @@ import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
-import type { UnixDate } from "../../domain";
 import { changeInValue, changeInValuePct } from "../../utils/finance";
 import { mapDecoder, nullableDecoder, validationErr } from "../util";
 import { ChartMetaDecoder } from "./meta";
@@ -113,7 +112,9 @@ export const YahooChartDataDecoder = mapDecoder<
     E.bind("start", ({ chart }) => {
       return withFallback(
         UnixDateDecoder,
-        Math.floor(new Date().getTime() / 1000) as UnixDate
+        Math.floor(new Date().getTime() / 1000) as t.TypeOf<
+          typeof UnixDateDecoder
+        >
       ).decode(chart.meta.currentTradingPeriod?.regular?.start);
     }),
     E.bind("end", ({ chart }) => {

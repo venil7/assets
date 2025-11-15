@@ -26,7 +26,7 @@ const RawPrefs: React.FC<PrefsProps> = ({ prefs, onUpdate }) => {
   return (
     <>
       <Form>
-        <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+        <Form.Group className="mb-3" controlId="formGroup1">
           <Form.Label>Base currency</Form.Label>
           <CcySelect value={prf.base_ccy} onSelect={handleBaseCcy} />
         </Form.Group>

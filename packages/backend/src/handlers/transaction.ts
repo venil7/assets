@@ -1,91 +1,76 @@
 import type { GetTx, Optional } from "@darkruby/assets-core";
-import { PostTxDecoder } from "@darkruby/assets-core/src/decoders/transaction";
-import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { Id } from "@darkruby/assets-core/src/domain/id";
 import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { numberFromUrl } from "../decoders/params";
-import { toWebError } from "../domain/error";
-import { getProfile } from "./auth";
+import { mapWebError } from "../domain/error";
 import type { Context } from "./context";
 
-export const getTxs: HandlerTask<GetTx[], Context> = ({
+export const getTxs: HandlerTask<readonly GetTx[], Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { service },
 }) =>
   pipe(
     TE.Do,
+    TE.bind("userId", () => service.auth.requireUserId(res)),
     TE.bind("assetId", () => numberFromUrl(req.params.asset_id)),
-    TE.bind("profile", () => getProfile(res)),
-    TE.bind("txs", ({ assetId, profile }) =>
-      repo.tx.getAll(assetId, profile.id)
-    ),
-    TE.map(({ txs }) => txs),
-    TE.mapLeft(toWebError)
+    mapWebError,
+    TE.chain(({ assetId, userId }) => service.tx.getMany(assetId, userId))
   );
 
 export const getTx: HandlerTask<Optional<GetTx>, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { service },
 }) =>
   pipe(
     TE.Do,
-    TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("profile", () => getProfile(res)),
+    TE.bind("txId", () => numberFromUrl(req.params.id)),
+    TE.bind("userId", () => service.auth.requireUserId(res)),
     TE.bind("assetId", () => numberFromUrl(req.params.asset_id)),
-    TE.chain(({ id, assetId, profile }) =>
-      repo.tx.get(id, assetId, profile.id)
-    ),
-    TE.mapLeft(toWebError)
+    mapWebError,
+    TE.chain(({ txId, assetId, userId }) =>
+      service.tx.get(txId, assetId, userId)
+    )
   );
 
 export const createTx: HandlerTask<Optional<GetTx>, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, service },
 }) =>
   pipe(
     TE.Do,
-    TE.bind("body", () => pipe(req.body, liftTE(PostTxDecoder))),
+    TE.bind("userId", () => service.auth.requireUserId(res)),
     TE.bind("assetId", () => numberFromUrl(req.params.asset_id)),
-    TE.bind("profile", () => getProfile(res)),
-    TE.bind("execution", ({ body, assetId, profile }) =>
-      repo.tx.create(body, assetId, profile.id)
-    ),
-    TE.chain(({ execution: [id], assetId, profile }) =>
-      repo.tx.get(id, assetId, profile.id)
-    ),
-    TE.mapLeft(toWebError)
+    mapWebError,
+    TE.chain(({ assetId, userId }) =>
+      service.tx.create(assetId, userId, req.body)
+    )
   );
 
 export const deleteTx: HandlerTask<Optional<Id>, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { service },
 }) =>
   pipe(
     TE.Do,
-    TE.bind("id", () => numberFromUrl(req.params.id)),
-    TE.bind("profile", () => getProfile(res)),
-    TE.bind("delete", ({ id, profile }) => repo.tx.delete(id, profile.id)),
-    TE.map(({ id, delete: [_, rowsDeleted] }) => (rowsDeleted ? { id } : null)),
-    TE.mapLeft(toWebError)
+    TE.bind("txId", () => numberFromUrl(req.params.id)),
+    TE.bind("userId", () => service.auth.requireUserId(res)),
+    mapWebError,
+    TE.chain(({ txId, userId }) => service.tx.delete(txId, userId))
   );
 
 export const updateTx: HandlerTask<Optional<GetTx>, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, service },
 }) =>
   pipe(
     TE.Do,
-    TE.bind("id", () => numberFromUrl(req.params.id)),
+    TE.bind("txId", () => numberFromUrl(req.params.id)),
     TE.bind("assetId", () => numberFromUrl(req.params.asset_id)),
-    TE.bind("profile", () => getProfile(res)),
-    TE.bind("body", () => pipe(req.body, liftTE(PostTxDecoder))),
-    TE.bind("update", ({ id, assetId, body, profile }) =>
-      repo.tx.update(id, body, assetId, profile.id)
-    ),
-    TE.chain(({ id, assetId, profile }) =>
-      repo.tx.get(id, assetId, profile.id)
-    ),
-    TE.mapLeft(toWebError)
+    TE.bind("userId", () => service.auth.requireUserId(res)),
+    mapWebError,
+    TE.chain(({ txId, assetId, userId }) =>
+      service.tx.update(txId, assetId, userId, req.body)
+    )
   );

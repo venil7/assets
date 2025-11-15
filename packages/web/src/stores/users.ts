@@ -1,8 +1,9 @@
 import type {
   ActionResult,
-  Credentials,
+  GetUser,
   Identity,
-  Profile,
+  NewUser,
+  PostUser,
   UserId,
 } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
@@ -17,29 +18,29 @@ import {
 import { type StoreBase, createStoreBase } from "./base";
 
 export type UsersStore = Identity<
-  StoreBase<Profile[]> & {
-    load: () => ActionResult<Profile[]>;
-    create: (creds: Credentials) => ActionResult<Profile[]>;
-    update: (uid: UserId, credes: Credentials) => ActionResult<Profile[]>;
-    delete: (uid: UserId) => ActionResult<Profile[]>;
+  StoreBase<GetUser[]> & {
+    load: () => ActionResult<GetUser[]>;
+    create: (creds: NewUser) => ActionResult<GetUser[]>;
+    update: (uid: UserId, credes: PostUser) => ActionResult<GetUser[]>;
+    delete: (uid: UserId) => ActionResult<GetUser[]>;
   }
 >;
 
 export const createUsersStore = (): UsersStore => {
-  const data = signal<Profile[]>([]);
+  const data = signal<GetUser[]>([]);
   const storeBase = createStoreBase(data);
 
   return {
     ...storeBase,
     load: () => storeBase.run(getUsers()),
-    create: (creds: Credentials) =>
+    create: (creds: NewUser) =>
       storeBase.run(
         pipe(
           createUser(creds),
           TE.chain(() => getUsers())
         )
       ),
-    update: (uid: UserId, creds: Credentials) =>
+    update: (uid: UserId, creds: PostUser) =>
       storeBase.run(
         pipe(
           updateUser(uid, creds),

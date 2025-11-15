@@ -1,12 +1,23 @@
-import { authError, type Action } from "@darkruby/assets-core";
+import {
+  authError,
+  handleError,
+  type Action,
+  type Optional,
+} from "@darkruby/assets-core";
 import {
   GetUserDecoder,
   GetUsersDecoder,
+  RawOutUserDecoder,
 } from "@darkruby/assets-core/src/decoders/user";
-import { liftTE } from "@darkruby/assets-core/src/decoders/util";
+import {
+  liftTE,
+  nullableDecoder,
+} from "@darkruby/assets-core/src/decoders/util";
 import type {
   GetUser,
   PostUser,
+  RawInUser,
+  RawOutUser,
   UserId,
 } from "@darkruby/assets-core/src/domain/user";
 import type Database from "bun:sqlite";
@@ -31,6 +42,7 @@ import {
   insertUserSql,
   loginAttemptUserSql,
   resetAttemptsSql,
+  updateProfileOnlySql,
   updateUserSql,
 } from "./sql" with { type: "macro" };
 
@@ -44,12 +56,13 @@ const sql = {
     resetAttempts: TE.of(resetAttemptsSql()),
     getUnlocked: TE.of(getUnlockedUserSql()),
     loginAttempt: TE.of(loginAttemptUserSql()),
+    updateProfileOnly: TE.of(updateProfileOnlySql()),
   },
 };
 
 export const loginAttempt =
   (db: Database) =>
-  (username: string): Action<GetUser> => {
+  (username: string): Action<RawOutUser> => {
     return pipe(
       TE.Do,
       TE.let("db", () => db),
@@ -63,12 +76,12 @@ export const loginAttempt =
           return getUser.get({ username });
         })(db)
       ),
-      TE.filterOrElse(Boolean, () => authError("could not authenticate")),
-      TE.chain(liftTE(GetUserDecoder))
+      TE.filterOrElse(Boolean, () => authError("Could not authenticate.")),
+      TE.chain(liftTE(RawOutUserDecoder))
     );
   };
 
-export const loginSuccess =
+export const resetAttempts =
   (db: Database) =>
   (username: string): Action<any> =>
     pipe(
@@ -92,27 +105,56 @@ export const getUsers =
 
 export const getUser =
   (db: Database) =>
-  (userId: UserId): Action<GetUser> =>
+  (userId: UserId): Action<Optional<GetUser>> =>
     pipe(
       queryOne({ userId }),
       ID.ap(sql.user.get),
       ID.ap(db),
-      TE.chain(liftTE(GetUserDecoder))
+      TE.chain(liftTE(nullableDecoder(GetUserDecoder)))
     );
 
 export const createUser =
   (db: Database) =>
-  (user: PostUser): Action<ExecutionResult> => {
-    return pipe(execute(user), ID.ap(sql.user.insert), ID.ap(db));
+  (user: RawInUser): Action<GetUser> => {
+    return pipe(
+      execute(user),
+      ID.ap(sql.user.insert),
+      ID.ap(db),
+      TE.chain(([userId]) => pipe(userId as UserId, getUser(db))),
+      TE.filterOrElse(
+        (u): u is GetUser => Boolean(u),
+        handleError("Failed to create user")
+      )
+    );
   };
 
 export const updateUser =
   (db: Database) =>
-  (userId: UserId, user: PostUser): Action<ExecutionResult> => {
+  (userId: UserId, user: RawInUser): Action<GetUser> => {
     return pipe(
       execute({ ...user, userId }),
       ID.ap(sql.user.update),
-      ID.ap(db)
+      ID.ap(db),
+      TE.chain(() => pipe(userId, getUser(db))),
+      TE.filterOrElse(
+        (u): u is GetUser => Boolean(u),
+        handleError("Failed to update user")
+      )
+    );
+  };
+
+export const updateProfileOnly =
+  (db: Database) =>
+  (userId: UserId, user: PostUser): Action<GetUser> => {
+    return pipe(
+      execute({ ...user, userId }),
+      ID.ap(sql.user.updateProfileOnly),
+      ID.ap(db),
+      TE.chain(() => pipe(userId, getUser(db))),
+      TE.filterOrElse(
+        (u): u is GetUser => Boolean(u),
+        handleError("Failed to update user profile")
+      )
     );
   };
 

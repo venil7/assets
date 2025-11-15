@@ -16,8 +16,8 @@ import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
+import { portfolioModal } from "./PortfolioFields";
 import { PortfolioLink } from "./PortfolioLink";
-import { portfolioModal } from "./PortfolioModal";
 
 type PortfoliosProps = {
   summary: Summary;

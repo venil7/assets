@@ -1,9 +1,15 @@
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import type { Decoder } from "io-ts";
-import { AppErrorDecoder } from "../decoders/error";
+import { AppErrorMessageDecoder } from "../decoders/error";
 import { liftTE } from "../decoders/util";
-import { generalError, handleError, type AppError } from "../domain";
+import {
+  authError,
+  generalError,
+  handleError,
+  validationError,
+  type AppError,
+} from "../domain";
 import type { Action } from "../utils/utils";
 
 const rest = <JSON>(
@@ -15,9 +21,10 @@ const rest = <JSON>(
   const req = { method, body, headers } as RequestInit;
   return pipe(
     TE.tryCatch(() => fetch(url, req), handleError("fetch")),
-    TE.bindTo("resp"),
-    TE.bind("clone", ({ resp }) => TE.of(resp.clone())),
-    TE.chain(({ resp, clone }) => {
+    // TE.bindTo("resp"),
+    // TE.bind("clone", ({ resp }) => TE.of(resp.clone())),
+    TE.chain((resp) => {
+      const clone = resp.clone();
       const toJson = TE.tryCatch(
         () => resp.json(),
         handleError("JSON parse error")
@@ -29,19 +36,32 @@ const rest = <JSON>(
       if (resp.status >= 200 && resp.status < 300) {
         return pipe(toJson, TE.chain(liftTE(decoder)));
       }
+
       return pipe(
         toJson,
-        TE.chain(liftTE(AppErrorDecoder)),
-        TE.orElseW(() => {
-          return pipe(
+        TE.chain(liftTE(AppErrorMessageDecoder)),
+        TE.map(({ message }) => {
+          switch (resp.status) {
+            case 400:
+              return validationError(message);
+            case 401:
+            case 403:
+              return authError(message);
+            case 404:
+            default:
+              return generalError(message);
+          }
+        }),
+        TE.orElseW(() =>
+          pipe(
             toText,
             TE.chain((message) =>
               TE.of<AppError, AppError>(
                 generalError(`${resp.status}:${resp.statusText} - ${message}`)
               )
             )
-          );
-        }),
+          )
+        ),
         TE.chain(TE.left)
       ) as Action<JSON>;
     })

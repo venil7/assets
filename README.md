@@ -1,5 +1,9 @@
 # `Assets` — Personal Wealth Tracker
 
+[![CHECKS-AND-INTEGRATION-TESTS](https://github.com/venil7/assets/actions/workflows/build-and-test.yaml/badge.svg)](https://github.com/venil7/assets/actions/workflows/build-and-test.yaml)
+
+[![RELEASE-DOCKER-CONTAINER](https://github.com/venil7/assets/actions/workflows/build-docker-container.yaml/badge.svg)](https://github.com/venil7/assets/actions/workflows/build-docker-container.yaml)
+
 A self-hosted net worth and portfolio manager.
 Track multiple portfolios (ISA, General, Pension, Crypto, etc.) and monitor individual or total performance.
 Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.com/), automatically converts to your base major currency.
@@ -124,3 +128,12 @@ The UI is optional — the backend exposes a full REST API.
 ## Contributing
 
 This codebase is 100% hand written, no AI slop. If you feel comfortable with TypeScript, [functional programming](https://amzn.eu/d/axUrvVz) and basic SQL - contributions are welcome. If you find a bug, kindly open a [Github Issue](https://github.com/venil7/assets/issues)
+
+## Licence
+
+Copyright &copy; 2025. All rights reserved.
+
+Source available for inspection and personal use only.
+Free to use non-commercially; commercial use reserved to the author.
+No warranty or liability.
+Contributions do not confer authorship or ownership rights.

@@ -3,6 +3,7 @@ import * as RT from "fp-ts/ReaderTask";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as I from "fp-ts/lib/Identity";
 import * as T from "fp-ts/lib/Task";
+import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import {
   notFound,
@@ -13,6 +14,8 @@ import {
 import { createLogger } from "./log";
 
 const logger = createLogger("express");
+
+export type WebAction<T> = TE.TaskEither<WebAppError, T>;
 
 type ErrorHandler<Ctx> = (
   err: WebAppError

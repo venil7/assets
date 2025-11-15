@@ -1,45 +1,53 @@
-import type { Profile } from "@darkruby/assets-core";
-import {
-  CredenatialsDecoder,
-  ProfileDecoder,
-} from "@darkruby/assets-core/src/decoders/user";
-import { liftTE } from "@darkruby/assets-core/src/decoders/util";
+import { type GetUser, type Id, type Optional } from "@darkruby/assets-core";
 import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { toWebError } from "../domain/error";
-import * as userService from "../services/auth";
-import { getUserId } from "./auth";
+import { mapWebError } from "../domain/error";
 import type { Context } from "./context";
 
-export const getOwnProfile: HandlerTask<Profile, Context> = ({
+export const getProfile: HandlerTask<GetUser, Context> = ({
   params: [, res],
-  context: { repo },
+  context: { repo, service },
 }) =>
   pipe(
-    TE.Do,
-    TE.bind("userId", () => getUserId(res)),
-    TE.bind("user", ({ userId }) => repo.user.get(userId)),
-    TE.chain(({ user }) => liftTE(ProfileDecoder)(user)),
-    TE.mapLeft(toWebError)
+    service.auth.requireUserId(res),
+    mapWebError,
+    TE.chain(service.user.get)
   );
 
-export const updateOwnProfile: HandlerTask<Profile, Context> = ({
+export const updateProfile: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { repo },
+  context: { repo, service },
 }) =>
   pipe(
     TE.Do,
-    TE.bind("userId", () => getUserId(res)),
-    TE.bind("credentials", () => pipe(req.body, liftTE(CredenatialsDecoder))),
-    TE.bind("usr", ({ credentials }) =>
-      userService.toNonAdminUser(credentials)
-    ),
-    TE.chain(({ usr, userId }) =>
-      pipe(
-        repo.user.update(userId, usr),
-        TE.chain(() => repo.user.get(userId))
-      )
-    ),
-    TE.mapLeft(toWebError)
+    TE.bind("userId", () => service.auth.requireUserId(res)),
+    mapWebError,
+    TE.chain(({ userId }) =>
+      service.user.updateOwnProfileOnly(userId, req.body)
+    )
+  );
+
+export const updatePassword: HandlerTask<GetUser, Context> = ({
+  params: [req, res],
+  context: { repo, service },
+}) =>
+  pipe(
+    TE.Do,
+    TE.bind("profile", () => service.auth.requireProfile(res)),
+    mapWebError,
+    TE.chain(({ profile }) =>
+      service.user.updateOwnPasswordOnly(profile, req.body)
+    )
+  );
+
+export const deleteProfile: HandlerTask<Optional<Id>, Context> = ({
+  params: [, res],
+  context: { repo, service },
+}) =>
+  pipe(
+    TE.Do,
+    TE.bind("userId", () => service.auth.requireUserId(res)),
+    mapWebError,
+    TE.chain(({ userId }) => service.user.delete(userId))
   );

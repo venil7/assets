@@ -4,5 +4,6 @@ set username = $username,
   psalt = $psalt,
   admin = $admin,
   login_attempts = $login_attempts,
-  locked = $locked
+  locked = $locked,
+  modified = CURRENT_TIMESTAMP
 where id = $userId;

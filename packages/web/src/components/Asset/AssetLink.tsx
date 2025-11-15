@@ -12,8 +12,8 @@ import { HoldingsIndicator, TxCount, WeightIndicator } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { routes } from "../Router";
 import { Totals } from "../Totals/Totals";
-import { txModal } from "../Tx/TxModal";
-import { assetModal } from "./AssetModal";
+import { txModal } from "../Tx/TxFields";
+import { assetModal } from "./AssetFields";
 import { AssetMenu } from "./Menu";
 
 export type AssetLinkProps = {

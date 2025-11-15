@@ -6,10 +6,10 @@ import {
   EnrichedPortfoliosDecoder,
   GetTxDecoder,
   GetTxsDecoder,
+  GetUserDecoder,
+  GetUsersDecoder,
   IdDecoder,
   PrefsDecoder,
-  ProfileDecoder,
-  ProfilesDecoder,
   SummaryDecoder,
   TokenDecoder,
   YahooTickerSearchResultDecoder,
@@ -20,12 +20,15 @@ import type {
   EnrichedAsset,
   EnrichedPortfolio,
   GetTx,
+  GetUser,
   Id,
+  NewUser,
+  PasswordChange,
   PostAsset,
   PostPortfolio,
   PostTx,
+  PostUser,
   Prefs,
-  Profile,
   Summary,
   TickerSearchResult,
   Token,
@@ -142,21 +145,24 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const deleteTx = (assetId: number, id: number) =>
     methods.delete<Id>(TX_URL(assetId, id), IdDecoder);
 
-  const getProfile = () => methods.get<Profile>(PROFILE_URL, ProfileDecoder);
-  const updateProfile = (body: Credentials) =>
-    methods.put<Profile, Credentials>(PROFILE_URL, body, ProfileDecoder);
+  const getProfile = () => methods.get<GetUser>(PROFILE_URL, GetUserDecoder);
+  const updateProfile = (body: PostUser) =>
+    methods.put<GetUser, PostUser>(PROFILE_URL, body, GetUserDecoder);
+  const updatePassword = (body: PasswordChange) =>
+    methods.post<GetUser, PasswordChange>(PROFILE_URL, body, GetUserDecoder);
+  const deleteProfile = () => methods.delete<Id>(PROFILE_URL, IdDecoder);
 
   const getPrefs = () => methods.get<Prefs>(PREFS_URL, PrefsDecoder);
   const updatePrefs = (pref: Prefs) =>
     methods.put<Prefs>(PREFS_URL, pref, PrefsDecoder);
 
-  const createUser = (body: Credentials) =>
-    methods.post<Profile, Credentials>(USERS_URL, body, ProfileDecoder);
-  const updateUser = (uid: UserId, body: Credentials) =>
-    methods.put<Profile, Credentials>(USER_URL(uid), body, ProfileDecoder);
-  const getUsers = () => methods.get<Profile[]>(USERS_URL, ProfilesDecoder);
+  const createUser = (body: NewUser) =>
+    methods.post<GetUser, NewUser>(USERS_URL, body, GetUserDecoder);
+  const updateUser = (uid: UserId, body: PostUser) =>
+    methods.put<GetUser, PostUser>(USER_URL(uid), body, GetUserDecoder);
+  const getUsers = () => methods.get<GetUser[]>(USERS_URL, GetUsersDecoder);
   const getUser = (uid: UserId) =>
-    methods.get<Profile>(USER_URL(uid), ProfileDecoder);
+    methods.get<GetUser>(USER_URL(uid), GetUserDecoder);
   const deleteUser = (uid: UserId) =>
     methods.delete<Id>(USER_URL(uid), IdDecoder);
 
@@ -177,6 +183,8 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     profile: {
       get: getProfile,
       update: updateProfile,
+      password: updatePassword,
+      delete: deleteProfile,
     },
     prefs: {
       get: getPrefs,

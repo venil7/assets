@@ -9,7 +9,7 @@ import { routes } from "../Router";
 import { Totals } from "../Totals/Totals";
 import { PortfolioMenu } from "./Menu";
 import "./Portfolio.scss";
-import { portfolioModal } from "./PortfolioModal";
+import { portfolioModal } from "./PortfolioFields";
 
 export type PortfolioLinkProps = {
   portfolio: EnrichedPortfolio;

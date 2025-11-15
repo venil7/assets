@@ -1,8 +1,8 @@
 import {
-  defaultCredentials,
-  fromProfile,
-  type Credentials,
-  type Profile,
+  defaultNewUser,
+  type GetUser,
+  type NewUser,
+  type PostUser,
   type UserId,
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
@@ -17,12 +17,13 @@ import { AddBtn } from "../Form/Button";
 import { HorizontalStack } from "../Layout/Stack";
 import { confirmationModal } from "../Modals/Confirmation";
 import { PortfolioMenu } from "../Portfolio/Menu";
-import { credentialsModal } from "../Profile/CredentialsModal";
+import { newUserModal } from "../Profile/NewUser";
+import { userModal } from "../Profile/UserForm";
 
 type UsersProps = {
-  users: Profile[];
-  onAdd: (p: Credentials) => void;
-  onUpdate: (uid: UserId, p: Credentials) => void;
+  users: GetUser[];
+  onAdd: (p: NewUser) => void;
+  onUpdate: (uid: UserId, p: PostUser) => void;
   onDelete: (uid: UserId) => void;
 };
 
@@ -32,10 +33,10 @@ const RawUsers: React.FC<UsersProps> = ({
   onUpdate,
   onDelete,
 }: UsersProps) => {
-  const handleUpdate = (p: Profile) =>
+  const handleUpdate = (user: GetUser) =>
     pipe(
-      () => credentialsModal(fromProfile(p)),
-      TE.map((pwd) => onUpdate(p.id, pwd))
+      () => userModal(user),
+      TE.map((updated) => onUpdate(user.id, updated))
     );
   const handleDelete = (uid: UserId) =>
     pipe(
@@ -43,10 +44,7 @@ const RawUsers: React.FC<UsersProps> = ({
       TE.chainIOK(() => () => onDelete(uid))
     );
 
-  const handleAdd = pipe(
-    () => credentialsModal(defaultCredentials()),
-    TE.map(onAdd)
-  );
+  const handleAdd = pipe(() => newUserModal(defaultNewUser()), TE.map(onAdd));
 
   return (
     <div className="users">
@@ -64,16 +62,16 @@ const RawUsers: React.FC<UsersProps> = ({
           </tr>
         </thead>
         <tbody>
-          {users.map((profile) => (
-            <tr key={profile.id}>
-              <td>{profile.id}</td>
-              <td>{profile.username}</td>
-              <td>{yesNo(profile.admin)}</td>
-              <td>{yesNo(profile.login_attempts > 3 || profile.locked)}</td>
+          {users.map((user) => (
+            <tr key={user.id}>
+              <td>{user.id}</td>
+              <td>{user.username}</td>
+              <td>{yesNo(user.admin)}</td>
+              <td>{yesNo(user.login_attempts > 3 || user.locked)}</td>
               <td>
                 <PortfolioMenu
-                  onDelete={handleDelete(profile.id)}
-                  onEdit={handleUpdate(profile)}
+                  onDelete={handleDelete(user.id)}
+                  onEdit={handleUpdate(user)}
                 />
               </td>
             </tr>

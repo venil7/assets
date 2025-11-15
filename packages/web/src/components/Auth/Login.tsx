@@ -1,8 +1,8 @@
 import { defaultCredentials, type Credentials } from "@darkruby/assets-core";
 import { CredenatialsDecoder } from "@darkruby/assets-core/src/decoders/user";
+import { createValidator } from "@darkruby/assets-core/src/validation/util";
 import { Form } from "react-bootstrap";
 import { usePartialState } from "../../hooks/formData";
-import { createValidator } from "../../util/validation";
 import { FormEdit, FormPassword, PrimaryButton } from "../Form/FormControl";
 
 export type LoginProps = {

@@ -13,14 +13,14 @@ import { Stack } from "react-bootstrap";
 import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
+import { assetModal } from "../Asset/AssetFields";
 import { AssetLink } from "../Asset/AssetLink";
-import { assetModal } from "../Asset/AssetModal";
 import { RangeChart } from "../Charts/RangesChart";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
-import { portfolioModal } from "./PortfolioModal";
+import { portfolioModal } from "./PortfolioFields";
 
 type PortfolioDetailsProps = {
   portfolio: EnrichedPortfolio;

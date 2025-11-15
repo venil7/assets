@@ -5,10 +5,14 @@ import { StoreContext } from "../hooks/store";
 
 const RawProfileScreen: React.FC = () => {
   useSignals();
-  const { profile, prefs } = use(StoreContext);
+  const { profile, prefs, auth } = use(StoreContext);
 
-  const handleCredentialsUpdate = profile.update;
+  const handlePasswordUpdate = profile.password;
   const handlePrefsUpdate = prefs.update;
+  const handleProfileDelete = () => {
+    profile.delete();
+    auth.logout();
+  };
 
   useEffect(() => {
     profile.load();
@@ -17,12 +21,14 @@ const RawProfileScreen: React.FC = () => {
 
   return (
     <UserProfile
-      profile={profile.data.value}
       prefs={prefs.data.value}
+      profile={profile.data.value}
       onPrefsUpdate={handlePrefsUpdate}
-      onCredentialsUpdate={handleCredentialsUpdate}
+      onProfileDetele={handleProfileDelete}
+      onPasswordUpdate={handlePasswordUpdate}
       error={profile.error.value || prefs.error.value}
       innerFetching={[profile.fetching.value, prefs.fetching.value]}
+      onErrorDismiss={profile.load}
     />
   );
 };

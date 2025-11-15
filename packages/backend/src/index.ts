@@ -1,4 +1,4 @@
-import { run, type Action } from "@darkruby/assets-core";
+import { run, yahooApi, type Action } from "@darkruby/assets-core";
 import { createRequestHandler } from "@darkruby/fp-express";
 import { Database } from "bun:sqlite";
 import cors from "cors";
@@ -11,6 +11,8 @@ import path from "node:path";
 import { createHandlers } from "./handlers";
 import type { Context } from "./handlers/context";
 import { createRepository, type Repository } from "./repository";
+import { execute } from "./repository/database";
+import { createWebService } from "./services";
 import {
   createCache,
   type AppCache,
@@ -41,6 +43,7 @@ const config = (): Action<Config> =>
 const repository = (c: Config): Action<Repository> =>
   pipe(
     TE.of(new Database(c.database, { strict: true })),
+    TE.tap(execute(null)(TE.of(`PRAGMA foreign_keys = ON;`))),
     TE.map(createRepository)
   );
 
@@ -89,6 +92,8 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       const profile = express();
       profile.get("/", handlers.profile.get);
       profile.put("/", handlers.profile.update);
+      profile.post("/", handlers.profile.updatePassword);
+      profile.delete("/", handlers.profile.delete);
       api.use("/profile", profile);
 
       const prefs = express();
@@ -96,7 +101,7 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       prefs.put("/", handlers.prefs.update);
       api.use("/prefs", prefs);
 
-      const user = express(); // also prefs
+      const user = express();
       user.post("/", handlers.user.create);
       user.get("/", handlers.user.getMany);
       user.get("/:id", handlers.user.get);
@@ -147,7 +152,10 @@ const app = () =>
         TE.Do,
         TE.bind("repo", () => repository(config)),
         TE.bind("cache", () => cache(config)),
-        TE.bind("yahooApi", ({ cache }) => TE.of(cachedYahooApi(cache)))
+        TE.bind("yahooApi", ({ cache }) => TE.of(cachedYahooApi(cache))),
+        TE.bind("service", ({ repo }) =>
+          TE.of(createWebService(repo, yahooApi))
+        )
       )
     ),
     TE.bind("init", ({ context }) => initializeApp(context.repo)),

@@ -1,7 +1,9 @@
 import {
+  handleError,
   type Action,
   type GetPortfolio,
   type Optional,
+  type PortfolioId,
   type PostPortfolio,
   type UserId,
 } from "@darkruby/assets-core";
@@ -51,9 +53,12 @@ export const getPortfolios =
 
 export const getPortfolio =
   (db: Database) =>
-  (id: number, userId: UserId): Action<Optional<GetPortfolio>> => {
+  (
+    portfolioId: PortfolioId,
+    userId: UserId
+  ): Action<Optional<GetPortfolio>> => {
     return pipe(
-      queryOne({ id, userId }),
+      queryOne({ portfolioId, userId }),
       ID.ap(sql.portfolio.get),
       ID.ap(db),
       TE.chain(liftTE(nullableDecoder(GetPortfolioDecoder)))
@@ -63,30 +68,40 @@ export const getPortfolio =
 export const updatePortfolio =
   (db: Database) =>
   (
-    portfolioId: number,
+    portfolioId: PortfolioId,
     body: PostPortfolio,
     userId: UserId
-  ): Action<ExecutionResult> =>
+  ): Action<GetPortfolio> =>
     pipe(
       execute<unknown[]>({ ...body, portfolioId, userId }),
       ID.ap(sql.portfolio.update),
-      ID.ap(db)
+      ID.ap(db),
+      TE.chain(() => getPortfolio(db)(portfolioId, userId)),
+      TE.filterOrElse(
+        (p): p is GetPortfolio => Boolean(p),
+        handleError("Failed to update portfolio")
+      )
     );
 
 export const createPortfolio =
   (db: Database) =>
-  (body: PostPortfolio, userId: UserId): Action<ExecutionResult> =>
+  (body: PostPortfolio, userId: UserId): Action<GetPortfolio> =>
     pipe(
       execute<unknown[]>({ ...body, userId }),
       ID.ap(sql.portfolio.insert),
-      ID.ap(db)
+      ID.ap(db),
+      TE.chain(([portfolioId]) => getPortfolio(db)(portfolioId, userId)),
+      TE.filterOrElse(
+        (p): p is GetPortfolio => Boolean(p),
+        handleError("Failed to create portfolio")
+      )
     );
 
 export const deletePortfolio =
   (db: Database) =>
-  (id: number, userId: UserId): Action<ExecutionResult> =>
+  (portfolioId: PortfolioId, userId: UserId): Action<ExecutionResult> =>
     pipe(
-      execute<unknown[]>({ id, userId }),
+      execute<unknown[]>({ portfolioId, userId }),
       ID.ap(sql.portfolio.delete),
       ID.ap(db)
     );
