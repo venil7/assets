@@ -1,6 +1,8 @@
-import { defaultPortfolio } from "@darkruby/assets-core";
+import { defaultPortfolio, type PostTx } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import { useState } from "react";
+import { TxCsvUpload } from "../components/Csv";
 import { PrimaryButton, SecondaryButton } from "../components/Form/FormControl";
 import { TabContent, Tabs } from "../components/Form/Tabs";
 import { confirmationModal } from "../components/Modals/Confirmation";
@@ -10,6 +12,7 @@ import { TickerLookup } from "../components/Tx/TickerLookup";
 import { decimal, money, percent } from "../util/number";
 
 const RawTestScreen: React.FC = () => {
+  const [tx, setTx] = useState<PostTx[]>([]);
   const handler1 = () => {
     return pipe(
       () => portfolioModal(defaultPortfolio()),
@@ -26,7 +29,7 @@ const RawTestScreen: React.FC = () => {
 
   return (
     <>
-      <Tabs tabs={["Buttons", "Menus", "Formatting"]}>
+      <Tabs tabs={["Buttons", "Menus", "Formatting", "Upload"]}>
         <TabContent tab={0}>
           <PrimaryButton onClick={handler1}>click</PrimaryButton>
           <SecondaryButton onClick={handler2}>click</SecondaryButton>
@@ -41,6 +44,11 @@ const RawTestScreen: React.FC = () => {
             <li>{decimal(0.012, 2, "de-DE")}</li>
             <li>{percent(0.012, 2, "de-DE")}</li>
           </ul>
+        </TabContent>
+        <TabContent tab={3}>
+          <h3>upload transactions</h3>
+          <TxCsvUpload onParse={setTx} />
+          <pre>{JSON.stringify(tx, null, 2)}</pre>
         </TabContent>
       </Tabs>
     </>

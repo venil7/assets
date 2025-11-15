@@ -1,11 +1,12 @@
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
+import { NumberDecoder } from "./number";
 import { dateDecoder } from "./util";
 
 const baseTxTypes = {
   type: t.union([t.literal("buy"), t.literal("sell")]),
-  quantity: t.number,
-  price: t.number,
+  quantity: NumberDecoder,
+  price: NumberDecoder,
   date: dateDecoder,
   comments: withFallback(t.string, ""),
 };
