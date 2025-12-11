@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@darkruby/assets-core": "workspace:*",
+    "@fortawesome/fontawesome-svg-core": "^7.1.0",
+    "@fortawesome/free-regular-svg-icons": "^7.1.0",
+    "@fortawesome/react-fontawesome": "^3.1.0",
     "@preact/signals-react": "^3.0.1",
     "bootstrap": "^5.3.3",
     "csv-parse": "^6.1.0",

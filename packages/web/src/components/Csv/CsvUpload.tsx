@@ -11,10 +11,8 @@ import { Error } from "../../decorators/errors";
 import { Info, Success } from "../Form/Alert";
 
 type OnDropHandler = NonNullable<DropzoneOptions["onDrop"]>;
-
-const accept: NonNullable<DropzoneOptions["accept"]> = {
-  "text/csv": [],
-};
+type DropZoneAccept = NonNullable<DropzoneOptions["accept"]>;
+const accept: DropZoneAccept = { "text/csv": [] };
 
 export type CsvUploadProps<T> = {
   decode: (csv: string) => Result<T[]>;
@@ -33,13 +31,13 @@ export function CsvUpload<T>({ decode, onParse, disabled }: CsvUploadProps<T>) {
       fr.current.addEventListener("load", (evt) => {
         const csv = evt.target?.result;
         if (csv) {
-          return pipe(decode(csv.toString()), E.fold(setError, onParse));
+          return pipe(csv.toString(), decode, E.fold(setError, onParse));
         }
       });
     }
   };
 
-  const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
+  const { getRootProps, getInputProps, isDragActive, acceptedFiles, inputRef } =
     useDropzone({
       onDrop,
       accept,
@@ -47,13 +45,18 @@ export function CsvUpload<T>({ decode, onParse, disabled }: CsvUploadProps<T>) {
       multiple: false,
     });
 
+  const clearError = () => {
+    inputRef.current.value = "";
+    setError(null);
+  };
+
   return (
     <>
-      <Error error={error} />
+      <Error error={error} onDismiss={clearError} />
       <div {...getRootProps()}>
         <input {...getInputProps()} />
         <Info hidden={isDragActive || acceptedFiles.length > 0}>
-          Drop CSV file here
+          Drag CSV file here
         </Info>
         <Success hidden={!isDragActive}>Drop CSV file here</Success>
         <Success hidden={acceptedFiles.length < 1}>

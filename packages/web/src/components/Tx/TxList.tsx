@@ -15,10 +15,10 @@ import { withCondition } from "../../decorators/nodata";
 import { iso } from "../../util/date";
 import { decimal, money } from "../../util/number";
 import { Info } from "../Form/Alert";
-import { AddBtn } from "../Form/Button";
 import { HorizontalStack } from "../Layout/Stack";
 import { confirmationModal } from "../Modals/Confirmation";
 import { PortfolioMenu } from "../Portfolio/Menu";
+import { TxButton } from "./Button";
 import { txModal } from "./TxFields";
 
 type TxListProps = Identity<
@@ -39,7 +39,11 @@ export const TxList: React.FC<TxListProps> = ({
   return (
     <>
       <HorizontalStack className="top-toolbar spread-container">
-        <AddBtn onClick={handleAdd} label="Tx" />
+        <TxButton
+          onAdd={handleAdd}
+          onCsvUpload={console.log}
+          onDeleteTxs={console.log}
+        />
       </HorizontalStack>
       <TxTable {...props} />
     </>
