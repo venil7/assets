@@ -1,5 +1,8 @@
 import { run } from "@darkruby/assets-core";
+import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import { afterAll, beforeAll, expect, test } from "bun:test";
+import { pipe } from "fp-ts/lib/function";
+import { CsvPostPortfolioDecoder } from "../src/decoders/portfolio";
 import {
   fakeAsset,
   fakeBuy,
@@ -92,4 +95,11 @@ test("Update portfolio", async () => {
   expect(newId).toBe(id);
   expect(name).toBe(updatePortfolio.name);
   expect(description).toBe(updatePortfolio.description);
+});
+
+test("CSV roundtrip", async () => {
+  const txs = [fakePortfolio(), fakePortfolio()];
+  const csv = CsvPostPortfolioDecoder.encode(txs);
+  const txs2 = await pipe(csv, liftTE(CsvPostPortfolioDecoder), run);
+  expect(txs2).toEqual(txs);
 });
