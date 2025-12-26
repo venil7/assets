@@ -1,1 +1,1 @@
-export * from "./TxCsvUpload";
+export * from "../Tx/TxCsvUpload";

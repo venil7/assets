@@ -1,0 +1,20 @@
+.drop-area {
+  display: block;
+  border: dashed 1px SandyBrown;
+  padding: 1em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  border-radius: 0.3em;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    black 0%,
+    DarkSlateGray 50%,
+    black 50%,
+    DarkSlateGray 100%
+  );
+  background-size: 4px 4px;
+  color: PowderBlue;
+  &.drag-active {
+    border: solid 2px SandyBrown;
+  }
+}

@@ -16,6 +16,7 @@
     "@fortawesome/react-fontawesome": "^3.1.0",
     "@preact/signals-react": "^3.0.1",
     "bootstrap": "^5.3.3",
+    "classnames": "^2.5.1",
     "csv-parse": "^6.1.0",
     "csv-stringify": "^6.6.0",
     "io-ts": "^2.2.22",

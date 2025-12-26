@@ -79,11 +79,14 @@ export const validationErr = (
   context: [],
 });
 
-export function nonEmptyArray<T>(codec: t.Type<T>) {
+export function nonEmptyArray<T>(
+  codec: t.Type<T, any, any>,
+  errorMessage = `Array ${codec.name} can't be empty`
+) {
   return mapDecoder(t.array(codec), (a) =>
     a.length
       ? E.of(a as NonEmptyArray<T>)
-      : E.left([validationErr(`Array ${codec.name} can't be empty array`)])
+      : E.left([validationErr(errorMessage)])
   );
 }
 

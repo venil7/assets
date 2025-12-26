@@ -3,7 +3,7 @@ import { liftE } from "@darkruby/assets-core/src/decoders/util";
 import { pipe } from "fp-ts/lib/function";
 import { CsvPostTxDecoder } from "../../decoders/tx";
 import { withProps } from "../../decorators/props";
-import { CsvUpload } from "./CsvUpload";
+import { CsvUpload } from "../Csv/CsvUpload";
 
 export const TxCsvUpload = pipe(
   CsvUpload<PostTx>,

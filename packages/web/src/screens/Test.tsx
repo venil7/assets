@@ -1,18 +1,34 @@
 import { defaultPortfolio, type PostTx } from "@darkruby/assets-core";
+import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { useState } from "react";
-import { TxCsvUpload } from "../components/Csv";
 import { PrimaryButton, SecondaryButton } from "../components/Form/FormControl";
 import { TabContent, Tabs } from "../components/Form/Tabs";
 import { confirmationModal } from "../components/Modals/Confirmation";
 import { PortfolioMenu } from "../components/Portfolio/Menu";
 import { portfolioModal } from "../components/Portfolio/PortfolioFields";
 import { TickerLookup } from "../components/Tx/TickerLookup";
+import { txsUploadModal } from "../components/Tx/TxsFields";
 import { decimal, money, percent } from "../util/number";
 
-const RawTestScreen: React.FC = () => {
+const Tab4: React.FC = () => {
   const [tx, setTx] = useState<PostTx[]>([]);
+  const handleUpload = async () => {
+    const zzz = await txsUploadModal("EUR");
+    if (E.isRight(zzz)) {
+      setTx(zzz.right.txs);
+    }
+  };
+  console.log(tx);
+  return (
+    <>
+      <button onClick={handleUpload}>x</button>
+    </>
+  );
+};
+
+const RawTestScreen: React.FC = () => {
   const handler1 = () => {
     return pipe(
       () => portfolioModal(defaultPortfolio()),
@@ -46,9 +62,7 @@ const RawTestScreen: React.FC = () => {
           </ul>
         </TabContent>
         <TabContent tab={3}>
-          <h3>upload transactions</h3>
-          <TxCsvUpload onParse={setTx} />
-          <pre>{JSON.stringify(tx, null, 2)}</pre>
+          <Tab4 />
         </TabContent>
       </Tabs>
     </>

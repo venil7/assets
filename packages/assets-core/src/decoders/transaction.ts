@@ -22,3 +22,8 @@ const extTxTypes = {
 export const PostTxDecoder = t.type(baseTxTypes);
 export const GetTxDecoder = t.type(extTxTypes);
 export const GetTxsDecoder = t.array(GetTxDecoder);
+
+export const PostTxsUploadDecoder = t.type({
+  replace: t.boolean,
+  txs: t.array(PostTxDecoder),
+});
