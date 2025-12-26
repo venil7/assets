@@ -1,4 +1,5 @@
 import {
+  byDate,
   defaultTxsUpload,
   txsUploadValidator,
   type AppError,
@@ -8,6 +9,7 @@ import {
   type PostTx,
   type PostTxsUpload,
 } from "@darkruby/assets-core";
+import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
 import { useState } from "react";
@@ -37,7 +39,7 @@ export const TxsUploadFields: React.FC<TxsUploadFieldsProps> = ({
   const setReplace = setField("replace");
   const handleParse = (txs: PostTx[], error: Nullable<AppError>) => {
     if (error) return setTxs([]) || setError(error);
-    setTxs(txs) || setError(null);
+    setTxs(pipe(txs, A.sort(byDate))) || setError(null);
   };
 
   return (

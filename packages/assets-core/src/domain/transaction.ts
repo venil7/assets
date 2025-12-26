@@ -1,9 +1,12 @@
+import { pipe } from "fp-ts/lib/function";
+import { contramap } from "fp-ts/lib/Ord";
 import * as t from "io-ts";
 import type {
   GetTxDecoder,
   PostTxDecoder,
   PostTxsUploadDecoder,
 } from "../decoders/transaction";
+import { DateOrd } from "../utils/date";
 
 export type PostTx = t.TypeOf<typeof PostTxDecoder>;
 export type GetTx = t.TypeOf<typeof GetTxDecoder>;
@@ -19,6 +22,11 @@ export const defaultTx = (type: PostTx["type"] = "buy"): PostTx => ({
   comments: "",
   type,
 });
+
+export const byDate = pipe(
+  DateOrd,
+  contramap<Date, PostTx>((tx) => tx.date)
+);
 
 export const defaultBuyTx = (): PostTx => defaultTx("buy");
 export const defaultSellTx = (): PostTx => defaultTx("sell");
