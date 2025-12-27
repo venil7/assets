@@ -1,5 +1,6 @@
 import {
   PostTxDecoder,
+  PostTxsUploadDecoder,
   type AssetId,
   type GetTx,
   type Id,
@@ -15,6 +16,7 @@ import { mapWebError } from "../domain/error";
 import type { Repository } from "../repository";
 
 const txDecoder = liftTE(PostTxDecoder);
+const txUploadDecoder = liftTE(PostTxsUploadDecoder);
 
 export const getTx =
   (repo: Repository) =>
@@ -63,6 +65,31 @@ export const deleteTx =
     return pipe(
       repo.tx.delete(txId, userId),
       TE.map(([id, rows]) => (rows > 0 ? { id } : null)),
+      mapWebError
+    );
+  };
+
+export const deleteAllAssetTxs =
+  (repo: Repository) =>
+  (assetId: AssetId, userId: UserId): WebAction<Optional<Id>> => {
+    return pipe(
+      repo.tx.deleteAllAsset(assetId, userId),
+      TE.map(([, rows]) => (rows > 0 ? { id: rows } : null)),
+      mapWebError
+    );
+  };
+
+export const uploadAssetTxs =
+  (repo: Repository) =>
+  (
+    assetId: AssetId,
+    userId: UserId,
+    payload: unknown
+  ): WebAction<Optional<Id>> => {
+    return pipe(
+      txUploadDecoder(payload),
+      TE.chain((txs) => repo.tx.uploadTxs(assetId, txs, userId)),
+      TE.map(([, rows]) => (rows > 0 ? { id: rows } : null)),
       mapWebError
     );
   };

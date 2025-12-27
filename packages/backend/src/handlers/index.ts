@@ -36,6 +36,8 @@ export const createHandlers = (
     create: pipe(tx.createTx, expressify),
     update: pipe(tx.updateTx, expressify),
     delete: pipe(tx.deleteTx, expressify),
+    deleteAllAsset: pipe(tx.deleteAllAsset, expressify),
+    uploadAssetTxs: pipe(tx.uploadAssetTxs, expressify),
   },
   user: {
     get: pipe(user.getUser, expressify),

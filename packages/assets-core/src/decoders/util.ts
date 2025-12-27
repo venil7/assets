@@ -14,6 +14,7 @@ import {
 } from "io-ts-types";
 import { validationErrors, type AppError } from "../domain/error";
 import type { Optional } from "../utils/utils";
+import { NumberDecoder } from "./number";
 
 export const liftE = <T, U = unknown>(decoder: t.Decoder<U, T>) => {
   return (data: U) => {
@@ -44,10 +45,10 @@ export const nullableDecoder = <T>(
 };
 
 export const dateDecoder: t.Type<Date, any> = t.union([
-  date,
   DateFromISOString,
   DateFromUnixTime,
   DateFromNumber,
+  date,
 ]);
 
 export const boolean: t.Type<boolean, any> = t.union([
@@ -57,7 +58,7 @@ export const boolean: t.Type<boolean, any> = t.union([
 ]);
 
 export function mapDecoder<A, R>(
-  codec: t.Type<A>,
+  codec: t.Type<A, any>,
   f: (a: A) => t.Validation<R>,
   name: string = codec.name
 ): t.Type<R, A> {
@@ -65,7 +66,7 @@ export function mapDecoder<A, R>(
     name,
     (u): u is R => codec.is(u) && E.isRight(f(u as A)),
     (i, c) => pipe(codec.validate(i, c), E.chain(f)),
-    (a) => codec.encode(a as unknown as A)
+    (r) => codec.encode(r as unknown as A) as unknown as A
   );
 }
 
@@ -78,11 +79,14 @@ export const validationErr = (
   context: [],
 });
 
-export function nonEmptyArray<T>(codec: t.Type<T>) {
+export function nonEmptyArray<T>(
+  codec: t.Type<T, any, any>,
+  errorMessage = `Array ${codec.name} can't be empty`
+) {
   return mapDecoder(t.array(codec), (a) =>
     a.length
       ? E.of(a as NonEmptyArray<T>)
-      : E.left([validationErr(`Array ${codec.name} can't be empty array`)])
+      : E.left([validationErr(errorMessage)])
   );
 }
 
@@ -90,6 +94,6 @@ export const nonEmptyString = mapDecoder(t.string, (s) =>
   s.trim() === "" ? E.left([validationErr(`Can't be empty`)]) : E.of(s)
 );
 
-export const nonNegative = mapDecoder(t.number, (n) =>
+export const nonNegative = mapDecoder(NumberDecoder as t.Type<number>, (n) =>
   n <= 0 ? E.left([validationErr(`Can't be negative`)]) : E.of(n)
 );

@@ -48,6 +48,8 @@ export const createWebService = (repo: Repository, yahooApi: YahooApi) => {
       delete: tx.deleteTx(repo),
       create: tx.createTx(repo),
       update: tx.updateTx(repo),
+      uploadAssetTxs: tx.uploadAssetTxs(repo),
+      deleteAllAsset: tx.deleteAllAssetTxs(repo),
     },
     prefs: {
       update: prefs.updatePrefs(repo),

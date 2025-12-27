@@ -16,6 +16,7 @@ import {
   type ChartRange,
 } from "../decoders";
 import type {
+  AssetId,
   Credentials,
   EnrichedAsset,
   EnrichedPortfolio,
@@ -27,6 +28,7 @@ import type {
   PostAsset,
   PostPortfolio,
   PostTx,
+  PostTxsUpload,
   PostUser,
   Prefs,
   Summary,
@@ -73,6 +75,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const TXS_URL = (assetId: number) => `${API_URL}/assets/${assetId}/tx`;
   const TX_URL = (assetId: number, txId: number) =>
     `${TXS_URL(assetId)}/${txId}`;
+  const BULK_TX_URL = (assetId: number) => `${API_URL}/assets/${assetId}/txs`;
 
   const getRefreshToken = () =>
     methods.get<Token>(REFRESH_TOKEN_URL, TokenDecoder);
@@ -134,16 +137,20 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const deleteAsset = (portfolioId: number, id: number) =>
     methods.delete<Id>(ASSET_URL(portfolioId, id), IdDecoder);
 
-  const createTx = (assetId: number, tx: PostTx) =>
+  const createTx = (assetId: AssetId, tx: PostTx) =>
     methods.post<GetTx, PostTx>(TXS_URL(assetId), tx, GetTxDecoder);
   const updateTx = (txId: number, assetId: number, tx: PostTx) =>
     methods.put<GetTx, PostTx>(TX_URL(assetId, txId), tx, GetTxDecoder);
-  const getTx = (assetId: number, id: number) =>
+  const getTx = (assetId: AssetId, id: number) =>
     methods.get<GetTx>(TX_URL(assetId, id), GetTxDecoder);
-  const getTxs = (assetId: number) =>
+  const getTxs = (assetId: AssetId) =>
     methods.get<GetTx[]>(TXS_URL(assetId), GetTxsDecoder);
-  const deleteTx = (assetId: number, id: number) =>
+  const deleteTx = (assetId: AssetId, id: number) =>
     methods.delete<Id>(TX_URL(assetId, id), IdDecoder);
+  const deleteAllAsset = (assetId: AssetId) =>
+    methods.delete<Id>(BULK_TX_URL(assetId), IdDecoder);
+  const uploadAsset = (assetId: AssetId, payload: PostTxsUpload) =>
+    methods.post<GetTx[]>(BULK_TX_URL(assetId), payload, GetTxsDecoder);
 
   const getProfile = () => methods.get<GetUser>(PROFILE_URL, GetUserDecoder);
   const updateProfile = (body: PostUser) =>
@@ -213,6 +220,8 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       create: createTx,
       update: updateTx,
       delete: deleteTx,
+      deleteAllAsset: deleteAllAsset,
+      uploadAsset: uploadAsset,
     },
     auth: {
       refreshToken: getRefreshToken,

@@ -5,6 +5,6 @@ export * from "./portfolio";
 export * from "./prefs";
 export * from "./summary";
 export * from "./token";
-export * from "./transaction";
+export * from "./tx";
 export * from "./user";
 export * from "./yahoo";

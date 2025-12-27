@@ -131,6 +131,8 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       transactions.get("/:asset_id/tx/:id", handlers.tx.get);
       transactions.delete("/:asset_id/tx/:id", handlers.tx.delete);
       transactions.put("/:asset_id/tx/:id", handlers.tx.update);
+      transactions.delete("/:asset_id/txs", handlers.tx.deleteAllAsset);
+      transactions.post("/:asset_id/txs", handlers.tx.uploadAssetTxs);
       api.use("/assets", transactions);
 
       const lookup = express();
