@@ -31,7 +31,10 @@ export const byDate = pipe(
 export const defaultBuyTx = (): PostTx => defaultTx("buy");
 export const defaultSellTx = (): PostTx => defaultTx("sell");
 
-export const defaultTxsUpload = (): PostTxsUpload => ({
-  txs: [],
-  replace: false,
+export const defaultTxsUpload = (
+  txs: PostTx[] = [],
+  replace = false
+): PostTxsUpload => ({
+  txs,
+  replace,
 });

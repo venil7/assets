@@ -1,5 +1,5 @@
 import type { AppError, PostTx } from "@darkruby/assets-core";
-import { run } from "@darkruby/assets-core";
+import { defaultTxsUpload, run } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import { pipe } from "fp-ts/lib/function";
@@ -104,4 +104,33 @@ test("CSV roundtrip", async () => {
   const csv = CsvPostTxDecoder.encode(txs);
   const txs2 = await pipe(csv, liftTE(CsvPostTxDecoder), run);
   expect(txs2).toEqual(txs);
+});
+
+test("Delete all txs of an asset", async () => {
+  const txs = [fakeBuy(), fakeBuy(), fakeBuy(), fakeBuy()];
+  const { asset } = await run(api.createPortfolioAssetTxs(txs));
+  const res = await run(api.tx.deleteAllAsset(asset.id));
+  expect(res.id).toEqual(txs.length);
+  const allTxs = await run(api.tx.getMany(asset.id));
+  expect(allTxs.length).toEqual(0);
+});
+
+test("Bulk upload with replace", async () => {
+  const txs = [fakeBuy(), fakeBuy(), fakeBuy(), fakeBuy()];
+  const additionalTxs = [fakeBuy(), fakeBuy()];
+  const { asset } = await run(api.createPortfolioAssetTxs(txs));
+  const newTxs = await run(
+    api.tx.uploadAsset(asset.id, defaultTxsUpload(additionalTxs, true))
+  );
+  expect(newTxs.length).toEqual(additionalTxs.length);
+});
+
+test("Bulk upload with no replace", async () => {
+  const txs = [fakeBuy(), fakeBuy(), fakeBuy(), fakeBuy()];
+  const additionalTxs = [fakeBuy(), fakeBuy()];
+  const { asset } = await run(api.createPortfolioAssetTxs(txs));
+  const newTxs = await run(
+    api.tx.uploadAsset(asset.id, defaultTxsUpload(additionalTxs, false))
+  );
+  expect(newTxs.length).toEqual(txs.length + additionalTxs.length);
 });

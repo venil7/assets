@@ -21,7 +21,7 @@ import {
   nullableDecoder,
 } from "@darkruby/assets-core/src/decoders/util";
 import { type Changes, type Database } from "bun:sqlite";
-import * as A from "fp-ts/lib/array";
+import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as ID from "fp-ts/lib/Identity";
 import * as TE from "fp-ts/lib/TaskEither";

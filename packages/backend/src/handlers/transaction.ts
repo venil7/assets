@@ -89,7 +89,7 @@ export const deleteAllAsset: HandlerTask<Optional<Id>, Context> = ({
     )
   );
 
-export const uploadAssetTxs: HandlerTask<Optional<Id>, Context> = ({
+export const uploadAssetTxs: HandlerTask<readonly GetTx[], Context> = ({
   params: [req, res],
   context: { service },
 }) =>
@@ -98,7 +98,8 @@ export const uploadAssetTxs: HandlerTask<Optional<Id>, Context> = ({
     TE.bind("assetId", () => numberFromUrl(req.params.asset_id)),
     TE.bind("userId", () => service.auth.requireUserId(res)),
     mapWebError,
-    TE.chain(({ assetId, userId }) =>
+    TE.bind("upload", ({ assetId, userId }) =>
       service.tx.uploadAssetTxs(assetId, userId, req.body)
-    )
+    ),
+    TE.chain(({ assetId, userId }) => service.tx.getMany(assetId, userId))
   );
