@@ -36,7 +36,7 @@ export const getTx: HandlerTask<Optional<GetTx>, Context> = ({
 
 export const createTx: HandlerTask<Optional<GetTx>, Context> = ({
   params: [req, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     TE.Do,
@@ -62,7 +62,7 @@ export const deleteTx: HandlerTask<Optional<Id>, Context> = ({
 
 export const updateTx: HandlerTask<Optional<GetTx>, Context> = ({
   params: [req, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     TE.Do,
@@ -72,5 +72,33 @@ export const updateTx: HandlerTask<Optional<GetTx>, Context> = ({
     mapWebError,
     TE.chain(({ txId, assetId, userId }) =>
       service.tx.update(txId, assetId, userId, req.body)
+    )
+  );
+
+export const deleteAllAsset: HandlerTask<Optional<Id>, Context> = ({
+  params: [req, res],
+  context: { service },
+}) =>
+  pipe(
+    TE.Do,
+    TE.bind("assetId", () => numberFromUrl(req.params.asset_id)),
+    TE.bind("userId", () => service.auth.requireUserId(res)),
+    mapWebError,
+    TE.chain(({ assetId, userId }) =>
+      service.tx.deleteAllAsset(assetId, userId)
+    )
+  );
+
+export const uploadAssetTxs: HandlerTask<Optional<Id>, Context> = ({
+  params: [req, res],
+  context: { service },
+}) =>
+  pipe(
+    TE.Do,
+    TE.bind("assetId", () => numberFromUrl(req.params.asset_id)),
+    TE.bind("userId", () => service.auth.requireUserId(res)),
+    mapWebError,
+    TE.chain(({ assetId, userId }) =>
+      service.tx.uploadAssetTxs(assetId, userId, req.body)
     )
   );

@@ -7,6 +7,7 @@ import {
   type GetTx,
   type Optional,
   type PostTx,
+  type PostTxsUpload,
   type TxId,
   type UserId,
 } from "@darkruby/assets-core";
@@ -14,19 +15,27 @@ import {
   GetTxDecoder,
   GetTxsDecoder,
   PostTxDecoder,
-} from "@darkruby/assets-core/src/decoders/transaction";
+} from "@darkruby/assets-core/src/decoders/tx";
 import {
   liftTE,
   nullableDecoder,
 } from "@darkruby/assets-core/src/decoders/util";
-import type Database from "bun:sqlite";
+import { type Changes, type Database } from "bun:sqlite";
+import * as A from "fp-ts/lib/array";
 import { pipe } from "fp-ts/lib/function";
 import * as ID from "fp-ts/lib/Identity";
 import * as TE from "fp-ts/lib/TaskEither";
-
 import { defaultPaging } from "../domain/paging";
-import { execute, queryMany, queryOne, type ExecutionResult } from "./database";
 import {
+  defaultExecutionResult,
+  execute,
+  queryMany,
+  queryOne,
+  transaction,
+  type ExecutionResult,
+} from "./database";
+import {
+  deleteAssetTxsSql,
   deleteTxSql,
   getTxSql,
   getTxsSql,
@@ -41,6 +50,7 @@ const sql = {
     insert: TE.of(insertTxSql()),
     update: TE.of(updateTxSql()),
     delete: TE.of(deleteTxSql()),
+    deleteAllAsset: TE.of(deleteAssetTxsSql()),
   },
 };
 
@@ -112,6 +122,40 @@ export const deleteTx =
   (db: Database) =>
   (txId: TxId, userId: UserId): Action<ExecutionResult> =>
     pipe(execute<unknown[]>({ txId, userId }), ID.ap(sql.tx.delete), ID.ap(db));
+
+export const deleteAssetTxs =
+  (db: Database) =>
+  (assetId: AssetId, userId: UserId): Action<ExecutionResult> =>
+    pipe(
+      execute<unknown[]>({ assetId, userId }),
+      ID.ap(sql.tx.deleteAllAsset),
+      ID.ap(db)
+    );
+
+export const uploadAssetTxs =
+  (db: Database) =>
+  (assetId: AssetId, { replace, txs }: PostTxsUpload, userId: UserId) => {
+    const deleteTxs = db.prepare(deleteAssetTxsSql());
+    const insertTx = db.prepare(insertTxSql());
+    const func = () => {
+      if (replace) deleteTxs.run({ assetId, userId });
+      return pipe(
+        txs,
+        A.map(({ date, ...tx }) =>
+          insertTx.run({ assetId, date: date.toISOString(), ...tx })
+        ),
+        A.reduce<Changes, ExecutionResult>([0, 0], ([, rows], c) => [
+          Number(c.lastInsertRowid),
+          rows + c.changes,
+        ])
+      );
+    };
+    return pipe(
+      transaction(func),
+      ID.ap(db),
+      TE.map((execResult) => execResult ?? defaultExecutionResult())
+    );
+  };
 
 const insufficientHoldingCheck = (err: AppError) => {
   switch (true) {

@@ -5,7 +5,7 @@ import type {
   GetTxDecoder,
   PostTxDecoder,
   PostTxsUploadDecoder,
-} from "../decoders/transaction";
+} from "../decoders/tx";
 import { DateOrd } from "../utils/date";
 
 export type PostTx = t.TypeOf<typeof PostTxDecoder>;

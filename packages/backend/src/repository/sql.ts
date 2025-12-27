@@ -25,6 +25,7 @@ export const getTxsSql = getSql("tx/get-many");
 export const insertTxSql = getSql("tx/insert");
 export const updateTxSql = getSql("tx/update");
 export const deleteTxSql = getSql("tx/delete");
+export const deleteAssetTxsSql = getSql("tx/delete-all-asset");
 
 export const getUserSql = getSql("user/get");
 export const getUsersSql = getSql("user/get-many");
