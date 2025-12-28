@@ -11,13 +11,28 @@ import { useStore } from "../hooks/store";
 const RawPortfolioDetails: React.FC = () => {
   useSignals();
   const { portfolio, assets, asset, txs } = useStore();
-  const { portfolioId } = usePortfolioParams();
-  useEffect(() => {
+  const error =
+    portfolio.error.value ||
+    assets.error.value ||
+    asset.error.value ||
+    txs.error.value;
+
+  const fetching =
+    portfolio.fetching.value ||
+    assets.fetching.value ||
+    asset.fetching.value ||
+    txs.fetching.value;
+  const load = () => {
     asset.reset();
 
     portfolio.load(portfolioId);
     assets.load(portfolioId);
-  }, [portfolio]);
+  };
+
+  const { portfolioId } = usePortfolioParams();
+  useEffect(() => {
+    load();
+  }, [assets, portfolio]);
 
   const handleUpdate = (p: PostPortfolio) => portfolio.update(portfolioId, p);
   const handleAddAsset = (p: PostAsset) => assets.create(portfolioId, p);
@@ -36,6 +51,8 @@ const RawPortfolioDetails: React.FC = () => {
 
   return (
     <PortfolioDetails
+      error={error}
+      fetching={fetching}
       onAddTx={handleAddTx}
       onRange={handleRange}
       onUpdate={handleUpdate}
@@ -44,8 +61,7 @@ const RawPortfolioDetails: React.FC = () => {
       portfolio={portfolio.data.value}
       onDeleteAsset={handleDeleteAsset}
       onUpdateAsset={handleUpdateAsset}
-      fetching={portfolio.fetching.value}
-      error={portfolio.error.value || assets.error.value}
+      onErrorDismiss={load}
     />
   );
 };

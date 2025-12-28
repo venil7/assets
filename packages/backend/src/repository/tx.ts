@@ -153,14 +153,16 @@ export const uploadAssetTxs =
     return pipe(
       transaction(func),
       ID.ap(db),
-      TE.map((execResult) => execResult ?? defaultExecutionResult())
+      TE.map((execResult) => execResult ?? defaultExecutionResult()),
+      TE.mapLeft(insufficientHoldingCheck)
     );
   };
 
 const insufficientHoldingCheck = (err: AppError) => {
   switch (true) {
+    case err.message.includes("SQLITE_CONSTRAINT_TRIGGER"):
     case err.message.includes("Insufficient holdings"):
-      return validationError(err.message);
+      return validationError(`Insufficient holdings for SELL transaction`);
     default:
       return err;
   }

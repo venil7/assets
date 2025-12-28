@@ -47,7 +47,11 @@ export const Pager: React.FC<PagerPros> = ({
     <Pagination>
       <Pagination.First onClick={handleClick(0)} />
       {pages.map((p) => (
-        <Pagination.Item onClick={handleClick(p)} active={p == currentPage}>
+        <Pagination.Item
+          key={p}
+          onClick={handleClick(p)}
+          active={p == currentPage}
+        >
           {p + 1}
         </Pagination.Item>
       ))}

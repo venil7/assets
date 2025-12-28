@@ -1,6 +1,6 @@
 import {
   faPlusSquare,
-  faStopCircle,
+  faXmarkCircle,
 } from "@fortawesome/free-regular-svg-icons";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
@@ -16,7 +16,7 @@ export const UploadTxIconLabel = pipe(
 
 export const DeleteTxIconLabel = pipe(
   LabeledIcon,
-  withProps({ icon: faStopCircle, label: "Delete transactons" })
+  withProps({ icon: faXmarkCircle, label: "Delete transactions" })
 );
 
 type TxButtonProps = {

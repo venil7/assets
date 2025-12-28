@@ -121,7 +121,7 @@ const RawTxTable: React.FC<TxTableProps> = ({
     );
   const handleDelete = (txid: number) =>
     pipe(
-      () => confirmationModal(`delete transaction?`),
+      () => confirmationModal(`Delete transaction?`),
       TE.map(() => onDelete(txid))
     );
   return (

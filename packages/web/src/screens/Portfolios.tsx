@@ -9,13 +9,25 @@ const RawPortfoliosScreen: React.FC = () => {
   useSignals();
   const { portfolios, portfolio, asset, summary } = useStore();
 
-  useEffect(() => {
+  const error =
+    portfolios.error.value ||
+    portfolio.error.value ||
+    asset.error.value ||
+    summary.error.value;
+
+  const fetching = portfolios.fetching.value || summary.fetching.value;
+
+  const load = () => {
     summary.load();
     portfolios.load();
 
     portfolio.reset();
     asset.reset();
-  }, [portfolios]);
+  };
+
+  useEffect(() => {
+    load();
+  }, [summary, portfolios]);
 
   const handleAdd = (p: PostPortfolio) => portfolios.create(p);
   const handleUpdate = (pid: number, p: PostPortfolio) =>
@@ -28,14 +40,15 @@ const RawPortfoliosScreen: React.FC = () => {
   };
   return (
     <Portfolios
+      error={error}
       onAdd={handleAdd}
+      fetching={fetching}
       onRange={handleRange}
       onUpdate={handleUpdate}
       onDelete={handleDelete}
       summary={summary.data.value}
       portfolios={portfolios.data.value}
-      error={portfolios.error.value || summary.error.value}
-      fetching={portfolios.fetching.value || summary.fetching.value}
+      onErrorDismiss={load}
     />
   );
 };
