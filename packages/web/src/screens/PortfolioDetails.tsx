@@ -4,34 +4,34 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { useEffect } from "react";
-import { useParams } from "react-router";
 import { PortfolioDetails } from "../components/Portfolio/PortfolioDetails";
+import { usePortfolioParams } from "../hooks/params";
 import { useStore } from "../hooks/store";
 
 const RawPortfolioDetails: React.FC = () => {
   useSignals();
   const { portfolio, assets, asset, txs } = useStore();
-  const { portfolioId } = useParams<{ portfolioId: string }>();
+  const { portfolioId } = usePortfolioParams();
   useEffect(() => {
     asset.reset();
 
-    portfolio.load(+portfolioId!);
-    assets.load(+portfolioId!);
+    portfolio.load(portfolioId);
+    assets.load(portfolioId);
   }, [portfolio]);
 
-  const handleUpdate = (p: PostPortfolio) => portfolio.update(+portfolioId!, p);
-  const handleAddAsset = (p: PostAsset) => assets.create(+portfolioId!, p);
-  const handleDeleteAsset = (aid: number) => assets.delete(+portfolioId!, aid);
+  const handleUpdate = (p: PostPortfolio) => portfolio.update(portfolioId, p);
+  const handleAddAsset = (p: PostAsset) => assets.create(portfolioId, p);
+  const handleDeleteAsset = (aid: number) => assets.delete(portfolioId, aid);
   const handleUpdateAsset = (aid: number, a: PostAsset) =>
-    assets.update(+portfolioId!, aid, a);
+    assets.update(portfolioId, aid, a);
   const handleAddTx = (aid: number, t: PostTx) =>
     pipe(
       () => txs.create(aid, t),
-      TE.chain(() => () => portfolio.load(+portfolioId!))
+      TE.chain(() => () => portfolio.load(portfolioId))
     )();
   const handleRange = (range: ChartRange) => {
-    portfolio.load(+portfolioId!, range);
-    assets.load(+portfolioId!, range);
+    portfolio.load(portfolioId, range);
+    assets.load(portfolioId, range);
   };
 
   return (

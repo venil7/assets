@@ -3,11 +3,13 @@ import {
   type Ccy,
   type Identity,
   type PostTx,
+  type PostTxsUpload,
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as React from "react";
 import { HorizontalStack } from "../Layout/Stack";
+import { confirmationModal } from "../Modals/Confirmation";
 import { TxButton } from "./Button";
 import { txModal } from "./TxFields";
 import { txsUploadModal } from "./TxsFields";
@@ -16,11 +18,15 @@ import { TxTable, type TxTableProps } from "./TxTable";
 type TxListProps = Identity<
   TxTableProps & {
     onAdd: (tx: PostTx) => void;
+    onDeleteAll: () => void;
+    onUploadTxs: (txs: PostTxsUpload) => void;
   }
 >;
 
 export const TxList: React.FC<TxListProps> = ({
   onAdd,
+  onDeleteAll,
+  onUploadTxs,
   ...props
 }: TxListProps) => {
   const handleAdd = pipe(
@@ -30,7 +36,14 @@ export const TxList: React.FC<TxListProps> = ({
 
   const handleUpload = () => {
     const currency = props.asset.meta.currency as Ccy;
-    return pipe(() => txsUploadModal(currency), TE.map(console.log))();
+    return pipe(() => txsUploadModal(currency), TE.map(onUploadTxs))();
+  };
+  const handleDeleteAll = () => {
+    return pipe(
+      () =>
+        confirmationModal(`Delete all transaction for ${props.asset.ticker}`),
+      TE.map(onDeleteAll)
+    )();
   };
 
   return (
@@ -39,7 +52,7 @@ export const TxList: React.FC<TxListProps> = ({
         <TxButton
           onAdd={handleAdd}
           onCsvUpload={handleUpload}
-          onDeleteTxs={console.log}
+          onDeleteTxs={handleDeleteAll}
         />
       </HorizontalStack>
       <TxTable {...props} />
