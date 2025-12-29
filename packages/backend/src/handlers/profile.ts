@@ -7,7 +7,7 @@ import type { Context } from "./context";
 
 export const getProfile: HandlerTask<GetUser, Context> = ({
   params: [, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     service.auth.requireUserId(res),
@@ -17,7 +17,7 @@ export const getProfile: HandlerTask<GetUser, Context> = ({
 
 export const updateProfile: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     TE.Do,
@@ -30,7 +30,7 @@ export const updateProfile: HandlerTask<GetUser, Context> = ({
 
 export const updatePassword: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     TE.Do,

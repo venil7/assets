@@ -86,7 +86,7 @@ test("Insufficient holdings when selling more than own", async () => {
     TE.orElseW(TE.of),
     run
   );
-  expect((error as AppError).message).toContain("SQLITE_CONSTRAINT_TRIGGER");
+  expect((error as AppError).message).toContain("Insufficient holdings");
 });
 
 test("Insufficient holdings when updating existing transaction", async () => {
@@ -96,7 +96,7 @@ test("Insufficient holdings when updating existing transaction", async () => {
     TE.orElseW(TE.of),
     run
   );
-  expect((error as AppError).message).toContain("SQLITE_CONSTRAINT_TRIGGER");
+  expect((error as AppError).message).toContain("Insufficient holdings");
 });
 
 test("CSV roundtrip", async () => {
