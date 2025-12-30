@@ -8,15 +8,16 @@ import {
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as React from "react";
+import type { PropsOf } from "../../util/props";
 import { HorizontalStack } from "../Layout/Stack";
 import { confirmationModal } from "../Modals/Confirmation";
 import { TxButton } from "./Button";
 import { txModal } from "./TxFields";
 import { txsUploadModal } from "./TxsFields";
-import { TxTable, type TxTableProps } from "./TxTable";
+import { TxTable } from "./TxTable";
 
 type TxListProps = Identity<
-  TxTableProps & {
+  PropsOf<typeof TxTable> & {
     onAdd: (tx: PostTx) => void;
     onDeleteAll: () => void;
     onUploadTxs: (txs: PostTxsUpload) => void;

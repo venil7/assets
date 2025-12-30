@@ -57,7 +57,7 @@ const RawAsset: React.FC<AssetProps> = ({
         ranges={asset.meta.validRanges}
       />
       <TxList
-        txs={txs}
+        items={txs}
         asset={asset}
         onAdd={onAddTx}
         onEdit={onEditTx}
