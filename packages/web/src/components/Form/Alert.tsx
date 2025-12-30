@@ -20,6 +20,16 @@ export const Info = pipe(
   withProps({ variant: "info" }),
   withVisibility()
 );
+export const Light = pipe(
+  Alert,
+  withProps({ variant: "light" }),
+  withVisibility()
+);
+export const Dark = pipe(
+  Alert,
+  withProps({ variant: "dark" }),
+  withVisibility()
+);
 
 export const Danger = pipe(
   Alert,

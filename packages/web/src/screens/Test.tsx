@@ -8,6 +8,7 @@ import { TabContent, Tabs } from "../components/Form/Tabs";
 import { confirmationModal } from "../components/Modals/Confirmation";
 import { PortfolioMenu } from "../components/Portfolio/Menu";
 import { portfolioModal } from "../components/Portfolio/PortfolioFields";
+import { HelpTip } from "../components/Tooltip/HelpTip";
 import { TickerLookup } from "../components/Tx/TickerLookup";
 import { txsUploadModal } from "../components/Tx/TxsFields";
 import { decimal, money, percent } from "../util/number";
@@ -24,6 +25,16 @@ const Tab4: React.FC = () => {
   return (
     <>
       <button onClick={handleUpload}>x</button>
+      <HelpTip
+        label="help"
+        text={
+          <>
+            text
+            <br />
+            more text
+          </>
+        }
+      />
     </>
   );
 };

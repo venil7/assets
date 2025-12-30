@@ -21,7 +21,8 @@ import type { FieldsProps } from "../Form/Form";
 import { CheckBox } from "../Form/FormControl";
 import { createModal } from "../Modals/Modal";
 import { TxCsvUpload } from "./TxCsvUpload";
-import { TxUploadTable } from "./TxTable";
+import { TxUploadSummary } from "./TxUploadSummary";
+import { TxUploadTable } from "./TxUploadTable";
 
 export type TxsUploadFieldsProps = Identity<
   FieldsProps<PostTxsUpload> & { currency: Ccy }
@@ -46,8 +47,9 @@ export const TxsUploadFields: React.FC<TxsUploadFieldsProps> = ({
     <div>
       <Error error={error} />
       <TxCsvUpload onParse={handleParse} disabled={disabled} />
-      <TxUploadTable txs={data.txs} currency={currency} />
+      <TxUploadTable items={data.txs} currency={currency} />
       <CheckBox onChange={setReplace} label="Replace" />
+      <TxUploadSummary txs={data.txs} currency={currency} />
     </div>
   );
 };
