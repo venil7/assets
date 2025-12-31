@@ -21,7 +21,7 @@ import type { FieldsProps } from "../Form/Form";
 import { CheckBox } from "../Form/FormControl";
 import { createModal } from "../Modals/Modal";
 import { TxCsvUpload } from "./TxCsvUpload";
-import { TxUploadSummary } from "./TxUploadSummary";
+import { TxUploadFormatTip, TxUploadSummary } from "./TxUploadSummary";
 import { TxUploadTable } from "./TxUploadTable";
 
 export type TxsUploadFieldsProps = Identity<
@@ -46,6 +46,7 @@ export const TxsUploadFields: React.FC<TxsUploadFieldsProps> = ({
   return (
     <div>
       <Error error={error} />
+      <TxUploadFormatTip />
       <TxCsvUpload onParse={handleParse} disabled={disabled} />
       <TxUploadTable items={data.txs} currency={currency} />
       <CheckBox onChange={setReplace} label="Replace" />

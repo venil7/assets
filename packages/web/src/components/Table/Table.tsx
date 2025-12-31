@@ -9,7 +9,7 @@ export type PagedTableProps<T, P extends object = {}> = {
   pageSize?: number;
 } & P;
 
-export const PagedTable = function <T, P extends object>(
+export const PagedTable = function <T, P extends object = {}>(
   props: PagedTableProps<T, P>
 ): ReturnType<React.FC<PagedTableProps<T>>> {
   const { header, row, items, pageSize = 10 } = props;
@@ -26,10 +26,11 @@ export const PagedTable = function <T, P extends object>(
         </tbody>
       </Table>
       <Pager
-        totalItems={items.length}
+        onClick={setPage}
         currentPage={page}
         pageSize={pageSize}
-        onClick={setPage}
+        totalItems={items.length}
+        hidden={items.length <= pageSize}
       />
     </>
   );

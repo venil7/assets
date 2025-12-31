@@ -1,6 +1,7 @@
 import * as A from "fp-ts/lib/Array";
 import { identity, pipe } from "fp-ts/lib/function";
 import Pagination from "react-bootstrap/Pagination";
+import { withVisibility } from "../../decorators/nodata";
 
 export type PagerPros = {
   totalItems: number;
@@ -25,7 +26,7 @@ export function itemsByPage<T>(
   return [];
 }
 
-export const Pager: React.FC<PagerPros> = ({
+const RawPager: React.FC<PagerPros> = ({
   totalItems,
   pageSize = 10,
   currentPage = 0,
@@ -59,3 +60,5 @@ export const Pager: React.FC<PagerPros> = ({
     </Pagination>
   );
 };
+
+export const Pager = pipe(RawPager, withVisibility());
