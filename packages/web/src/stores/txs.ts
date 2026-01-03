@@ -1,21 +1,33 @@
 import type {
   ActionResult,
+  AssetId,
   GetTx,
   Identity,
   PostTx,
+  PostTxsUpload,
+  TxId,
 } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import { createTx, deleteTx, getTxs, updateTx } from "../services/txs";
+import {
+  createTx,
+  deleteAllAssetTx,
+  deleteTx,
+  getTxs,
+  updateTx,
+  uploadTxs,
+} from "../services/txs";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type TxsStore = Identity<
   StoreBase<GetTx[]> & {
-    load: (aid: number) => ActionResult<GetTx[]>;
-    create: (aid: number, p: PostTx) => ActionResult<GetTx[]>;
-    update: (aid: number, tid: number, p: PostTx) => ActionResult<GetTx[]>;
-    delete: (aid: number, tid: number) => ActionResult<GetTx[]>;
+    load: (aid: AssetId) => ActionResult<GetTx[]>;
+    create: (aid: AssetId, p: PostTx) => ActionResult<GetTx[]>;
+    update: (aid: AssetId, tid: TxId, p: PostTx) => ActionResult<GetTx[]>;
+    delete: (aid: AssetId, tid: TxId) => ActionResult<GetTx[]>;
+    deleteAllAsset: (aid: AssetId) => ActionResult<GetTx[]>;
+    upload: (aid: AssetId, data: PostTxsUpload) => ActionResult<GetTx[]>;
   }
 >;
 
@@ -47,5 +59,14 @@ export const createTxsStore = (): TxsStore => {
           TE.chain(() => getTxs(aid))
         )
       ),
+    deleteAllAsset: (aid: AssetId) =>
+      storeBase.run(
+        pipe(
+          deleteAllAssetTx(aid),
+          TE.chain(() => getTxs(aid))
+        )
+      ),
+    upload: (aid: AssetId, data: PostTxsUpload) =>
+      storeBase.run(uploadTxs(aid, data)),
   };
 };

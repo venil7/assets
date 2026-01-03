@@ -1,13 +1,43 @@
-import { defaultPortfolio } from "@darkruby/assets-core";
+import { defaultPortfolio, type PostTx } from "@darkruby/assets-core";
+import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import { useState } from "react";
 import { PrimaryButton, SecondaryButton } from "../components/Form/FormControl";
 import { TabContent, Tabs } from "../components/Form/Tabs";
 import { confirmationModal } from "../components/Modals/Confirmation";
 import { PortfolioMenu } from "../components/Portfolio/Menu";
 import { portfolioModal } from "../components/Portfolio/PortfolioFields";
+import { HelpTip } from "../components/Tooltip/HelpTip";
 import { TickerLookup } from "../components/Tx/TickerLookup";
+import { txsUploadModal } from "../components/Tx/TxsFields";
 import { decimal, money, percent } from "../util/number";
+
+const Tab4: React.FC = () => {
+  const [tx, setTx] = useState<PostTx[]>([]);
+  const handleUpload = async () => {
+    const zzz = await txsUploadModal("EUR");
+    if (E.isRight(zzz)) {
+      setTx(zzz.right.txs);
+    }
+  };
+  console.log(tx);
+  return (
+    <>
+      <button onClick={handleUpload}>x</button>
+      <HelpTip
+        label="help"
+        text={
+          <>
+            text
+            <br />
+            more text
+          </>
+        }
+      />
+    </>
+  );
+};
 
 const RawTestScreen: React.FC = () => {
   const handler1 = () => {
@@ -26,7 +56,7 @@ const RawTestScreen: React.FC = () => {
 
   return (
     <>
-      <Tabs tabs={["Buttons", "Menus", "Formatting"]}>
+      <Tabs tabs={["Buttons", "Menus", "Formatting", "Upload"]}>
         <TabContent tab={0}>
           <PrimaryButton onClick={handler1}>click</PrimaryButton>
           <SecondaryButton onClick={handler2}>click</SecondaryButton>
@@ -41,6 +71,9 @@ const RawTestScreen: React.FC = () => {
             <li>{decimal(0.012, 2, "de-DE")}</li>
             <li>{percent(0.012, 2, "de-DE")}</li>
           </ul>
+        </TabContent>
+        <TabContent tab={3}>
+          <Tab4 />
         </TabContent>
       </Tabs>
     </>

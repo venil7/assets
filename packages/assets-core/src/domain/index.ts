@@ -6,6 +6,6 @@ export * from "./prefs";
 export * from "./summary";
 export * from "./ticker";
 export * from "./token";
-export * from "./transaction";
+export * from "./tx";
 export * from "./user";
 export * from "./yahoo";

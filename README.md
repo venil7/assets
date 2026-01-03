@@ -125,6 +125,24 @@ The UI is optional — the backend exposes a full REST API.
 
 - [API Documentation](./API.md)
 
+## Upload External Transactions
+
+It is possible to upload transactions for individual assets using CSV files, which can usually be downloaded from most brokers and platforms. The CSV file should have the following columns:
+
+- _type_: The type of transaction, either "buy" or "sell" (case insensitive)
+- _quantity_: The number of shares (float)
+- _price_: The price per share (float)
+- _date_: The date of the transaction in ISO format
+- _comments_: Any comments related to the transaction (can be left blank)
+
+Example:
+
+```
+type,quantity,price,date,comments
+buy,65,1,2025-05-11T06:56:39.379Z,comment
+sell,18,2,2025-06-12T06:56:39.379Z,
+```
+
 ## Contributing
 
 This codebase is 100% hand written, no AI slop. If you feel comfortable with TypeScript, [functional programming](https://amzn.eu/d/axUrvVz) and basic SQL - contributions are welcome. If you find a bug, kindly open a [Github Issue](https://github.com/venil7/assets/issues)

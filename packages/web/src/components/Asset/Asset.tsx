@@ -3,6 +3,7 @@ import {
   type GetAsset,
   type GetTx,
   type PostTx,
+  type PostTxsUpload,
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { pipe } from "fp-ts/lib/function";
@@ -23,6 +24,8 @@ type AssetProps = {
   onEditTx: (txid: number, tx: PostTx) => void;
   onDeleteTx: (txid: number) => void;
   onRange: (rng: ChartRange) => void;
+  onDeleteAll: () => void;
+  onUploadTxs: (txs: PostTxsUpload) => void;
 };
 
 const RawAsset: React.FC<AssetProps> = ({
@@ -32,12 +35,14 @@ const RawAsset: React.FC<AssetProps> = ({
   onDeleteTx,
   onAddTx,
   onRange,
+  onDeleteAll,
+  onUploadTxs,
 }: AssetProps) => {
   return (
     <div className="asset-details">
       <HorizontalStack className="top-toolbar">
         <h3>
-          {asset.name} ({asset.ticker})
+          {asset.name} ({asset.ticker}){" "}
         </h3>
         <Totals
           totals={asset.totals.base}
@@ -45,7 +50,6 @@ const RawAsset: React.FC<AssetProps> = ({
           range={asset.meta.range}
         />
       </HorizontalStack>
-
       <RangeChart
         onChange={onRange}
         data={asset.chart.base}
@@ -53,11 +57,13 @@ const RawAsset: React.FC<AssetProps> = ({
         ranges={asset.meta.validRanges}
       />
       <TxList
-        txs={txs}
+        items={txs}
         asset={asset}
         onAdd={onAddTx}
         onEdit={onEditTx}
         onDelete={onDeleteTx}
+        onDeleteAll={onDeleteAll}
+        onUploadTxs={onUploadTxs}
       />
     </div>
   );

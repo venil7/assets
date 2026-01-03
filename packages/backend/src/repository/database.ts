@@ -4,6 +4,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 
 export type ExecutionResult = [lastId: number, rows: number];
+export const defaultExecutionResult = (): ExecutionResult => [-1, 0];
 
 export const queryMany =
   <R>(bindings: SQLQueryBindings = null) =>
@@ -56,7 +57,7 @@ export const execute =
       ),
       TE.map(
         ({ changes, lastInsertRowid }) =>
-          [lastInsertRowid as number, changes] as const
+          [Number(lastInsertRowid), changes] as const
       )
     );
   };

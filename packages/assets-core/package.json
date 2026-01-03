@@ -1,6 +1,6 @@
 {
   "name": "@darkruby/assets-core",
-  "version": "1.0.0",
+  "version": "1.6.0",
   "main": "src/index.ts",
   "type": "module",
   "scripts": {

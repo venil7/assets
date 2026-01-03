@@ -1,146 +1,36 @@
 **API**
 
-| Method | Endpoint                                       | Description                         | Request Body            | Response Body                                                                                                    |
-| ------ | ---------------------------------------------- | ----------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| POST   | `/login`                                       | Authenticate and get a bearer token | `{ username, passord }` | `{ token }`                                                                                                      |
-| POST   | `/portfolios`                                  | Create a new portfolio              | `{ name, description }` | `{ id,  user_id,  name, description, created, modified, total_invested, num_assets }`                            |
-| GET    | `/portfolios`                                  | List all portfolios                 | —                       | `[{ id,  user_id,  name, description, created, modified, total_invested, num_assets }]`                          |
-| GET    | `/portfolios/{portfolio_id}`                   | Get a portfolio by ID               | —                       | `{ id,  user_id,  name, description, created, modified, total_invested, num_assets }`                            |
-| DELETE | `/portfolios/{portfolio_id}`                   | Delete a portfolio                  | —                       | `{ id }`                                                                                                         |
-| GET    | `/portfolios/{portfolio_id}/assets`            | List assets in a portfolio          | —                       | `[{ id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }]` |
-| POST   | `/portfolios/{portfolio_id}/assets`            | Add an asset to a portfolio         | `{ name, ticker }`      | `{ id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }`   |
-| GET    | `/portfolios/{portfolio_id}/assets/{asset_id}` | Get an asset by ID                  | —                       | `{ id, portfolio_id, name, ticker, created, modified, holdings, invested, avg_price, portfolio_contribution }`   |
-| DELETE | `/portfolios/{portfolio_id}/assets/{asset_id}` | Delete an asset by ID               | —                       | `{ id }`                                                                                                         |
-| GET    | `/profile`                                     | Gets profile details                | --                      | `{ id, username, admin , login_attempts , locked }`                                                              |
-| GET    | `/prefs`                                       | Gets prefs details                  | --                      | `{ id, base_ccy }`                                                                                               |
-
----
-
-## Authentication
-
-Obtain a **Bearer** token to authorize subsequent requests.
-
-```http
-POST /login
-Content-Type: application/json
-
-{
-  "username": "jane.doe",
-  "password": "s3cr3t"
-}
-
-Response 200 OK
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
-}
-```
-
----
-
-## Portfolio Endpoints
-
-Create, list, retrieve or delete portfolios.
-
-### Create a Portfolio
-
-```http
-POST /portfolios
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "name": "Retirement Fund",
-  "description": "Long-term growth portfolio"
-}
-
-Response 201 Created
-{
-  "id": 5,
-  "user_id": 2,
-  "name": "Retirement Fund",
-  "description": "Long-term growth portfolio",
-  "created": "2025-08-12T14:33:00Z",
-  "modified": "2025-08-12T14:33:00Z",
-  "total_invested": 0,
-  "num_assets": 0
-}
-```
-
-### List All Portfolios
-
-```http
-GET /portfolios
-Authorization: Bearer <token>
-
-Response 200 OK
-[
-  {
-    "id": 5,
-    "user_id": 2,
-    "name": "Retirement Fund",
-    "description": "Long-term growth portfolio",
-    "created": "...",
-    "modified": "...",
-    "total_invested": 12000,
-    "num_assets": 4
-  },
-  …
-]
-```
-
----
-
-## Asset Endpoints
-
-Manage assets within a specific portfolio.
-
-### Add an Asset
-
-```http
-POST /portfolios/{portfolio_id}/assets
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "name": "Apple Inc.",
-  "ticker": "AAPL"
-}
-
-Response 201 Created
-{
-  "id": 12,
-  "portfolio_id": 5,
-  "name": "Apple Inc.",
-  "ticker": "AAPL",
-  "created": "2025-08-12T15:20:00Z",
-  "modified": "2025-08-12T15:20:00Z",
-  "holdings": 0,
-  "invested": 0,
-  "avg_price": 0,
-  "portfolio_contribution": 0
-}
-```
-
-### List Assets in a Portfolio
-
-```http
-GET /portfolios/{portfolio_id}/assets
-Authorization: Bearer <token>
-
-Response 200 OK
-[
-  {
-    "id": 12,
-    "portfolio_id": 5,
-    "name": "Apple Inc.",
-    "ticker": "AAPL",
-    "created": "...",
-    "modified": "...",
-    "holdings": 50,
-    "invested": 7000,
-    "avg_price": 140,
-    "portfolio_contribution": 0.58
-  },
-  …
-]
-```
+| Method | Endpoint                                                  | Description                            | Request Body                                                  | Response Body                                                       |
+| ------ | --------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------- |
+| POST   | `/login`                                                  | Authenticate and get a bearer token    | [Credentials](packages/assets-core/src/domain/user.ts)        | [Token](packages/assets-core/src/domain/token.ts)                   |
+| GET    | `/auth/refresh_token`                                     | Gets a new token, with extended expiry | -                                                             | [Token](packages/assets-core/src/domain/token.ts)                   |
+| GET    | `/profile`                                                | User profile                           | -                                                             | [GetUser](packages/assets-core/src/domain/user.ts)                  |
+| PUT    | `/profile`                                                | Update current user profile            | [PostUser](packages/assets-core/src/domain/user.ts)           | [GetUser](packages/assets-core/src/domain/user.ts)                  |
+| POST   | `/profile`                                                | Update current user password           | [PasswordChange](packages/assets-core/src/domain/user.ts)     | [GetUser](packages/assets-core/src/domain/user.ts)                  |
+| DELETE | `/profile`                                                | Delete current user profile            | -                                                             | [Optional<Id>](packages/assets-core/src/domain/id.ts)               |
+| GET    | `/prefs`                                                  | Get current user prefs                 | -                                                             | [GetPrefs](packages/assets-core/src/domain/prefs.ts)                |
+| PUT    | `/prefs`                                                  | Update current user prefs              | [PostPrefs](packages/assets-core/src/domain/prefs.ts)         | [GetPrefs](packages/assets-core/src/domain/prefs.ts)                |
+| GET    | `/user`                                                   | Get users profiles (admin only)        | -                                                             | [GetUser[]](packages/assets-core/src/domain/user.ts)                |
+| GET    | `/user/{user_id}`                                         | Get user profile (admin only)          | -                                                             | [GetUser](packages/assets-core/src/domain/user.ts)                  |
+| DELETE | `/user/{user_id}`                                         | Delete user profile (admin only)       | -                                                             | [GetUser](packages/assets-core/src/domain/user.ts)                  |
+| POST   | `/user`                                                   | Create new user (admin only)           | [PostUser](packages/assets-core/src/domain/user.ts)           | [GetUser](packages/assets-core/src/domain/user.ts)                  |
+| PUT    | `/user`                                                   | Update user profile (admin only)       | [PostUser](packages/assets-core/src/domain/user.ts)           | [GetUser](packages/assets-core/src/domain/user.ts)                  |
+| GET    | `/summary`                                                | Summary across all portfolios          | -                                                             | [Summary](packages/assets-core/src/domain/summary.ts)               |
+| POST   | `/portfolios`                                             | Create a new portfolio                 | [PostPortfolio](packages/assets-core/src/domain/portfolio.ts) | [GetPortfolio](packages/assets-core/src/domain/portfolio.ts)        |
+| GET    | `/portfolios`                                             | List all portfolios                    | —                                                             | [GetPortfolio[]](packages/assets-core/src/domain/portfolio.ts)      |
+| GET    | `/portfolios/{portfolio_id}`                              | Get a portfolio by ID                  | —                                                             | [GetPortfolio](packages/assets-core/src/domain/portfolio.ts)        |
+| DELETE | `/portfolios/{portfolio_id}`                              | Delete a portfolio                     | —                                                             | [Optional<Id>](packages/assets-core/src/domain/id.ts)               |
+| PUT    | `/portfolios/{portfolio_id}`                              | Update a portfolio                     | [PostPortfolio](packages/assets-core/src/domain/portfolio.ts) | [GetPortfolio](packages/assets-core/src/domain/portfolio.ts)        |
+| POST   | `/portfolios/{portfolio_id}/assets`                       | Add an asset to a portfolio            | [PostAsset](packages/assets-core/src/domain/portfolio.ts)     | [GetAsset](packages/assets-core/src/domain/portfolio.ts)            |
+| GET    | `/portfolios/{portfolio_id}/assets`                       | List assets in a portfolio             | —                                                             | [GetAsset[]](packages/assets-core/src/domain/portfolio.ts)          |
+| GET    | `/portfolios/{portfolio_id}/assets/{asset_id}`            | Get an asset by ID                     | —                                                             | [GetAsset](packages/assets-core/src/domain/portfolio.ts)            |
+| DELETE | `/portfolios/{portfolio_id}/assets/{asset_id}`            | Delete an asset by ID                  | —                                                             | [Optional<Id>](packages/assets-core/src/domain/id.ts)               |
+| PUT    | `/portfolios/{portfolio_id}/assets/{asset_id}`            | Update an asset by ID                  | [PostAsset](packages/assets-core/src/domain/portfolio.ts)     | [GetAsset](packages/assets-core/src/domain/portfolio.ts)            |
+| POST   | `/portfolios/{portfolio_id}/assets/{asset_id}/tx`         | Create a transaction for a given asset | [PostTx](packages/assets-core/src/domain/tx.ts)               | [GetTx](packages/assets-core/src/domain/tx.ts)                      |
+| GET    | `/portfolios/{portfolio_id}/assets/{asset_id}/tx`         | Get all transactions for asset         | —                                                             | [GetTx[]](packages/assets-core/src/domain/tx.ts)                    |
+| GET    | `/portfolios/{portfolio_id}/assets/{asset_id}/tx/{tx_id}` | Get a transaction by ID                | —                                                             | [GetTx](packages/assets-core/src/domain/tx.ts)                      |
+| DELETE | `/portfolios/{portfolio_id}/assets/{asset_id}/tx/{tx_id}` | Delete a transaction by ID             | —                                                             | [Optional<Id>](packages/assets-core/src/domain/id.ts)               |
+| PUT    | `/portfolios/{portfolio_id}/assets/{asset_id}/tx/{tx_id}` | Update a transaction by ID             | [PostTx](packages/assets-core/src/domain/tx.ts)               | [GetTx](packages/assets-core/src/domain/tx.ts)                      |
+| DELETE | `/portfolios/{portfolio_id}/assets/{asset_id}/txs`        | Delete all transactions for an asset   | —                                                             | [Optional<Id>](packages/assets-core/src/domain/id.ts)               |
+| POST   | `/portfolios/{portfolio_id}/assets/{asset_id}/txs`        | Bulk insert transactions for an asset  | [PostTxsUpload](packages/assets-core/src/domain/tx.ts)        | [GetTx[]](packages/assets-core/src/domain/tx.ts)                    |
+| POST   | `/lookup/ticker?query=TICKER`                             | Query for ticker details               | —                                                             | [YahooTickerSearchResult](packages/assets-core/src/domain/yahoo.ts) |
