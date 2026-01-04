@@ -1,14 +1,36 @@
+version: '3.8'
+
 services:
   assets:
     image: ghcr.io/venil7/assets:${TAG}
     environment:
-      - ASSETS_DB=/data/assets.db
-      - ASSETS_CACHE_TTL=${ASSETS_CACHE_TTL}
-      - ASSETS_JWT_SECRET=${ASSETS_JWT_SECRET}
-      - ASSETS_JWT_EXPIRES_IN=${ASSETS_JWT_EXPIRES_IN}
-      - ASSETS_JWT_REFRESH_BEFORE=${ASSETS_JWT_REFRESH_BEFORE}
+      NODE_ENV: ${NODE_ENV:-production}
+      ASSETS_DB: /data/assets.db
+      ASSETS_APP: ./public
+      ASSETS_PORT: 4020
+      ASSETS_CACHE_TTL: ${ASSETS_CACHE_TTL:-5m}
+      ASSETS_CACHE_SIZE: ${ASSETS_CACHE_SIZE:-1000}
+      ASSETS_JWT_SECRET: ${ASSETS_JWT_SECRET}
+      ASSETS_JWT_EXPIRES_IN: ${ASSETS_JWT_EXPIRES_IN:-24h}
+      ASSETS_JWT_REFRESH_BEFORE: ${ASSETS_JWT_REFRESH_BEFORE:-12h}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://yourdomain.com}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     volumes:
-      - ./:/data
+      - ./data:/app/data
     ports:
       - 8084:4020
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4020/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M

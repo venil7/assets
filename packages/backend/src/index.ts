@@ -18,8 +18,9 @@ import {
   type AppCache,
   type Stringifiable,
 } from "./services/cache";
-import { env, envDurationMsec, envNumber } from "./services/env";
+import { env, envDurationMsec, envNumber, validateCorsOrigin, validateEnvironment } from "./services/env";
 import { initializeApp } from "./services/init";
+import { logger } from "./services/logger";
 import { cachedYahooApi } from "./services/yahoo";
 
 type Config = {
@@ -28,6 +29,7 @@ type Config = {
   port: number;
   cacheSize: number;
   cacheTtl: number;
+  corsOrigin: string;
 };
 
 const config = (): Action<Config> =>
@@ -37,7 +39,11 @@ const config = (): Action<Config> =>
     TE.apS("app", env("ASSETS_APP")),
     TE.apS("port", envNumber("ASSETS_PORT")),
     TE.apS("cacheSize", envNumber("ASSETS_CACHE_SIZE", 1000)),
-    TE.apS("cacheTtl", envDurationMsec("ASSETS_CACHE_TTL", "1m"))
+    TE.apS("cacheTtl", envDurationMsec("ASSETS_CACHE_TTL", "1m")),
+    TE.apS("corsOrigin", pipe(
+      env("CORS_ORIGIN", null),
+      TE.chain(validateCorsOrigin)
+    ))
   );
 
 const repository = (c: Config): Action<Repository> =>
@@ -58,20 +64,45 @@ const cache = ({ cacheSize, cacheTtl }: Config): Action<AppCache> =>
     TE.map(createCache)
   );
 
-const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
+const server = ({ port, app, corsOrigin }: Config, ctx: Context): Action<Server> => {
   const expressify = createRequestHandler(ctx);
   const handlers = createHandlers(expressify);
 
   return pipe(
     TE.of(express()),
     TE.tapIO((exp) => () => {
-      exp.use(cors());
+      exp.use(cors({
+        origin: corsOrigin,
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+        maxAge: 86400 // 24 hours
+      }));
       exp.use(express.json());
     }),
     TE.tapIO((exp) => () => {
       // routes
       exp.get("/", (_, res) => res.redirect("/app"));
-      exp.use("/app", express.static(path.join(process.cwd(), app)));
+
+      // Health check endpoint for container orchestration
+      exp.get("/health", (_, res) => {
+        res.json({ status: "ok" });
+      });
+
+      exp.use("/app", express.static(
+        path.join(process.cwd(), app),
+        {
+          maxAge: process.env.NODE_ENV === "production" ? "1d" : "1s",
+          etag: false,          // Reduce response size
+          lastModified: false,  // Rely on maxAge
+          setHeaders: (res, filePath) => {
+            // HTML files should never be cached
+            if (filePath.endsWith(".html")) {
+              res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            }
+          }
+        }
+      ));
       exp.use("/app/*", (_, res) =>
         res.sendFile(path.join(process.cwd(), app, "index.html"))
       );
@@ -141,13 +172,14 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
 
       exp.use("/api/v1", api);
     }),
-    TE.map((exp) => exp.listen(port, () => console.log(`Listening on ${port}`)))
+    TE.map((exp) => exp.listen(port, () => logger.info("Server listening", { port })))
   );
 };
 
 const app = () =>
   pipe(
     TE.Do,
+    TE.bind("validation", () => validateEnvironment()),
     TE.bind("config", config),
     TE.bind("context", ({ config }) =>
       pipe(

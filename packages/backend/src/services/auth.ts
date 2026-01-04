@@ -47,7 +47,7 @@ export const verifyPassword = (
       () => compare(password, phash),
       handleError("Unable to auth", AppErrorType.Auth)
     ),
-    TE.filterOrElse(identity, () => authError("Wrong password?"))
+    TE.filterOrElse(identity, () => authError("Invalid credentials"))
   );
 };
 
@@ -73,9 +73,9 @@ export const verifyBearer = (
   return pipe(
     TE.Do,
     TE.bind("token", () =>
-      authorizationHeader
-        ? TE.of(authorizationHeader.replace("Bearer ", ""))
-        : TE.left(authError("no token"))
+      authorizationHeader && authorizationHeader.startsWith("Bearer ")
+        ? TE.of(authorizationHeader.slice(7)) // "Bearer ".length === 7
+        : TE.left(authError("Invalid authorization header"))
     ),
     TE.bind("secret", () => env("ASSETS_JWT_SECRET")),
     TE.chain(({ token, secret }) =>

@@ -51,7 +51,7 @@ export const verifyToken: HandlerTask<void, Context> = ({
     TE.bind("profile", ({ payload: { id } }) => repo.user.get(id)),
     TE.filterOrElse(
       ({ profile }) => !!profile && !profile.locked,
-      () => authError("User restricted")
+      () => authError("Invalid credentials")
     ),
     mapWebError,
     TE.chain(({ profile }) => {
