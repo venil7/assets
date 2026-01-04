@@ -1,7 +1,7 @@
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
 import { NumberDecoder } from "./number";
-import { dateDecoder } from "./util";
+import { dateDecoder, nullableDecoder } from "./util";
 
 const baseTxTypes = {
   type: t.union([t.literal("buy"), t.literal("sell")]),
@@ -17,6 +17,9 @@ const extTxTypes = {
   asset_id: t.number,
   created: dateDecoder,
   modified: dateDecoder,
+  holdings: t.number,
+  total_invested: t.number,
+  avg_price: nullableDecoder(t.number),
 };
 
 export const PostTxDecoder = t.type(baseTxTypes);

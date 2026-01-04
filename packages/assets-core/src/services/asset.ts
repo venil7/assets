@@ -34,7 +34,6 @@ export const getAssetEnricher =
       TE.map(
         ({ asset, enrich: { chart: origChart, price, meta }, baseRate }) => {
           const toBase = (n: number) => n / baseRate;
-
           const investedBase = toBase(asset.invested);
 
           const chartCcy: ChartData = pipe(

@@ -4,6 +4,7 @@ import {
   type AssetId,
   type GetTx,
   type Id,
+  type Nullable,
   type Optional,
   type TxId,
   type UserId,
@@ -30,8 +31,12 @@ export const getTx =
 
 export const getTxs =
   (repo: Repository) =>
-  (assetId: AssetId, userId: UserId): WebAction<readonly GetTx[]> => {
-    return pipe(repo.tx.getAll(assetId, userId), mapWebError);
+  (
+    assetId: AssetId,
+    userId: UserId,
+    after: Nullable<Date> = null
+  ): WebAction<readonly GetTx[]> => {
+    return pipe(repo.tx.getAll(assetId, userId, after), mapWebError);
   };
 
 export const createTx =

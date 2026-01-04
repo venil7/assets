@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { endOfToday, format, startOfToday, startOfYear, sub } from "date-fns";
 import * as t from "io-ts";
 import type { YahooChartDataDecoder } from "../decoders/yahoo/chart";
 import type { ChartInterval, ChartRange } from "../decoders/yahoo/meta";
@@ -12,6 +12,7 @@ import type {
   YahooTickerSearchResultDecoder,
 } from "../decoders/yahoo/ticker";
 import type { ArrayItem } from "../utils/utils";
+import { EARLIEST_DATE } from "./tx";
 
 export type YahooTicker = t.TypeOf<typeof YahooTickerDecoder>;
 export type YahooTickerSearchResult = t.TypeOf<
@@ -68,5 +69,35 @@ export const tfForRange = (r: ChartRange): TimeFormatter => {
     case "ytd":
     case "max":
       return (t) => format(t * 1000, "d-LLL-yy");
+  }
+};
+
+export const ealiest = (range: ChartRange): Date => {
+  switch (range) {
+    case "1d":
+      return sub(startOfToday(), { days: 1 });
+    case "5d":
+      return sub(startOfToday(), { days: 5 });
+    case "1mo":
+      return sub(startOfToday(), { months: 1 });
+    case "3mo":
+      return sub(startOfToday(), { months: 3 });
+    case "6mo":
+      return sub(startOfToday(), { months: 6 });
+    case "1y":
+      return sub(startOfToday(), { years: 1 });
+    case "2y":
+      return sub(startOfToday(), { years: 2 });
+    case "5y":
+      return sub(startOfToday(), { years: 5 });
+    case "5y":
+      return sub(startOfToday(), { years: 5 });
+    case "10y":
+      return sub(startOfToday(), { years: 10 });
+    case "ytd":
+      return startOfYear(endOfToday());
+    case "max":
+    default:
+      return EARLIEST_DATE;
   }
 };

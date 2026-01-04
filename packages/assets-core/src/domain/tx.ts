@@ -8,6 +8,8 @@ import type {
 } from "../decoders/tx";
 import { DateOrd } from "../utils/date";
 
+export const EARLIEST_DATE = new Date(0);
+
 export type PostTx = t.TypeOf<typeof PostTxDecoder>;
 export type GetTx = t.TypeOf<typeof GetTxDecoder>;
 export type TxType = GetTx["type"];

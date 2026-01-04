@@ -1,10 +1,12 @@
 import {
+  EARLIEST_DATE,
   handleError,
   validationError,
   type Action,
   type AppError,
   type AssetId,
   type GetTx,
+  type Nullable,
   type Optional,
   type PostTx,
   type PostTxsUpload,
@@ -21,6 +23,7 @@ import {
   nullableDecoder,
 } from "@darkruby/assets-core/src/decoders/util";
 import { type Changes, type Database } from "bun:sqlite";
+import { formatISO } from "date-fns";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as ID from "fp-ts/lib/Identity";
@@ -59,14 +62,17 @@ export const getTxs =
   (
     assetId: AssetId,
     userId: UserId,
+    afterDate: Nullable<Date> = null,
     paging = defaultPaging()
-  ): Action<GetTx[]> =>
-    pipe(
-      queryMany<unknown[]>({ userId, assetId, ...paging }),
+  ): Action<GetTx[]> => {
+    const after = formatISO(afterDate ?? EARLIEST_DATE);
+    return pipe(
+      queryMany<unknown[]>({ userId, assetId, after, ...paging }),
       ID.ap(sql.tx.getMany),
       ID.ap(db),
       TE.chain(liftTE(GetTxsDecoder))
     );
+  };
 
 export const getTx =
   (db: Database) =>

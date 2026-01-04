@@ -6,7 +6,10 @@ select id,
   date,
   created,
   modified,
-  comments
+  comments,
+  holdings,
+  total_invested,
+  avg_price
 from asset_transactions at
 where at.id = $txId
   and at.asset_id = $assetId
