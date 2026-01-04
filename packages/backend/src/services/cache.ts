@@ -9,6 +9,15 @@ import { createHash } from "node:crypto";
 export type Stringifiable = string | number | Buffer | boolean;
 export type Cache = LRUCache<Stringifiable, any>;
 
+// Cache metrics for monitoring and observability
+export type CacheMetrics = {
+  hits: number;
+  misses: number;
+  total: number;
+  hitRate: () => string; // Returns percentage as string "75.5%"
+  reset: () => void;
+};
+
 const toKey = (...k: Stringifiable[]) =>
   createHash("md5").update(k.map(String).join("")).digest("hex");
 
@@ -35,31 +44,56 @@ const setter =
     );
   };
 
-const cachedAction =
-  (cache: Cache) =>
-  <T>(key: string, f: () => Action<T>, ttl?: number): Action<T> => {
-    const get = getter(cache);
-    const res = get(key);
-    if (O.isSome(res)) {
-      log.debug(`hit for ${key}`);
-      return TE.of(res.value as T);
-    }
-    log.debug(`miss for ${key}`);
-    const set = setter(cache);
-
-    return pipe(
-      f(),
-      TE.tapIO((res) => () => set(key, res, ttl))
-    );
-  };
-
 export type AppCache = ReturnType<typeof createCache>;
 
 export const createCache = (cache: Cache) => {
+  // Metrics tracking
+  let metrics: CacheMetrics = {
+    hits: 0,
+    misses: 0,
+    total: 0,
+    hitRate: function () {
+      if (this.total === 0) return "N/A";
+      return ((this.hits / this.total) * 100).toFixed(1) + "%";
+    },
+    reset: function () {
+      this.hits = 0;
+      this.misses = 0;
+      this.total = 0;
+    },
+  };
+
+  const cachedAction =
+    <T>(key: string, f: () => Action<T>, ttl?: number): Action<T> => {
+      const get = getter(cache);
+      const res = get(key);
+
+      if (O.isSome(res)) {
+        metrics.hits++;
+        metrics.total++;
+        log.debug(`cache hit for ${key} (hit rate: ${metrics.hitRate()})`);
+        return TE.of(res.value as T);
+      }
+
+      metrics.misses++;
+      metrics.total++;
+      log.debug(`cache miss for ${key} (hit rate: ${metrics.hitRate()})`);
+      const set = setter(cache);
+
+      return pipe(
+        f(),
+        TE.tapIO((res) => () =>
+          set(key, res, ttl)
+        )
+      );
+    };
+
   return {
     has: has(cache),
     getter: getter(cache),
     setter: setter(cache),
-    cachedAction: cachedAction(cache),
+    cachedAction,
+    // Expose metrics for monitoring
+    getMetrics: () => ({ ...metrics }),
   };
 };
