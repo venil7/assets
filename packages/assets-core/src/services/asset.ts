@@ -21,6 +21,7 @@ export const getAssetEnricher =
   (yahooApi: YahooApi) =>
   (
     asset: GetAsset,
+    // txs: GetTx[],
     baseCcy: Ccy,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedAsset> => {

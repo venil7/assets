@@ -21,6 +21,8 @@ export const createStoreBase = <T>(
   const fetching = signal<boolean>(false);
 
   const reset = (): void => {
+    error.value = null;
+    fetching.value = false;
     data.value = defaultValue();
   };
 

@@ -19,6 +19,7 @@ import { usePartialChange } from "../../hooks/formData";
 import { useFormatters } from "../../hooks/prefs";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
+import { DatePicker } from "../Form/DatePicker";
 import { createForm, type FieldsProps } from "../Form/Form";
 import { TextArea } from "../Form/FormControl";
 import { FormNumber } from "../Form/NumberEdit";
@@ -36,6 +37,7 @@ export const TxFields: React.FC<TxFieldsProps> = ({
 }) => {
   const setField = usePartialChange(data, onChange);
   const setPrice = setField("price") as (n: Nullable<number>) => void;
+  const setDate = (d: Nullable<Date>) => setField("date")(d ?? new Date());
   const setQuantity = setField("quantity") as (n: Nullable<number>) => void;
   const { money } = useFormatters();
 
@@ -71,6 +73,18 @@ export const TxFields: React.FC<TxFieldsProps> = ({
               />
               <InputGroup.Text>{basePrice}</InputGroup.Text>
             </InputGroup>
+          </Col>
+        </Row>
+      </Form.Group>
+      <Form.Group className="mb-3">
+        <Form.Label>Date</Form.Label>
+        <Row>
+          <Col>
+            <DatePicker
+              date={data.date}
+              onChange={setDate}
+              disabled={disabled}
+            />
           </Col>
         </Row>
       </Form.Group>

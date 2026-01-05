@@ -11,6 +11,10 @@ lerna-debug.log*
 
 *.svg
 
+*.db-shm
+*.db-wal
+
+
 .bruno
 .vscode
 design

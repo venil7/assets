@@ -11,17 +11,14 @@ import { useStore } from "../hooks/store";
 const RawPortfolioDetails: React.FC = () => {
   useSignals();
   const { portfolio, assets, asset, txs } = useStore();
-  const error =
-    portfolio.error.value ||
-    assets.error.value ||
-    asset.error.value ||
-    txs.error.value;
+  const error = portfolio.error.value || assets.error.value;
 
   const fetching =
     portfolio.fetching.value ||
     assets.fetching.value ||
     asset.fetching.value ||
     txs.fetching.value;
+
   const load = () => {
     asset.reset();
 
