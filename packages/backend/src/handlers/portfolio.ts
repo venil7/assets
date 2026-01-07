@@ -4,7 +4,7 @@ import type { Id } from "@darkruby/assets-core/src/domain/id";
 import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { numberFromUrl, rangeFromUrl } from "../decoders/params";
+import { rangeFromUrl, urlPortfolioId } from "../decoders/params";
 import { mapWebError } from "../domain/error";
 import type { Context } from "./context";
 
@@ -28,7 +28,7 @@ export const getPortfolio: HandlerTask<
   return pipe(
     TE.Do,
     TE.bind("userId", () => service.auth.requireUserId(res)),
-    TE.bind("portfolioId", () => numberFromUrl(req.params.id)),
+    TE.bind("portfolioId", () => urlPortfolioId(req)),
     TE.bind("range", () => rangeFromUrl(req.query.range)),
     mapWebError,
     TE.chain(({ userId, portfolioId, range }) =>
@@ -54,7 +54,7 @@ export const deletePortfolio: HandlerTask<Optional<Id>, Context> = ({
 }) =>
   pipe(
     TE.Do,
-    TE.bind("portfolioId", () => numberFromUrl(req.params.id)),
+    TE.bind("portfolioId", () => urlPortfolioId(req)),
     TE.bind("userId", () => service.auth.requireUserId(res)),
     mapWebError,
     TE.chain(({ portfolioId, userId }) =>
@@ -69,7 +69,7 @@ export const updatePortfolio: HandlerTask<
   return pipe(
     TE.Do,
     TE.bind("userId", () => service.auth.requireUserId(res)),
-    TE.bind("portfolioId", () => numberFromUrl(req.params.id)),
+    TE.bind("portfolioId", () => urlPortfolioId(req)),
     mapWebError,
     TE.chain(({ userId, portfolioId }) =>
       service.portfolio.update(portfolioId, userId, req.body)

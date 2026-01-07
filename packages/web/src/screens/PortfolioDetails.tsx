@@ -38,7 +38,7 @@ const RawPortfolioDetails: React.FC = () => {
     assets.update(portfolioId, aid, a);
   const handleAddTx = (aid: number, t: PostTx) =>
     pipe(
-      () => txs.create(aid, t),
+      () => txs.create(portfolioId, aid, t),
       TE.chain(() => () => portfolio.load(portfolioId))
     )();
   const handleRange = (range: ChartRange) => {

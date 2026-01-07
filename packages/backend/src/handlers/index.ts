@@ -8,7 +8,7 @@ import * as portfolio from "./portfolio";
 import * as prefs from "./prefs";
 import * as profile from "./profile";
 import * as summary from "./summary";
-import * as tx from "./transaction";
+import * as tx from "./tx";
 import * as user from "./user";
 import * as yahoo from "./yahoo";
 

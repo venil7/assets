@@ -9,7 +9,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { withCondition } from "../../decorators/nodata";
 import { withProps } from "../../decorators/props";
-import { iso } from "../../util/date";
+import { isoTimestamp } from "../../util/date";
 import { decimal, money } from "../../util/number";
 import { Dark } from "../Form/Alert";
 import { confirmationModal } from "../Modals/Confirmation";
@@ -61,7 +61,7 @@ const TxTableRow = (
       <td>{decimal(tx.quantity, 5, locale)}</td>
       <td>{money(tx.price, asset.meta.currency as Ccy, locale)}</td>
       <td>{tx.comments}</td>
-      <td className="d-none d-md-table-cell">{iso(tx.date)}</td>
+      <td className="d-none d-md-table-cell">{isoTimestamp(tx.date)}</td>
       <td hidden={disabled}>
         <PortfolioMenu
           onDelete={handleDelete(tx.id)}

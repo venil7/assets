@@ -1,9 +1,12 @@
 import type {
   ActionResult,
-  GetTx,
+  AssetId,
+  EnrichedTx,
   Identity,
   Nullable,
+  PortfolioId,
   PostTx,
+  TxId,
 } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -12,32 +15,47 @@ import { createTx, deleteTx, getTx, updateTx } from "../services/txs";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type TxStore = Identity<
-  StoreBase<Nullable<GetTx>> & {
-    load: (aid: number, tid: number) => ActionResult<Nullable<GetTx>>;
-    create: (aid: number, t: PostTx) => ActionResult<Nullable<GetTx>>;
-    update: (
-      aid: number,
-      tid: number,
+  StoreBase<Nullable<EnrichedTx>> & {
+    load: (
+      pid: PortfolioId,
+      aid: AssetId,
+      tid: TxId
+    ) => ActionResult<Nullable<EnrichedTx>>;
+    create: (
+      pid: PortfolioId,
+      aid: AssetId,
       t: PostTx
-    ) => ActionResult<Nullable<GetTx>>;
-    delete: (aid: number, tid: number) => ActionResult<Nullable<GetTx>>;
+    ) => ActionResult<Nullable<EnrichedTx>>;
+    update: (
+      pid: PortfolioId,
+      aid: AssetId,
+      tid: TxId,
+      t: PostTx
+    ) => ActionResult<Nullable<EnrichedTx>>;
+    delete: (
+      pid: PortfolioId,
+      aid: AssetId,
+      tid: TxId
+    ) => ActionResult<Nullable<EnrichedTx>>;
   }
 >;
 
 export const createTxStore = (): TxStore => {
-  const data = signal<Nullable<GetTx>>(null);
+  const data = signal<Nullable<EnrichedTx>>(null);
   const storeBase = createStoreBase(data);
 
   return {
     ...storeBase,
-    load: (aid: number, tid: number) => storeBase.run(getTx(aid, tid)),
-    create: (aid: number, t: PostTx) => storeBase.run(createTx(aid, t)),
-    update: (aid: number, tid: number, p: PostTx) =>
-      storeBase.run(updateTx(aid, tid, p)),
-    delete: (aid: number, tid: number) =>
+    load: (pid: PortfolioId, aid: AssetId, tid: TxId) =>
+      storeBase.run(getTx(pid, aid, tid)),
+    create: (pid: PortfolioId, aid: AssetId, t: PostTx) =>
+      storeBase.run(createTx(pid, aid, t)),
+    update: (pid: PortfolioId, aid: AssetId, tid: TxId, t: PostTx) =>
+      storeBase.run(updateTx(pid, aid, tid, t)),
+    delete: (pid: PortfolioId, aid: AssetId, tid: TxId) =>
       storeBase.run(
         pipe(
-          deleteTx(aid, tid),
+          deleteTx(pid, aid, tid),
           TE.map(() => null)
         )
       ),

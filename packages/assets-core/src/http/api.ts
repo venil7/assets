@@ -4,8 +4,8 @@ import {
   EnrichedAssetsDecoder,
   EnrichedPortfolioDecoder,
   EnrichedPortfoliosDecoder,
-  GetTxDecoder,
-  GetTxsDecoder,
+  EnrichedTxDecoder,
+  EnrichedTxsDecoder,
   GetUserDecoder,
   GetUsersDecoder,
   IdDecoder,
@@ -20,11 +20,12 @@ import type {
   Credentials,
   EnrichedAsset,
   EnrichedPortfolio,
-  GetTx,
+  EnrichedTx,
   GetUser,
   Id,
   NewUser,
   PasswordChange,
+  PortfolioId,
   PostAsset,
   PostPortfolio,
   PostTx,
@@ -34,6 +35,7 @@ import type {
   Summary,
   TickerSearchResult,
   Token,
+  TxId,
   UserId,
 } from "../domain";
 import type { Action } from "../utils/utils";
@@ -72,10 +74,12 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const AUTH_URL = `${API_URL}/auth`;
   const REFRESH_TOKEN_URL = `${AUTH_URL}/refresh_token`;
   const TICKER_URL = `${API_URL}/lookup/ticker`;
-  const TXS_URL = (assetId: number) => `${API_URL}/assets/${assetId}/tx`;
-  const TX_URL = (assetId: number, txId: number) =>
-    `${TXS_URL(assetId)}/${txId}`;
-  const BULK_TX_URL = (assetId: number) => `${API_URL}/assets/${assetId}/txs`;
+  const TXS_URL = (assetId: AssetId, portfolioId: PortfolioId) =>
+    `${API_URL}/portfolio/${portfolioId}/assets/${assetId}/tx`;
+  const TX_URL = (portfolioId: PortfolioId, assetId: AssetId, txId: TxId) =>
+    `${TXS_URL(assetId, portfolioId)}/${txId}`;
+  const BULK_TX_URL = (portfolioId: PortfolioId, assetId: number) =>
+    `${API_URL}/portfolio/${portfolioId}/assets/${assetId}/txs`;
 
   const getRefreshToken = () =>
     methods.get<Token>(REFRESH_TOKEN_URL, TokenDecoder);
@@ -137,20 +141,41 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const deleteAsset = (portfolioId: number, id: number) =>
     methods.delete<Id>(ASSET_URL(portfolioId, id), IdDecoder);
 
-  const createTx = (assetId: AssetId, tx: PostTx) =>
-    methods.post<GetTx, PostTx>(TXS_URL(assetId), tx, GetTxDecoder);
-  const updateTx = (txId: number, assetId: number, tx: PostTx) =>
-    methods.put<GetTx, PostTx>(TX_URL(assetId, txId), tx, GetTxDecoder);
-  const getTx = (assetId: AssetId, id: number) =>
-    methods.get<GetTx>(TX_URL(assetId, id), GetTxDecoder);
-  const getTxs = (assetId: AssetId) =>
-    methods.get<GetTx[]>(TXS_URL(assetId), GetTxsDecoder);
-  const deleteTx = (assetId: AssetId, id: number) =>
-    methods.delete<Id>(TX_URL(assetId, id), IdDecoder);
-  const deleteAllAsset = (assetId: AssetId) =>
-    methods.delete<Id>(BULK_TX_URL(assetId), IdDecoder);
-  const uploadAsset = (assetId: AssetId, payload: PostTxsUpload) =>
-    methods.post<GetTx[]>(BULK_TX_URL(assetId), payload, GetTxsDecoder);
+  const createTx = (pId: PortfolioId, assetId: AssetId, tx: PostTx) =>
+    methods.post<EnrichedTx, PostTx>(
+      TXS_URL(pId, assetId),
+      tx,
+      EnrichedTxDecoder
+    );
+  const updateTx = (
+    pId: PortfolioId,
+    assetId: AssetId,
+    txId: TxId,
+    tx: PostTx
+  ) =>
+    methods.put<EnrichedTx, PostTx>(
+      TX_URL(pId, assetId, txId),
+      tx,
+      EnrichedTxDecoder
+    );
+  const getTx = (pId: PortfolioId, assetId: AssetId, txId: TxId) =>
+    methods.get<EnrichedTx>(TX_URL(pId, assetId, txId), EnrichedTxDecoder);
+  const getTxs = (pId: PortfolioId, assetId: AssetId) =>
+    methods.get<EnrichedTx[]>(TXS_URL(pId, assetId), EnrichedTxsDecoder);
+  const deleteTx = (pId: PortfolioId, assetId: AssetId, txId: number) =>
+    methods.delete<Id>(TX_URL(pId, assetId, txId), IdDecoder);
+  const deleteAllAsset = (pId: PortfolioId, assetId: AssetId) =>
+    methods.delete<Id>(BULK_TX_URL(pId, assetId), IdDecoder);
+  const uploadAsset = (
+    pId: PortfolioId,
+    assetId: AssetId,
+    payload: PostTxsUpload
+  ) =>
+    methods.post<EnrichedTx[]>(
+      BULK_TX_URL(pId, assetId),
+      payload,
+      EnrichedTxsDecoder
+    );
 
   const getProfile = () => methods.get<GetUser>(PROFILE_URL, GetUserDecoder);
   const updateProfile = (body: PostUser) =>

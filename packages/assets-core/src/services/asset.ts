@@ -25,12 +25,13 @@ export const getAssetEnricher =
     baseCcy: Ccy,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedAsset> => {
+    const getBaseCcyConversionRate = baseCcyConversionRate(yahooApi);
     return pipe(
       TE.Do,
       TE.apS("asset", TE.of(asset)),
       TE.bind("enrich", ({ asset }) => yahooApi.chart(asset.ticker, range)),
       TE.bind("baseRate", ({ enrich }) =>
-        baseCcyConversionRate(enrich.meta.currency, baseCcy)
+        getBaseCcyConversionRate(enrich.meta.currency, baseCcy)
       ),
       TE.map(
         ({ asset, enrich: { chart: origChart, price, meta }, baseRate }) => {
@@ -120,7 +121,7 @@ export const getAssetEnricher =
               ccy: valueCcy,
               base: valueBase,
               baseRate,
-              //weight cannot be calulcated for single asset
+              //weight cannot be calculated for single asset
               weight: 0,
             },
             totals: {

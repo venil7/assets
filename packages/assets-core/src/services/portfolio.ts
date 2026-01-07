@@ -59,8 +59,8 @@ export const getPortfolioEnricher =
             sum(({ value }) => value.base.current)
           );
 
-          const change = changeInValue(beginning)(current);
-          const changePct = changeInValuePct(beginning)(current);
+          const change = pipe(current, changeInValue(beginning));
+          const changePct = pipe(current, changeInValuePct(beginning));
           const start = pipe(
             assets,
             A.map(({ value }) => value.ccy.start),

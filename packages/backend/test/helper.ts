@@ -84,7 +84,9 @@ const createPortfolioAssetTx =
   (tx: PostTx, asset: PostAsset = fakeAsset(), portfolio = fakePortfolio()) =>
     pipe(
       createPortfolioAsset(api)(asset, portfolio),
-      TE.bind("tx", ({ asset }) => api.tx.create(asset.id!, tx))
+      TE.bind("tx", ({ asset, portfolio }) =>
+        api.tx.create(portfolio.id!, asset.id!, tx)
+      )
     );
 
 const createPortfolioAssetTxs =
@@ -92,10 +94,10 @@ const createPortfolioAssetTxs =
   (txs: PostTx[], portfolio = fakePortfolio(), asset = fakeAsset()) =>
     pipe(
       createPortfolioAsset(api)(asset, portfolio),
-      TE.bind("txs", ({ asset }) =>
+      TE.bind("txs", ({ asset, portfolio }) =>
         pipe(
           txs,
-          TE.traverseArray((tx) => api.tx.create(asset.id!, tx))
+          TE.traverseArray((tx) => api.tx.create(portfolio.id!, asset.id!, tx))
         )
       )
     );

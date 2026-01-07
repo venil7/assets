@@ -2,6 +2,7 @@ import { pipe } from "fp-ts/lib/function";
 import { contramap } from "fp-ts/lib/Ord";
 import * as t from "io-ts";
 import type {
+  EnrichedTxDecoder,
   GetTxDecoder,
   PostTxDecoder,
   PostTxsUploadDecoder,
@@ -16,6 +17,7 @@ export type TxType = GetTx["type"];
 export type TxId = GetTx["id"];
 
 export type PostTxsUpload = t.TypeOf<typeof PostTxsUploadDecoder>;
+export type EnrichedTx = t.TypeOf<typeof EnrichedTxDecoder>;
 
 export const defaultTx = (type: PostTx["type"] = "buy"): PostTx => ({
   date: new Date(),

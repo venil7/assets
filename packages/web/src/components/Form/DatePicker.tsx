@@ -3,6 +3,7 @@ import { endOfToday, startOfDay } from "date-fns";
 import { forwardRef, useMemo } from "react";
 import DatePickerLib from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { DATE_FORMAT } from "../../util/date";
 
 export type DatePickerProps = {
   date: Date;
@@ -34,7 +35,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       onChange={handleChange}
       includeDateIntervals={includeDateIntervals}
       customInput={<DatePickerButton />}
-      dateFormat={"yyyy-MM-dd hh:mma"}
+      dateFormat={DATE_FORMAT}
     />
   );
 };

@@ -1,11 +1,16 @@
 import {
+  generalError,
+  getTxEnricher,
+  getTxsEnricher,
   PostTxDecoder,
   PostTxsUploadDecoder,
   type AssetId,
-  type GetTx,
+  type EnrichedAsset,
+  type EnrichedTx,
   type Id,
   type Nullable,
   type Optional,
+  type PortfolioId,
   type TxId,
   type UserId,
 } from "@darkruby/assets-core";
@@ -19,32 +24,68 @@ import type { Repository } from "../repository";
 const txDecoder = liftTE(PostTxDecoder);
 const txUploadDecoder = liftTE(PostTxsUploadDecoder);
 
+const assetGetter =
+  (
+    repo: Repository,
+    assetId: AssetId,
+    portfolioId: PortfolioId,
+    userId: UserId
+  ) =>
+  () =>
+    pipe(
+      repo.asset.get(assetId, portfolioId, userId),
+      TE.filterOrElse(
+        (x): x is EnrichedAsset => Boolean(x),
+        () => generalError(`asset not found`)
+      )
+    );
+
 export const getTx =
   (repo: Repository) =>
   (
     txId: TxId,
     assetId: AssetId,
+    portfolioId: PortfolioId,
     userId: UserId
-  ): WebAction<Optional<GetTx>> => {
-    return pipe(repo.tx.get(txId, assetId, userId), mapWebError);
+  ): WebAction<Optional<EnrichedTx>> => {
+    const getAsset = assetGetter(repo, assetId, portfolioId, userId);
+    const enrichTx = getTxEnricher(getAsset);
+    return pipe(
+      repo.tx.get(txId, assetId, userId),
+      TE.chain((tx) => (tx ? enrichTx(tx) : TE.of(null))),
+      mapWebError
+    );
   };
 
 export const getTxs =
   (repo: Repository) =>
   (
     assetId: AssetId,
+    portfolioId: PortfolioId,
     userId: UserId,
     after: Nullable<Date> = null
-  ): WebAction<readonly GetTx[]> => {
-    return pipe(repo.tx.getAll(assetId, userId, after), mapWebError);
+  ): WebAction<readonly EnrichedTx[]> => {
+    const getAsset = assetGetter(repo, assetId, portfolioId, userId);
+    return pipe(
+      repo.tx.getAll(assetId, userId, after),
+      TE.chain(getTxsEnricher(getAsset)),
+      mapWebError
+    );
   };
 
 export const createTx =
   (repo: Repository) =>
-  (assetId: AssetId, userId: UserId, payload: unknown): WebAction<GetTx> => {
+  (
+    assetId: AssetId,
+    portfolioId: PortfolioId,
+    userId: UserId,
+    payload: unknown
+  ): WebAction<EnrichedTx> => {
+    const getAsset = assetGetter(repo, assetId, portfolioId, userId);
     return pipe(
       txDecoder(payload),
       TE.chain((tx) => repo.tx.create(tx, assetId, userId)),
+      TE.chain(getTxEnricher(getAsset)),
       mapWebError
     );
   };
@@ -54,12 +95,15 @@ export const updateTx =
   (
     txId: TxId,
     assetId: AssetId,
+    portfolioId: PortfolioId,
     userId: UserId,
     payload: unknown
-  ): WebAction<GetTx> => {
+  ): WebAction<EnrichedTx> => {
+    const getAsset = assetGetter(repo, assetId, portfolioId, userId);
     return pipe(
       txDecoder(payload),
       TE.chain((tx) => repo.tx.update(txId, tx, assetId, userId)),
+      TE.chain(getTxEnricher(getAsset)),
       mapWebError
     );
   };
