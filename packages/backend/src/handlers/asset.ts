@@ -69,7 +69,7 @@ export const deleteAsset: HandlerTask<Optional<Id>, Context> = ({
 
 export const updateAsset: HandlerTask<EnrichedAsset, Context> = ({
   params: [req, res],
-  context: { repo, yahooApi, service },
+  context: { service },
 }) =>
   pipe(
     TE.Do,

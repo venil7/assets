@@ -74,12 +74,12 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const AUTH_URL = `${API_URL}/auth`;
   const REFRESH_TOKEN_URL = `${AUTH_URL}/refresh_token`;
   const TICKER_URL = `${API_URL}/lookup/ticker`;
-  const TXS_URL = (assetId: AssetId, portfolioId: PortfolioId) =>
-    `${API_URL}/portfolio/${portfolioId}/assets/${assetId}/tx`;
+  const TXS_URL = (portfolioId: PortfolioId, assetId: AssetId) =>
+    `${API_URL}/portfolios/${portfolioId}/assets/${assetId}/tx`;
   const TX_URL = (portfolioId: PortfolioId, assetId: AssetId, txId: TxId) =>
     `${TXS_URL(assetId, portfolioId)}/${txId}`;
   const BULK_TX_URL = (portfolioId: PortfolioId, assetId: number) =>
-    `${API_URL}/portfolio/${portfolioId}/assets/${assetId}/txs`;
+    `${API_URL}/portfolios/${portfolioId}/assets/${assetId}/txs`;
 
   const getRefreshToken = () =>
     methods.get<Token>(REFRESH_TOKEN_URL, TokenDecoder);

@@ -126,8 +126,8 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       portfolios.use("/", assets);
 
       const txs = express();
-      txs.post("/:portfolio_id/assets/:asset_id/tx", handlers.tx.create);
       txs.get("/:portfolio_id/assets/:asset_id/tx", handlers.tx.getMany);
+      txs.post("/:portfolio_id/assets/:asset_id/tx", handlers.tx.create);
       txs.get("/:portfolio_id/assets/:asset_id/tx/:tx_id", handlers.tx.get);
       txs.delete(
         "/:portfolio_id/assets/:asset_id/tx/:tx_id",
@@ -142,15 +142,22 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
         "/:portfolio_id/assets/:asset_id/txs",
         handlers.tx.uploadAssetTxs
       );
-      assets.use("/", txs);
+      api.use("/portfolios", txs);
 
       const lookup = express();
       lookup.get("/ticker", handlers.yahoo.search);
       api.use("/lookup", lookup);
 
       exp.use("/api/v1", api);
+      exp.use((req, res) => {
+        res.status(404).send(`route ${req.url} does not exist`);
+      });
     }),
-    TE.map((exp) => exp.listen(port, () => console.log(`Listening on ${port}`)))
+    TE.map((exp) => {
+      return exp.listen(port, () => {
+        console.log(`Listening on ${port}`);
+      });
+    })
   );
 };
 

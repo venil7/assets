@@ -14,11 +14,11 @@ export const getTxEnricher =
         const toBase = (n: number) => n / asset.value.baseRate;
 
         const changeCcy = pipe(
-          asset.value.ccy.current,
+          asset.meta.regularMarketPrice,
           changeInValue(tx.price)
         );
         const changePct = pipe(
-          asset.value.ccy.current,
+          asset.meta.regularMarketPrice,
           changeInValuePct(tx.price)
         );
         return {

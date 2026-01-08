@@ -1,7 +1,7 @@
 import {
   type EnrichedAsset,
+  type EnrichedTx,
   type GetAsset,
-  type GetTx,
   type PostTx,
   type PostTxsUpload,
 } from "@darkruby/assets-core";
@@ -17,7 +17,7 @@ import { Totals } from "../Totals/Totals";
 import { TxList } from "../Tx/TxList";
 
 type AssetProps = {
-  txs: GetTx[];
+  txs: EnrichedTx[];
   asset: EnrichedAsset;
   onEdit: (a: GetAsset) => void;
   onAddTx: (tx: PostTx) => void;
