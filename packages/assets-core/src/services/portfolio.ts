@@ -18,7 +18,7 @@ import type {
 } from "../domain";
 import type { YahooApi } from "../http";
 import { nonEmpty } from "../utils/array";
-import { changeInValue, changeInValuePct, sum } from "../utils/finance";
+import { changeInPct, changeInValue, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
 import { calcAssetWeights, getAssetsEnricher } from "./asset";
 import { combineAssetCharts, commonAssetRanges } from "./chart";
@@ -60,7 +60,7 @@ export const getPortfolioEnricher =
           );
 
           const change = pipe(current, changeInValue(beginning));
-          const changePct = pipe(current, changeInValuePct(beginning));
+          const changePct = pipe(current, changeInPct(beginning));
           const start = pipe(
             assets,
             A.map(({ value }) => value.ccy.start),
@@ -86,7 +86,7 @@ export const getPortfolioEnricher =
 
         const totals = ((): Totals => {
           const change = changeInValue(investedBase)(value.current);
-          const changePct = changeInValuePct(investedBase)(value.current);
+          const changePct = changeInPct(investedBase)(value.current);
           return { change, changePct };
         })();
 

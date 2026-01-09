@@ -42,7 +42,7 @@ test("Get multiple transactions", async () => {
   );
 });
 
-test.only("Get single transaction", async () => {
+test("Get single transaction", async () => {
   const { tx, asset, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
   const { id, asset_id, type, quantity, price, date, created, modified } =
     await run(api.tx.get(portfolio.id, asset.id, tx.id));
@@ -73,7 +73,7 @@ test("Update buy tx", async () => {
     type,
     quantity,
     price,
-  } = await run(api.tx.update(portfolio.id, tx.id, asset.id, updateTx));
+  } = await run(api.tx.update(portfolio.id, asset.id, tx.id, updateTx));
 
   expect(newId).toBe(tx.id);
   expect(type).toBe(updateTx.type);

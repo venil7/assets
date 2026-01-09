@@ -5,7 +5,7 @@ import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
-import { changeInValue, changeInValuePct } from "../../utils/finance";
+import { changeInPct, changeInValue } from "../../utils/finance";
 import { mapDecoder, nullableDecoder, validationErr } from "../util";
 import { ChartMetaDecoder } from "./meta";
 import { UnixDateDecoder, type PeriodChangesDecoder } from "./period";
@@ -130,7 +130,7 @@ export const YahooChartDataDecoder = mapDecoder<
           end,
           beginning,
           current: meta.regularMarketPrice,
-          changePct: changeInValuePct(beginning)(meta.regularMarketPrice),
+          changePct: changeInPct(beginning)(meta.regularMarketPrice),
           change: changeInValue(beginning)(meta.regularMarketPrice),
         },
       };

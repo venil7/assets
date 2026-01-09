@@ -33,9 +33,10 @@ export const PostTxsUploadDecoder = t.type({
 
 export const EnrichedTxDecoder = t.type({
   ...extTxTypes,
-  changePct: t.number,
-  changeBase: t.number,
-  changeCcy: t.number,
+  spent: t.number,
+  returnPct: t.number,
+  returnBase: t.number,
+  returnCcy: t.number,
 });
 
 export const EnrichedTxsDecoder = t.array(EnrichedTxDecoder);

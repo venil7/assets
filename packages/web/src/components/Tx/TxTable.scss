@@ -1,0 +1,14 @@
+.table {
+  .profit {
+    color: MediumSeaGreen;
+  }
+  .loss {
+    color: salmon;
+  }
+  .unrealized.profit {
+    color: SeaGreen;
+  }
+  .unrealized.loss {
+    color: indianred;
+  }
+}

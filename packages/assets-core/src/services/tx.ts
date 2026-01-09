@@ -1,7 +1,7 @@
 import { type LazyArg, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import type { EnrichedAsset, EnrichedTx, GetTx } from "../domain";
-import { changeInValue, changeInValuePct } from "../utils/finance";
+import { changeInPct, changeInValue } from "../utils/finance";
 import type { Action } from "../utils/utils";
 
 export const getTxEnricher =
@@ -12,20 +12,42 @@ export const getTxEnricher =
       TE.bind("asset", getEnrichedAsset),
       TE.map(({ asset }) => {
         const toBase = (n: number) => n / asset.value.baseRate;
+        const spent = tx.price * tx.quantity;
 
-        const changeCcy = pipe(
-          asset.meta.regularMarketPrice,
-          changeInValue(tx.price)
+        const buy = tx.type === "buy";
+        // if buy, calculates unrealized return
+        const unrealizedReturnCcy = pipe(
+          asset.meta.regularMarketPrice * tx.quantity, // after
+          changeInValue(spent) // before
         );
-        const changePct = pipe(
-          asset.meta.regularMarketPrice,
-          changeInValuePct(tx.price)
+        // if sell calculates realized return
+        const realizedReturnCcy = (() => {
+          const averagePrice = asset.avg_price ?? asset.value.ccy.current;
+          const before = averagePrice * tx.quantity;
+          const after = spent;
+          return pipe(after, changeInValue(before));
+        })();
+
+        const returnCcy = buy ? unrealizedReturnCcy : realizedReturnCcy;
+
+        const unrealizedReturnPct = pipe(
+          asset.meta.regularMarketPrice, // after
+          changeInPct(tx.price) // before
         );
+
+        const realizedReturnPct = pipe(
+          tx.price, // after
+          changeInPct(asset.avg_price ?? asset.value.ccy.current) // before
+        );
+
+        const returnPct = buy ? unrealizedReturnPct : realizedReturnPct;
+
         return {
           ...tx,
-          changeCcy,
-          changePct,
-          changeBase: toBase(changeCcy),
+          spent,
+          returnPct,
+          returnCcy,
+          returnBase: toBase(returnCcy),
         };
       })
     );

@@ -11,6 +11,7 @@ import * as React from "react";
 import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
+import { useFormatters } from "../../hooks/prefs";
 import { RangeChart } from "../Charts/RangesChart";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
@@ -38,12 +39,16 @@ const RawAsset: React.FC<AssetProps> = ({
   onDeleteAll,
   onUploadTxs,
 }: AssetProps) => {
+  const { money } = useFormatters();
   return (
     <div className="asset-details">
       <HorizontalStack className="top-toolbar">
-        <h3>
-          {asset.name} ({asset.ticker}){" "}
-        </h3>
+        <div className="flex-column">
+          <h3>
+            {asset.name} ({asset.ticker})
+          </h3>
+          <h5>{money(asset.meta.regularMarketPrice)}</h5>
+        </div>
         <Totals
           totals={asset.totals.base}
           change={asset.value.base}

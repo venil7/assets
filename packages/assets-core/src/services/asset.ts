@@ -13,7 +13,7 @@ import type {
   Totals,
 } from "../domain";
 import type { YahooApi } from "../http";
-import { changeInValue, changeInValuePct, sum } from "../utils/finance";
+import { changeInPct, changeInValue, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
 import { baseCcyConversionRate } from "./yahoo";
 
@@ -70,7 +70,7 @@ export const getAssetEnricher =
             change: changeInValue(toBase(valueCcy.beginning))(
               toBase(valueCcy.current)
             ),
-            changePct: changeInValuePct(toBase(valueCcy.beginning))(
+            changePct: changeInPct(toBase(valueCcy.beginning))(
               toBase(valueCcy.current)
             ),
             start: price.start,
@@ -85,7 +85,7 @@ export const getAssetEnricher =
             );
             const changePct = pipe(
               O.fromNullable(asset.avg_price),
-              O.map(() => changeInValuePct(asset.invested)(valueCcy.current)),
+              O.map(() => changeInPct(asset.invested)(valueCcy.current)),
               O.getOrElse(() => 0)
             );
             return { change, changePct };
@@ -102,7 +102,7 @@ export const getAssetEnricher =
             const changePct = pipe(
               O.fromNullable(asset.avg_price),
               O.map(() =>
-                changeInValuePct(toBase(asset.invested))(valueBase.current)
+                changeInPct(toBase(asset.invested))(valueBase.current)
               ),
               O.getOrElse(() => 0)
             );

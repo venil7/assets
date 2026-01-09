@@ -10,7 +10,7 @@ import type {
   UnixDate,
 } from "../domain";
 import { nonEmpty } from "../utils/array";
-import { changeInValue, changeInValuePct, sum } from "../utils/finance";
+import { changeInPct, changeInValue, sum } from "../utils/finance";
 import { combinePortfolioCharts, commonPortfolioRanges } from "./chart";
 
 export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
@@ -41,7 +41,7 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
     );
 
     const change = changeInValue(beginning)(current);
-    const changePct = changeInValuePct(beginning)(current);
+    const changePct = changeInPct(beginning)(current);
     const start = pipe(
       portfolios,
       A.map(({ value }) => value.start),
@@ -67,7 +67,7 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
 
   const totals = ((): Totals => {
     const change = changeInValue(investedBase)(value.current);
-    const changePct = changeInValuePct(investedBase)(value.current);
+    const changePct = changeInPct(investedBase)(value.current);
     return { change, changePct };
   })();
 

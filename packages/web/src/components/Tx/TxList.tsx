@@ -42,7 +42,7 @@ export const TxList: React.FC<TxListProps> = ({
   const handleDeleteAll = () => {
     return pipe(
       () =>
-        confirmationModal(`Delete all transaction for ${props.asset.ticker}`),
+        confirmationModal(`Delete all transaction for ${props.asset.ticker}?`),
       TE.map(onDeleteAll)
     )();
   };

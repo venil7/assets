@@ -3,8 +3,10 @@ import * as M from "fp-ts/lib/Monoid";
 
 export const changeInValue = (before: number) => (after: number) =>
   after - before;
-export const changeInValuePct = (before: number) => (after: number) =>
+export const changeInPct = (before: number) => (after: number) =>
   before == 0 ? 0 : (after - before) / before;
+
+export const pctOf = (whole: number, frac: number): number => frac / whole;
 
 export const sumMonoid: M.Monoid<number> = {
   empty: 0,

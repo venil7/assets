@@ -5,6 +5,7 @@ import {
   type EnrichedTx,
   type PostTx,
 } from "@darkruby/assets-core";
+import classNames from "classnames";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { withCondition } from "../../decorators/nodata";
@@ -16,6 +17,7 @@ import { confirmationModal } from "../Modals/Confirmation";
 import { PortfolioMenu } from "../Portfolio/Menu";
 import { PagedTable } from "../Table/Table";
 import { txModal } from "./TxFields";
+import "./TxTable.scss";
 
 export type TxTableProps = {
   asset: EnrichedAsset;
@@ -35,7 +37,7 @@ const TxTableHeader = ({ disabled }: TxTableProps) => (
       <th>Comments</th>
       <th>Holdings balance</th>
       <th>Invested at time</th>
-      <th>P/L</th>
+      <th>Return</th>
       <th hidden={disabled}>^</th>
     </tr>
   </thead>
@@ -58,21 +60,31 @@ const TxTableRow = (
       TE.map(() => onDelete(txid))
     );
   const ccy = asset.meta.currency as Ccy;
+  const buy = tx.type == "buy";
+  const profit = tx.returnCcy >= 0;
   return (
     <tr key={tx.id}>
-      <td>{tx.type}</td>
-      <td className="d-none d-md-table-cell">{isoTimestamp(tx.date)}</td>
-      <td>{decimal(tx.quantity, 5, locale)}</td>
-      <td>{money(tx.price, ccy, locale)}</td>
-      <td>{money(tx.price * tx.quantity, ccy, locale)}</td>
-      <td>{tx.comments}</td>
-      <td>{decimal(tx.holdings, 5, locale)}</td>
-      <td>{money(tx.total_invested, ccy, locale)}</td>
-      <td>
-        {money(tx.changeCcy, ccy, locale)}&nbsp; (
-        {percent(tx.changePct, 3, locale)})
+      <td /**type */>{tx.type}</td>
+      <td /**date*/ className="d-none d-md-table-cell">
+        {isoTimestamp(tx.date)}
       </td>
-      <td hidden={disabled}>
+      <td /**quantity */>{decimal(tx.quantity, 5, locale)}</td>
+      <td /**price/unit */>{money(tx.price, ccy, locale)}</td>
+      <td /**spent */>{money(tx.spent, ccy, locale)}</td>
+      <td /**comments */>{tx.comments}</td>
+      <td /**holdings after tx */>{decimal(tx.holdings, 5, locale)}</td>
+      <td /**invested after tx */>{money(tx.total_invested, ccy, locale)}</td>
+      <td
+        className={classNames({
+          profit,
+          loss: !profit,
+          unrealized: buy,
+        })} /**return */
+      >
+        {money(tx.returnCcy, ccy, locale)}&nbsp; (
+        {percent(tx.returnPct, 3, locale)})
+      </td>
+      <td /**menu */ hidden={disabled}>
         <PortfolioMenu
           onDelete={handleDelete(tx.id)}
           onEdit={handleEdit(tx.id, tx)}
