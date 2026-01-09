@@ -77,7 +77,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const TXS_URL = (portfolioId: PortfolioId, assetId: AssetId) =>
     `${API_URL}/portfolios/${portfolioId}/assets/${assetId}/tx`;
   const TX_URL = (portfolioId: PortfolioId, assetId: AssetId, txId: TxId) =>
-    `${TXS_URL(assetId, portfolioId)}/${txId}`;
+    `${TXS_URL(portfolioId, assetId)}/${txId}`;
   const BULK_TX_URL = (portfolioId: PortfolioId, assetId: number) =>
     `${API_URL}/portfolios/${portfolioId}/assets/${assetId}/txs`;
 

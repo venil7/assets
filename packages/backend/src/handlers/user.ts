@@ -2,24 +2,24 @@ import { type GetUser, type Id, type Optional } from "@darkruby/assets-core";
 import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { userIdFromUrl } from "../decoders/params";
+import { urlUserId } from "../decoders/params";
 import { mapWebError } from "../domain/error";
 import type { Context } from "./context";
 
 export const deleteUser: HandlerTask<Optional<Id>, Context> = ({
   params: [req, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     service.auth.requireAdminProfile(res),
-    TE.chain(() => userIdFromUrl(req.params.id)),
+    TE.chain(() => urlUserId(req)),
     mapWebError,
     TE.chain(service.user.delete)
   );
 
 export const getUsers: HandlerTask<readonly GetUser[], Context> = ({
   params: [, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     service.auth.requireAdminProfile(res),
@@ -29,18 +29,18 @@ export const getUsers: HandlerTask<readonly GetUser[], Context> = ({
 
 export const getUser: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     service.auth.requireAdminProfile(res),
-    TE.chain(() => userIdFromUrl(req.params.id)),
+    TE.chain(() => urlUserId(req)),
     mapWebError,
     TE.chain(service.user.get)
   );
 
 export const createUser: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     service.auth.requireAdminProfile(res),
@@ -50,11 +50,11 @@ export const createUser: HandlerTask<GetUser, Context> = ({
 
 export const updateUser: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     service.auth.requireAdminProfile(res),
-    TE.chain(() => userIdFromUrl(req.params.id)),
+    TE.chain(() => urlUserId(req)),
     mapWebError,
     TE.chain((id) => service.user.updateProfileOnly(id, req.body))
   );

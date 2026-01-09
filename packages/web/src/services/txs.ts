@@ -52,7 +52,7 @@ export const updateTx = (
 ): Action<EnrichedTx> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ tx }) => tx.update(pid, tid, aid, t))
+    TE.chain(({ tx }) => tx.update(pid, aid, tid, t))
   );
 };
 

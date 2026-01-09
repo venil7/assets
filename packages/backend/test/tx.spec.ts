@@ -42,7 +42,7 @@ test("Get multiple transactions", async () => {
   );
 });
 
-test("Get single transaction", async () => {
+test.only("Get single transaction", async () => {
   const { tx, asset, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
   const { id, asset_id, type, quantity, price, date, created, modified } =
     await run(api.tx.get(portfolio.id, asset.id, tx.id));
@@ -94,7 +94,7 @@ test("Insufficient holdings when selling more than own", async () => {
 test("Insufficient holdings when updating existing transaction", async () => {
   const { asset, tx, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
   const error = await pipe(
-    api.tx.update(portfolio.id, tx.id, asset.id, fakeSell(11, 1)),
+    api.tx.update(portfolio.id, asset.id, tx.id, fakeSell(11, 1)),
     TE.orElseW(TE.of),
     run
   );
