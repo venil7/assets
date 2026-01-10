@@ -1,5 +1,4 @@
 import {
-  ccyToLocale,
   type Ccy,
   type EnrichedAsset,
   type EnrichedTx,
@@ -10,8 +9,8 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { withCondition } from "../../decorators/nodata";
 import { withProps } from "../../decorators/props";
+import { useFormatters } from "../../hooks/prefs";
 import { isoTimestamp } from "../../util/date";
-import { decimal, money, percent } from "../../util/number";
 import { Dark } from "../Form/Alert";
 import { confirmationModal } from "../Modals/Confirmation";
 import { PortfolioMenu } from "../Portfolio/Menu";
@@ -49,7 +48,7 @@ const TxTableRow = (
   idx: number,
   { disabled, asset, onDelete, onEdit }: TxTableProps
 ) => {
-  const locale = ccyToLocale(asset.meta.currency as Ccy);
+  const { money, decimal, percent } = useFormatters();
   const handleEdit = (txid: number, tx: PostTx) =>
     pipe(
       () => txModal(tx, asset),
@@ -69,10 +68,10 @@ const TxTableRow = (
       <td /**date*/ className="d-none d-md-table-cell">
         {isoTimestamp(tx.date)}
       </td>
-      <td /**quantity */>{decimal(tx.quantity, 5, locale)}</td>
-      <td /**price/unit */>{money(tx.price, ccy, locale)}</td>
-      <td /**cost */>{money(tx.cost, ccy, locale)}</td>
-      <td /**value */>{money(tx.valueCcy, ccy, locale)}</td>
+      <td /**quantity */>{decimal(tx.quantity)}</td>
+      <td /**price/unit */>{money(tx.price)}</td>
+      <td /**cost */>{money(tx.cost, ccy)}</td>
+      <td /**value */>{money(tx.valueCcy, ccy)}</td>
       {/* <td>{decimal(tx.holdings, 5, locale)}</td>
       <td>{money(tx.total_invested, ccy, locale)}</td> */}
       <td
@@ -82,8 +81,7 @@ const TxTableRow = (
           unrealized: buy,
         })} /**return */
       >
-        {money(tx.returnCcy, ccy, locale)}&nbsp; (
-        {percent(tx.returnPct, 3, locale)})
+        {money(tx.returnCcy, ccy)}&nbsp; ({percent(tx.returnPct)})
       </td>
       <td /**comments */ className="d-none d-md-table-cell ellipsis pre">
         {tx.comments}

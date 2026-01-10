@@ -24,6 +24,7 @@ const RawChart: React.FC<ChartProps> = ({
   timeFormatter,
 }: ChartProps) => {
   const { money } = useFormatters();
+  const tickFormatter = (n: number) => money(n);
 
   const tooltipValueFormatter = (v: number, n: keyof ChartDataItem) => {
     switch (n) {
@@ -62,7 +63,7 @@ const RawChart: React.FC<ChartProps> = ({
             hide
             yAxisId="price"
             dataKey="price"
-            tickFormatter={money}
+            tickFormatter={tickFormatter}
             domain={["dataMin", "dataMax"]}
             orientation="left"
           />
@@ -70,7 +71,7 @@ const RawChart: React.FC<ChartProps> = ({
             hide
             yAxisId="volume"
             dataKey="volume"
-            tickFormatter={money}
+            tickFormatter={tickFormatter}
             domain={["dataMin", "dataMax"]}
             orientation="right"
           />

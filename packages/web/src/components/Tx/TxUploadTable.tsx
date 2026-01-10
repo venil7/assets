@@ -3,7 +3,7 @@ import { pipe } from "fp-ts/lib/function";
 import { withCondition } from "../../decorators/nodata";
 import { withProps } from "../../decorators/props";
 import { iso } from "../../util/date";
-import { decimal, money } from "../../util/number";
+import { decimalFormatter, moneyFormatter } from "../../util/number";
 import { Dark } from "../Form/Alert";
 import { PagedTable } from "../Table/Table";
 
@@ -27,11 +27,13 @@ const TxUploadItem = (
   { currency }: TxUploadTableExtProps
 ) => {
   const locale = ccyToLocale(currency);
+  const money = moneyFormatter(currency, locale);
+  const decimal = decimalFormatter(locale);
   return (
     <tr key={idx}>
       <td>{item.type}</td>
-      <td>{decimal(item.quantity, 5, locale)}</td>
-      <td>{money(item.price, currency, locale)}</td>
+      <td>{decimal(item.quantity, 5)}</td>
+      <td>{money(item.price)}</td>
       <td>{item.comments}</td>
       <td className="d-none d-md-table-cell">{iso(item.date)}</td>
     </tr>
