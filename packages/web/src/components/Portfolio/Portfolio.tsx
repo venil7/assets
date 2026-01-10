@@ -21,6 +21,7 @@ import { AddBtn } from "../Form/Button";
 import { TabContent, Tabs } from "../Form/Tabs";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
+import { PortfolioDetails } from "./PortfolioDetails";
 import { portfolioModal } from "./PortfolioFields";
 
 type PortfolioProps = {
@@ -78,6 +79,9 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
               ranges={portfolio.meta.validRanges}
               hidden={!portfolio.num_assets}
             />
+          </TabContent>
+          <TabContent tab={1}>
+            <PortfolioDetails portfolio={portfolio} />
           </TabContent>
         </Tabs>
 

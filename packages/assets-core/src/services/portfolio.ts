@@ -165,7 +165,7 @@ export const calcPortfolioWeights = (
   );
   return pipe(
     portfolios,
-    A.map((p) => {
+    A.map((p: EnrichedPortfolio) => {
       if (total > 0) {
         p.weight = p.value.current / total;
       }

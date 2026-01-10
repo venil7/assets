@@ -11,7 +11,7 @@ export type AssetDetailsProps = {
 export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
   const { money, decimal, percent } = useFormatters();
   return (
-    <div className="asset-details">
+    <div className="asset-details-tab">
       <HorizontalStack>
         <ListGroup variant="flush">
           <ListGroup.Item>
