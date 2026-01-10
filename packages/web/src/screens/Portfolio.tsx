@@ -4,11 +4,11 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { useEffect } from "react";
-import { PortfolioDetails } from "../components/Portfolio/PortfolioDetails";
+import { Portfolio } from "../components/Portfolio/Portfolio";
 import { usePortfolioParams } from "../hooks/params";
 import { useStore } from "../hooks/store";
 
-const RawPortfolioDetails: React.FC = () => {
+const RawPortfolio: React.FC = () => {
   useSignals();
   const { portfolio, assets, asset, txs } = useStore();
   const error = portfolio.error.value || assets.error.value;
@@ -47,7 +47,7 @@ const RawPortfolioDetails: React.FC = () => {
   };
 
   return (
-    <PortfolioDetails
+    <Portfolio
       error={error}
       fetching={fetching}
       onAddTx={handleAddTx}
@@ -63,4 +63,4 @@ const RawPortfolioDetails: React.FC = () => {
   );
 };
 
-export { RawPortfolioDetails as PortfolioDetailsScreen };
+export { RawPortfolio as PortfolioScreen };

@@ -30,7 +30,7 @@ const RawPrefs: React.FC<PrefsProps> = ({ prefs, onUpdate }) => {
           <Form.Label>Base currency</Form.Label>
           <CcySelect value={prf.base_ccy} onSelect={handleBaseCcy} />
         </Form.Group>
-        <PrimaryButton onClick={handleSubmit}>Submit</PrimaryButton>
+        <PrimaryButton onClick={handleSubmit}>Save</PrimaryButton>
       </Form>
     </>
   );

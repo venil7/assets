@@ -18,11 +18,12 @@ import { AssetLink } from "../Asset/AssetLink";
 import { RangeChart } from "../Charts/RangesChart";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
+import { TabContent, Tabs } from "../Form/Tabs";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
 import { portfolioModal } from "./PortfolioFields";
 
-type PortfolioDetailsProps = {
+type PortfolioProps = {
   portfolio: EnrichedPortfolio;
   assets: EnrichedAsset[];
   onUpdate: (p: PostPortfolio) => void;
@@ -33,7 +34,7 @@ type PortfolioDetailsProps = {
   onRange: (r: ChartRange) => void;
 };
 
-const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
+const RawPortfolioDetails: React.FC<PortfolioProps> = ({
   portfolio,
   assets,
   onUpdate,
@@ -42,7 +43,7 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
   onUpdateAsset,
   onRange,
   onAddTx,
-}: PortfolioDetailsProps) => {
+}: PortfolioProps) => {
   const handleAddAsset = () =>
     pipe(() => assetModal(defaultAsset()), TE.map(onAddAsset))();
   const handleUpdateAsset = (aid: number) => (a: PostAsset) =>
@@ -68,13 +69,17 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
           This portfolio doesn have any assets yet
         </Info>
 
-        <RangeChart
-          onChange={onRange}
-          data={portfolio.chart}
-          range={portfolio.meta.range}
-          ranges={portfolio.meta.validRanges}
-          hidden={!portfolio.num_assets}
-        />
+        <Tabs tabs={["Chart", "Details"]}>
+          <TabContent tab={0}>
+            <RangeChart
+              onChange={onRange}
+              data={portfolio.chart}
+              range={portfolio.meta.range}
+              ranges={portfolio.meta.validRanges}
+              hidden={!portfolio.num_assets}
+            />
+          </TabContent>
+        </Tabs>
 
         <Stack gap={3}>
           {assets.map((asset) => (
@@ -92,11 +97,11 @@ const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
   );
 };
 
-const DecoratedPortfolioDetails = pipe(
+const DecoratedPortfolio = pipe(
   RawPortfolioDetails,
-  withNoData<PortfolioDetailsProps, "portfolio">((p) => p.portfolio),
+  withNoData<PortfolioProps, "portfolio">((p) => p.portfolio),
   withError,
   withFetching
 );
 
-export { DecoratedPortfolioDetails as PortfolioDetails };
+export { DecoratedPortfolio as Portfolio };

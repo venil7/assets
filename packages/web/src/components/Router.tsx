@@ -5,7 +5,7 @@ import { store } from "../hooks/store";
 import { AssetScreen } from "../screens/Asset";
 import { LoginScreen } from "../screens/Login";
 import { LogoutScreen } from "../screens/Logout";
-import { PortfolioDetailsScreen } from "../screens/PortfolioDetails";
+import { PortfolioScreen } from "../screens/Portfolio";
 import { PortfoliosScreen } from "../screens/Portfolios";
 import { ProfileScreen } from "../screens/Profile";
 import { TestScreen } from "../screens/Test";
@@ -30,7 +30,7 @@ export const router = createBrowserRouter(
         { path: "/portfolios", element: <PortfoliosScreen /> },
         {
           path: "/portfolios/:portfolioId",
-          element: <PortfolioDetailsScreen />,
+          element: <PortfolioScreen />,
         },
         {
           path: "/portfolios/:portfolioId/assets/:assetId",
