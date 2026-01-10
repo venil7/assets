@@ -30,15 +30,16 @@ const TxTableHeader = ({ disabled }: TxTableProps) => (
   <thead>
     <tr>
       <th>Type</th>
-      <th>Date</th>
+      <th className="d-none d-md-table-cell">Date</th>
       <th>Quantity</th>
       <th>Price/Unit</th>
-      <th>Spent</th>
-      <th>Comments</th>
-      <th>Holdings balance</th>
-      <th>Invested at time</th>
+      <th>Cost</th>
+      <th>Value</th>
+      {/* <th>Holdings after tx</th>
+      <th>Invested after tx</th> */}
       <th>Return</th>
-      <th hidden={disabled}>^</th>
+      <th className="d-none d-md-table-cell">Comments</th>
+      <th hidden={disabled}>&#xfe19;</th>
     </tr>
   </thead>
 );
@@ -64,16 +65,16 @@ const TxTableRow = (
   const profit = tx.returnCcy >= 0;
   return (
     <tr key={tx.id}>
-      <td /**type */>{tx.type}</td>
+      <td /**type */ className="capitalize">{tx.type}</td>
       <td /**date*/ className="d-none d-md-table-cell">
         {isoTimestamp(tx.date)}
       </td>
       <td /**quantity */>{decimal(tx.quantity, 5, locale)}</td>
       <td /**price/unit */>{money(tx.price, ccy, locale)}</td>
-      <td /**spent */>{money(tx.spent, ccy, locale)}</td>
-      <td /**comments */>{tx.comments}</td>
-      <td /**holdings after tx */>{decimal(tx.holdings, 5, locale)}</td>
-      <td /**invested after tx */>{money(tx.total_invested, ccy, locale)}</td>
+      <td /**cost */>{money(tx.cost, ccy, locale)}</td>
+      <td /**value */>{money(tx.valueCcy, ccy, locale)}</td>
+      {/* <td>{decimal(tx.holdings, 5, locale)}</td>
+      <td>{money(tx.total_invested, ccy, locale)}</td> */}
       <td
         className={classNames({
           profit,
@@ -83,6 +84,9 @@ const TxTableRow = (
       >
         {money(tx.returnCcy, ccy, locale)}&nbsp; (
         {percent(tx.returnPct, 3, locale)})
+      </td>
+      <td /**comments */ className="d-none d-md-table-cell ellipsis pre">
+        {tx.comments}
       </td>
       <td /**menu */ hidden={disabled}>
         <PortfolioMenu

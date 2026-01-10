@@ -59,8 +59,8 @@ export const getPortfolioEnricher =
             sum(({ value }) => value.base.current)
           );
 
-          const change = pipe(current, changeInValue(beginning));
-          const changePct = pipe(current, changeInPct(beginning));
+          const change = changeInValue({ before: beginning, after: current });
+          const changePct = changeInPct({ before: beginning, after: current });
           const start = pipe(
             assets,
             A.map(({ value }) => value.ccy.start),
@@ -85,8 +85,14 @@ export const getPortfolioEnricher =
         })();
 
         const totals = ((): Totals => {
-          const change = changeInValue(investedBase)(value.current);
-          const changePct = changeInPct(investedBase)(value.current);
+          const change = changeInValue({
+            before: investedBase,
+            after: value.current,
+          });
+          const changePct = changeInPct({
+            before: investedBase,
+            after: value.current,
+          });
           return { change, changePct };
         })();
 

@@ -13,9 +13,12 @@ import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { useFormatters } from "../../hooks/prefs";
 import { RangeChart } from "../Charts/RangesChart";
+import { TabContent, Tabs } from "../Form/Tabs";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
 import { TxList } from "../Tx/TxList";
+import "./Asset.scss";
+import { AssetDetails } from "./AssetDetails";
 
 type AssetProps = {
   txs: EnrichedTx[];
@@ -39,7 +42,7 @@ const RawAsset: React.FC<AssetProps> = ({
   onDeleteAll,
   onUploadTxs,
 }: AssetProps) => {
-  const { money } = useFormatters();
+  const { money, decimal } = useFormatters();
   return (
     <div className="asset-details">
       <HorizontalStack className="top-toolbar">
@@ -55,12 +58,19 @@ const RawAsset: React.FC<AssetProps> = ({
           range={asset.meta.range}
         />
       </HorizontalStack>
-      <RangeChart
-        onChange={onRange}
-        data={asset.chart.base}
-        range={asset.meta.range}
-        ranges={asset.meta.validRanges}
-      />
+      <Tabs tabs={["Chart", "Details"]}>
+        <TabContent tab={0}>
+          <RangeChart
+            onChange={onRange}
+            data={asset.chart.base}
+            range={asset.meta.range}
+            ranges={asset.meta.validRanges}
+          />
+        </TabContent>
+        <TabContent tab={1}>
+          <AssetDetails asset={asset} />
+        </TabContent>
+      </Tabs>
       <TxList
         items={txs}
         asset={asset}

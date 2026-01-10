@@ -17,7 +17,7 @@ export const PagedTable = function <T, P extends object = {}>(
   const pagedItems = itemsByPage(items, pageSize, page);
   return (
     <>
-      <Table responsive={false} striped bordered hover>
+      <Table responsive striped hover>
         {header(props)}
         <tbody>
           {pagedItems.map((items, idx) =>

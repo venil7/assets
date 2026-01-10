@@ -7,3 +7,8 @@ export const HorizontalStack = pipe(
   Stack,
   withProps({ direction: "horizontal" })
 ) as React.FC<Omit<StackProps, "direction"> & PropsWithChildren>;
+
+export const VerticalStack = pipe(
+  Stack,
+  withProps({ direction: "vertical" })
+) as React.FC<Omit<StackProps, "direction"> & PropsWithChildren>;

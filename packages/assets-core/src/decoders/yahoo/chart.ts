@@ -130,8 +130,14 @@ export const YahooChartDataDecoder = mapDecoder<
           end,
           beginning,
           current: meta.regularMarketPrice,
-          changePct: changeInPct(beginning)(meta.regularMarketPrice),
-          change: changeInValue(beginning)(meta.regularMarketPrice),
+          changePct: changeInPct({
+            before: beginning,
+            after: meta.regularMarketPrice,
+          }),
+          change: changeInValue({
+            before: beginning,
+            after: meta.regularMarketPrice,
+          }),
         },
       };
     })

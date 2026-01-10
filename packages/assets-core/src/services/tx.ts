@@ -12,42 +12,48 @@ export const getTxEnricher =
       TE.bind("asset", getEnrichedAsset),
       TE.map(({ asset }) => {
         const toBase = (n: number) => n / asset.value.baseRate;
-        const spent = tx.price * tx.quantity;
 
         const buy = tx.type === "buy";
+        const cost = tx.price * tx.quantity;
+        const valueCcy = asset.meta.regularMarketPrice * tx.quantity;
+        const valueBase = toBase(valueCcy);
+
+        const averageUnitCost = asset.avg_price ?? asset.value.ccy.current;
+
         // if buy, calculates unrealized return
-        const unrealizedReturnCcy = pipe(
-          asset.meta.regularMarketPrice * tx.quantity, // after
-          changeInValue(spent) // before
-        );
+        const unrealizedReturnCcy = changeInValue({
+          before: cost,
+          after: valueCcy,
+        });
         // if sell calculates realized return
         const realizedReturnCcy = (() => {
-          const averagePrice = asset.avg_price ?? asset.value.ccy.current;
-          const before = averagePrice * tx.quantity;
-          const after = spent;
-          return pipe(after, changeInValue(before));
+          const before = averageUnitCost * tx.quantity;
+          return changeInValue({ before, after: cost });
         })();
 
         const returnCcy = buy ? unrealizedReturnCcy : realizedReturnCcy;
 
-        const unrealizedReturnPct = pipe(
-          asset.meta.regularMarketPrice, // after
-          changeInPct(tx.price) // before
-        );
+        const unrealizedReturnPct = changeInPct({
+          before: tx.price,
+          after: asset.meta.regularMarketPrice,
+        });
 
-        const realizedReturnPct = pipe(
-          tx.price, // after
-          changeInPct(asset.avg_price ?? asset.value.ccy.current) // before
-        );
+        const realizedReturnPct = changeInPct({
+          before: averageUnitCost,
+          after: tx.price,
+        });
 
         const returnPct = buy ? unrealizedReturnPct : realizedReturnPct;
+        const returnBase = toBase(returnCcy);
 
         return {
           ...tx,
-          spent,
+          cost,
+          valueCcy,
+          valueBase,
           returnPct,
           returnCcy,
-          returnBase: toBase(returnCcy),
+          returnBase,
         };
       })
     );

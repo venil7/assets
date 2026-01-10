@@ -1,0 +1,13 @@
+.asset-details {
+  .hstack {
+    align-items: start;
+    flex-wrap: wrap-reverse;
+  }
+  .list-group-item {
+    display: flex;
+    justify-content: space-between;
+    span {
+      margin-left: 1em;
+    }
+  }
+}

@@ -25,6 +25,7 @@ type UsersProps = {
   onAdd: (p: NewUser) => void;
   onUpdate: (uid: UserId, p: PostUser) => void;
   onDelete: (uid: UserId) => void;
+  disabled?: boolean;
 };
 
 const RawUsers: React.FC<UsersProps> = ({
@@ -32,6 +33,7 @@ const RawUsers: React.FC<UsersProps> = ({
   onAdd,
   onUpdate,
   onDelete,
+  disabled,
 }: UsersProps) => {
   const handleUpdate = (user: GetUser) =>
     pipe(
@@ -58,7 +60,7 @@ const RawUsers: React.FC<UsersProps> = ({
             <th>Username</th>
             <th>Admin</th>
             <th>Locked</th>
-            <th>^</th>
+            <th hidden={disabled}>&#xfe19;</th>
           </tr>
         </thead>
         <tbody>

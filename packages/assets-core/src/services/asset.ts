@@ -67,12 +67,14 @@ export const getAssetEnricher =
           const valueBase: PeriodChanges = {
             beginning: toBase(valueCcy.beginning),
             current: toBase(valueCcy.current),
-            change: changeInValue(toBase(valueCcy.beginning))(
-              toBase(valueCcy.current)
-            ),
-            changePct: changeInPct(toBase(valueCcy.beginning))(
-              toBase(valueCcy.current)
-            ),
+            change: changeInValue({
+              before: toBase(valueCcy.beginning),
+              after: toBase(valueCcy.current),
+            }),
+            changePct: changeInPct({
+              before: toBase(valueCcy.beginning),
+              after: toBase(valueCcy.current),
+            }),
             start: price.start,
             end: price.end,
           };
@@ -80,12 +82,19 @@ export const getAssetEnricher =
           const totalsCcy = ((): Totals => {
             const change = pipe(
               O.fromNullable(asset.avg_price),
-              O.map(() => changeInValue(asset.invested)(valueCcy.current)),
+              O.map(() =>
+                changeInValue({
+                  before: asset.invested,
+                  after: valueCcy.current,
+                })
+              ),
               O.getOrElse(() => 0)
             );
             const changePct = pipe(
               O.fromNullable(asset.avg_price),
-              O.map(() => changeInPct(asset.invested)(valueCcy.current)),
+              O.map(() =>
+                changeInPct({ before: asset.invested, after: valueCcy.current })
+              ),
               O.getOrElse(() => 0)
             );
             return { change, changePct };
@@ -95,14 +104,20 @@ export const getAssetEnricher =
             const change = pipe(
               O.fromNullable(asset.avg_price),
               O.map(() =>
-                changeInValue(toBase(asset.invested))(valueBase.current)
+                changeInValue({
+                  before: toBase(asset.invested),
+                  after: valueBase.current,
+                })
               ),
               O.getOrElse(() => 0)
             );
             const changePct = pipe(
               O.fromNullable(asset.avg_price),
               O.map(() =>
-                changeInPct(toBase(asset.invested))(valueBase.current)
+                changeInPct({
+                  before: toBase(asset.invested),
+                  after: valueBase.current,
+                })
               ),
               O.getOrElse(() => 0)
             );

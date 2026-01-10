@@ -1,9 +1,10 @@
 import * as A from "fp-ts/lib/Array";
 import * as M from "fp-ts/lib/Monoid";
 
-export const changeInValue = (before: number) => (after: number) =>
+export type ChangeInParams = { before: number; after: number };
+export const changeInValue = ({ before, after }: ChangeInParams): number =>
   after - before;
-export const changeInPct = (before: number) => (after: number) =>
+export const changeInPct = ({ before, after }: ChangeInParams): number =>
   before == 0 ? 0 : (after - before) / before;
 
 export const pctOf = (whole: number, frac: number): number => frac / whole;
