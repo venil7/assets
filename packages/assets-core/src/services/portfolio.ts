@@ -12,6 +12,7 @@ import type {
   EnrichedPortfolio,
   GetAsset,
   GetPortfolio,
+  GetTx,
   PeriodChanges,
   Totals,
   UnixDate,
@@ -28,6 +29,7 @@ export const getPortfolioEnricher =
   (
     portfolio: GetPortfolio,
     getAssets: LazyArg<Action<GetAsset[]>>,
+    getAssetTxs: (asset: GetAsset, after: Date) => Action<GetTx[]>,
     baseCcy: Ccy,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedPortfolio> => {
@@ -39,7 +41,7 @@ export const getPortfolioEnricher =
       TE.bind("assets", () => {
         return pipe(
           getAssets(),
-          TE.chain((a) => enrichAssets(a, baseCcy, range)),
+          TE.chain((a) => enrichAssets(a, getAssetTxs, baseCcy, range)),
           TE.map(calcAssetWeights)
         );
       }),
@@ -127,7 +129,8 @@ export const getPortfoliosEnricher =
   (yahooApi: YahooApi) =>
   (
     portfolios: GetPortfolio[],
-    getPortfolioAssets: FunctionN<[GetPortfolio], Action<GetAsset[]>>,
+    getAssets: FunctionN<[GetPortfolio], Action<GetAsset[]>>,
+    getAssetTxs: (asset: GetAsset, after: Date) => Action<GetTx[]>,
     baseCcy: Ccy,
     range?: ChartRange
   ): Action<EnrichedPortfolio[]> => {
@@ -135,7 +138,7 @@ export const getPortfoliosEnricher =
     return pipe(
       portfolios,
       TE.traverseArray((p) =>
-        enrichPortfolio(p, () => getPortfolioAssets(p), baseCcy, range)
+        enrichPortfolio(p, () => getAssets(p), getAssetTxs, baseCcy, range)
       ),
       TE.map((ps) => calcPortfolioWeights(ps as EnrichedPortfolio[]))
     );
@@ -146,12 +149,13 @@ export const getOptionalPorfolioEnricher =
   (
     portfolio: Optional<GetPortfolio>,
     getAssets: () => Action<GetAsset[]>,
+    getAssetTxs: (asset: GetAsset, after: Date) => Action<GetTx[]>,
     baseCcy: Ccy,
     range?: ChartRange
   ): Action<Optional<EnrichedPortfolio>> => {
     if (portfolio) {
       const enrichPortfolio = getPortfolioEnricher(yahooApi);
-      return enrichPortfolio(portfolio, getAssets, baseCcy, range);
+      return enrichPortfolio(portfolio, getAssets, getAssetTxs, baseCcy, range);
     }
     return TE.of(null);
   };

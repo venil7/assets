@@ -6,6 +6,7 @@ import {
   type AssetId,
   type ChartRange,
   type EnrichedAsset,
+  type GetAsset,
   type Id,
   type Optional,
   type PortfolioId,
@@ -30,12 +31,15 @@ export const getAssets =
     range: ChartRange
   ): WebAction<readonly EnrichedAsset[]> => {
     const enrichAssets = getAssetsEnricher(yahooApi);
+    const getTxs = ({ id: assetId }: GetAsset, after: Date) =>
+      repo.tx.getAll(assetId, userId, after);
+
     return pipe(
       TE.Do,
       TE.bind("pref", () => repo.prefs.get(userId)),
       TE.bind("assets", () => repo.asset.getAll(portfolioId, userId)),
       TE.chain(({ assets, pref }) =>
-        enrichAssets(assets, pref.base_ccy, range)
+        enrichAssets(assets, getTxs, pref.base_ccy, range)
       ),
       mapWebError
     );
@@ -50,11 +54,14 @@ export const getAsset =
     range: ChartRange
   ): WebAction<Optional<EnrichedAsset>> => {
     const enrichAsset = getOptionalAssetsEnricher(yahooApi);
+    const getTxs = (after: Date) => repo.tx.getAll(assetId, userId, after);
     return pipe(
       TE.Do,
       TE.bind("pref", () => repo.prefs.get(userId)),
       TE.bind("asset", () => repo.asset.get(assetId, portfolioId, userId)),
-      TE.chain(({ asset, pref }) => enrichAsset(asset, pref.base_ccy, range)),
+      TE.chain(({ asset, pref }) =>
+        enrichAsset(asset, getTxs, pref.base_ccy, range)
+      ),
       mapWebError
     );
   };
@@ -81,6 +88,8 @@ export const createAsset =
     payload: unknown
   ): WebAction<EnrichedAsset> => {
     const enrichAsset = getAssetEnricher(yahooApi);
+    const getTxs = (assetId: AssetId) => (after: Date) =>
+      repo.tx.getAll(assetId, userId, after);
     const check = checkTickerExists(yahooApi);
     return pipe(
       TE.Do,
@@ -90,7 +99,9 @@ export const createAsset =
       TE.bind("created", ({ asset }) =>
         repo.asset.create(asset, portfolioId, userId)
       ),
-      TE.chain(({ created, pref }) => enrichAsset(created, pref.base_ccy)),
+      TE.chain(({ created, pref }) =>
+        enrichAsset(created, getTxs(created.id), pref.base_ccy)
+      ),
       mapWebError
     );
   };
@@ -104,6 +115,7 @@ export const updateAsset =
     payload: unknown
   ): WebAction<EnrichedAsset> => {
     const enrichAsset = getAssetEnricher(yahooApi);
+    const getTxs = (after: Date) => repo.tx.getAll(assetId, userId, after);
     const check = checkTickerExists(yahooApi);
     return pipe(
       TE.Do,
@@ -113,7 +125,9 @@ export const updateAsset =
       TE.bind("updated", ({ asset }) =>
         repo.asset.update(assetId, portfolioId, userId, asset)
       ),
-      TE.chain(({ updated, pref }) => enrichAsset(updated, pref.base_ccy)),
+      TE.chain(({ updated, pref }) =>
+        enrichAsset(updated, getTxs, pref.base_ccy)
+      ),
       mapWebError
     );
   };

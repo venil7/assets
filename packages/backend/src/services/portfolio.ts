@@ -5,6 +5,7 @@ import {
   PostPortfolioDecoder,
   type ChartRange,
   type EnrichedPortfolio,
+  type GetAsset,
   type GetPortfolio,
   type Id,
   type Optional,
@@ -38,14 +39,22 @@ export const getPortfolio =
     userId: UserId,
     range: ChartRange
   ): WebAction<Optional<EnrichedPortfolio>> => {
-    const enrich = getOptionalPorfolioEnricher(yahooApi);
+    const enrichPortfolio = getOptionalPorfolioEnricher(yahooApi);
+    const getTxs = ({ id: assetId }: GetAsset, after: Date) =>
+      repo.tx.getAll(assetId, userId, after);
     return pipe(
       TE.Do,
       TE.bind("pref", () => repo.prefs.get(userId)),
       TE.bind("portfolio", () => repo.portfolio.get(portfolioId, userId)),
       TE.chain(({ portfolio, pref }) => {
         const getAssets = () => repo.asset.getAll(portfolio!.id, userId);
-        return enrich(portfolio, getAssets, pref.base_ccy, range);
+        return enrichPortfolio(
+          portfolio,
+          getAssets,
+          getTxs,
+          pref.base_ccy,
+          range
+        );
       }),
       mapWebError
     );
@@ -57,7 +66,9 @@ export const getPortfolios =
     userId: UserId,
     range: ChartRange
   ): WebAction<readonly EnrichedPortfolio[]> => {
-    const enrich = getPortfoliosEnricher(yahooApi);
+    const enrichPortfolio = getPortfoliosEnricher(yahooApi);
+    const getTxs = ({ id: assetId }: GetAsset, after: Date) =>
+      repo.tx.getAll(assetId, userId, after);
     return pipe(
       TE.Do,
       TE.bind("pref", () => repo.prefs.get(userId)),
@@ -65,7 +76,13 @@ export const getPortfolios =
       TE.chain(({ portfolios, pref }) => {
         const getAssets = ({ id: portfolioId }: GetPortfolio) =>
           repo.asset.getAll(portfolioId, userId);
-        return enrich(portfolios, getAssets, pref.base_ccy, range);
+        return enrichPortfolio(
+          portfolios,
+          getAssets,
+          getTxs,
+          pref.base_ccy,
+          range
+        );
       }),
       mapWebError
     );
@@ -74,7 +91,9 @@ export const getPortfolios =
 export const createPortfolio =
   (repo: Repository, yahooApi: YahooApi) =>
   (userId: UserId, payload: unknown): WebAction<EnrichedPortfolio> => {
-    const enrich = getPortfolioEnricher(yahooApi);
+    const enrichPortfolio = getPortfolioEnricher(yahooApi);
+    const getTxs = ({ id: assetId }: GetAsset, after: Date) =>
+      repo.tx.getAll(assetId, userId, after);
     return pipe(
       TE.Do,
       TE.bind("pref", () => repo.prefs.get(userId)),
@@ -84,7 +103,7 @@ export const createPortfolio =
       ),
       TE.chain(({ created, pref }) => {
         const getAssets = () => TE.of([]);
-        return enrich(created, getAssets, pref.base_ccy);
+        return enrichPortfolio(created, getAssets, getTxs, pref.base_ccy);
       }),
       mapWebError
     );
@@ -97,7 +116,9 @@ export const updatePortfolio =
     userId: UserId,
     payload: unknown
   ): WebAction<EnrichedPortfolio> => {
-    const enrich = getPortfolioEnricher(yahooApi);
+    const enrichPortfolio = getPortfolioEnricher(yahooApi);
+    const getTxs = ({ id: assetId }: GetAsset, after: Date) =>
+      repo.tx.getAll(assetId, userId, after);
     return pipe(
       TE.Do,
       TE.bind("pref", () => repo.prefs.get(userId)),
@@ -107,7 +128,7 @@ export const updatePortfolio =
       ),
       TE.chain(({ updated, pref }) => {
         const getAssets = () => repo.asset.getAll(updated.id, userId);
-        return enrich(updated, getAssets, pref.base_ccy);
+        return enrichPortfolio(updated, getAssets, getTxs, pref.base_ccy);
       }),
       mapWebError
     );

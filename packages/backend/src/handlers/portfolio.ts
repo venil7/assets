@@ -11,7 +11,7 @@ import type { Context } from "./context";
 export const getPortfolios: HandlerTask<
   readonly EnrichedPortfolio[],
   Context
-> = ({ params: [req, res], context: { repo, service } }) => {
+> = ({ params: [req, res], context: { service } }) => {
   return pipe(
     TE.Do,
     TE.bind("userId", () => service.auth.requireUserId(res)),
@@ -24,7 +24,7 @@ export const getPortfolios: HandlerTask<
 export const getPortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req, res], context: { repo, service } }) => {
+> = ({ params: [req, res], context: { service } }) => {
   return pipe(
     TE.Do,
     TE.bind("userId", () => service.auth.requireUserId(res)),
@@ -40,7 +40,7 @@ export const getPortfolio: HandlerTask<
 export const createPortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req, res], context: { repo, service } }) => {
+> = ({ params: [req, res], context: { service } }) => {
   return pipe(
     service.auth.requireUserId(res),
     mapWebError,
@@ -50,7 +50,7 @@ export const createPortfolio: HandlerTask<
 
 export const deletePortfolio: HandlerTask<Optional<Id>, Context> = ({
   params: [req, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     TE.Do,
@@ -65,7 +65,7 @@ export const deletePortfolio: HandlerTask<Optional<Id>, Context> = ({
 export const updatePortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req, res], context: { repo, service } }) => {
+> = ({ params: [req, res], context: { service } }) => {
   return pipe(
     TE.Do,
     TE.bind("userId", () => service.auth.requireUserId(res)),

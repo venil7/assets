@@ -9,6 +9,7 @@ import type {
   ChartData,
   EnrichedAsset,
   GetAsset,
+  GetTx,
   PeriodChanges,
   Totals,
 } from "../domain";
@@ -21,7 +22,7 @@ export const getAssetEnricher =
   (yahooApi: YahooApi) =>
   (
     asset: GetAsset,
-    // txs: GetTx[],
+    getAssetTxs: (after: Date) => Action<GetTx[]>,
     baseCcy: Ccy,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedAsset> => {
@@ -153,13 +154,18 @@ export const getAssetsEnricher =
   (yahooApi: YahooApi) =>
   (
     assets: GetAsset[],
+    getAssetTxs: (asset: GetAsset, after: Date) => Action<GetTx[]>,
     baseCcy: Ccy,
     range?: ChartRange
   ): Action<EnrichedAsset[]> => {
+    const assetTxs = (asset: GetAsset) => (after: Date) =>
+      getAssetTxs(asset, after);
     const enrichAsset = getAssetEnricher(yahooApi);
     return pipe(
       assets,
-      TE.traverseArray((asset) => enrichAsset(asset, baseCcy, range)),
+      TE.traverseArray((asset) =>
+        enrichAsset(asset, assetTxs(asset), baseCcy, range)
+      ),
       TE.map((assets) => calcAssetWeights(assets as EnrichedAsset[]))
     ) as Action<EnrichedAsset[]>;
   };
@@ -167,13 +173,14 @@ export const getAssetsEnricher =
 export const getOptionalAssetsEnricher =
   (yahooApi: YahooApi) =>
   (
-    a: Optional<GetAsset>,
+    asset: Optional<GetAsset>,
+    getAssetTxs: (after: Date) => Action<GetTx[]>,
     baseCcy: Ccy,
     range?: ChartRange
   ): Action<Optional<EnrichedAsset>> => {
-    if (a) {
+    if (asset) {
       const enrichAsset = getAssetEnricher(yahooApi);
-      return enrichAsset(a, baseCcy, range);
+      return enrichAsset(asset, getAssetTxs, baseCcy, range);
     }
     return TE.of(null);
   };
