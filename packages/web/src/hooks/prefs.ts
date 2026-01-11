@@ -1,4 +1,6 @@
 import { ccyToLocale, defaultPrefs } from "@darkruby/assets-core";
+import { pipe } from "fp-ts/lib/function";
+import { fallback } from "../util/func";
 import {
   decimalFormatter,
   moneyFormatter,
@@ -14,8 +16,8 @@ export const usePrefs = () => {
 export const useFormatters = () => {
   const { base_ccy } = usePrefs();
   const locale = ccyToLocale(base_ccy);
-  const money = moneyFormatter(base_ccy, locale);
-  const decimal = decimalFormatter(locale);
-  const percent = percentFormatter(locale);
+  const money = pipe(moneyFormatter(base_ccy, locale), fallback);
+  const decimal = pipe(decimalFormatter(locale), fallback);
+  const percent = pipe(percentFormatter(locale), fallback);
   return { money, decimal, percent };
 };

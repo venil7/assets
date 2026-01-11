@@ -1,4 +1,4 @@
-import type { EnrichedAsset } from "@darkruby/assets-core";
+import type { Ccy, EnrichedAsset } from "@darkruby/assets-core";
 import * as React from "react";
 import { ListGroup } from "react-bootstrap";
 import { useFormatters } from "../../hooks/prefs";
@@ -39,11 +39,11 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Cost per unit</strong>
-            <span>{asset.avg_price ? money(asset.avg_price) : "-"}</span>
+            <span>{money(asset.avg_price, asset.meta.currency as Ccy)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Total cost</strong>
-            <span>{money(asset.invested)}</span>
+            <span>{money(asset.invested, asset.meta.currency as Ccy)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Total cost (base)</strong>
