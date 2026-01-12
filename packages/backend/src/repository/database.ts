@@ -15,7 +15,7 @@ export const queryMany =
       TE.chain((sql) =>
         TE.tryCatch(
           async () => db.query<R, SQLQueryBindings>(sql).all(bindings),
-          handleError()
+          handleError("sql queryMany")
         )
       )
     );
@@ -30,7 +30,7 @@ export const queryOne =
       TE.chain((sql) =>
         TE.tryCatch(
           async () => db.query<R, SQLQueryBindings>(sql).get(bindings),
-          handleError()
+          handleError("sql queryOne")
         )
       )
     );
@@ -52,7 +52,7 @@ export const execute =
       TE.chain((sql) =>
         TE.tryCatch(
           async () => db.query<R, SQLQueryBindings>(sql).run(bindings),
-          handleError()
+          handleError("sql execute")
         )
       ),
       TE.map(

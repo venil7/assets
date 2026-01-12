@@ -1,5 +1,5 @@
 import { pipe } from "fp-ts/lib/function";
-import { contramap } from "fp-ts/lib/Ord";
+import { contramap, reverse } from "fp-ts/lib/Ord";
 import * as t from "io-ts";
 import type {
   EnrichedTxDecoder,
@@ -27,10 +27,12 @@ export const defaultTx = (type: PostTx["type"] = "buy"): PostTx => ({
   type,
 });
 
-export const byDate = pipe(
+export const byDateAsc = pipe(
   DateOrd,
   contramap<Date, PostTx>((tx) => tx.date)
 );
+
+export const byDateDesc = pipe(byDateAsc, reverse);
 
 export const defaultBuyTx = (): PostTx => defaultTx("buy");
 export const defaultSellTx = (): PostTx => defaultTx("sell");

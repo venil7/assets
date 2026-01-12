@@ -1,4 +1,5 @@
 import {
+  byDateDesc,
   type Action,
   type AssetId,
   type EnrichedTx,
@@ -8,6 +9,7 @@ import {
   type PostTxsUpload,
   type TxId,
 } from "@darkruby/assets-core";
+import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
@@ -29,7 +31,8 @@ export const getTxs = (
 ): Action<EnrichedTx[]> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ tx }) => tx.getMany(pid, aid))
+    TE.chain(({ tx }) => tx.getMany(pid, aid)),
+    TE.map(A.sort(byDateDesc))
   );
 };
 
@@ -84,6 +87,7 @@ export const uploadTxs = (
 ): Action<EnrichedTx[]> => {
   return pipe(
     apiFromToken,
-    TE.chain(({ tx }) => tx.uploadAsset(pid, aid, payload))
+    TE.chain(({ tx }) => tx.uploadAsset(pid, aid, payload)),
+    TE.map(A.sort(byDateDesc))
   );
 };

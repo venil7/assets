@@ -25,7 +25,7 @@ export const validationError = (message: string): AppError => ({
 
 export const handleError =
   (msg: string = "", type: AppErrorType = AppErrorType.General) =>
-  (e: unknown): AppError => ({
+  (e: any): AppError => ({
     message: `${msg}: ${JSON.stringify(e)}`,
     type,
   });

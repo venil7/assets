@@ -37,6 +37,7 @@ import {
   transaction,
   type ExecutionResult,
 } from "./database";
+import type { OrderDir } from "./ordering";
 import {
   deleteAssetTxsSql,
   deleteTxSql,
@@ -63,11 +64,12 @@ export const getTxs =
     assetId: AssetId,
     userId: UserId,
     afterDate: Nullable<Date> = null,
+    orderDir: OrderDir = "desc",
     paging = defaultPaging()
   ): Action<GetTx[]> => {
     const after = formatISO(afterDate ?? EARLIEST_DATE);
     return pipe(
-      queryMany<unknown[]>({ userId, assetId, after, ...paging }),
+      queryMany<unknown[]>({ userId, assetId, after, orderDir, ...paging }),
       ID.ap(sql.tx.getMany),
       ID.ap(db),
       TE.chain(liftTE(GetTxsDecoder))

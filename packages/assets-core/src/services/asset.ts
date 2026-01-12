@@ -1,3 +1,4 @@
+import { formatISO, fromUnixTime } from "date-fns";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as NeA from "fp-ts/lib/NonEmptyArray";
@@ -30,14 +31,29 @@ export const getAssetEnricher =
     return pipe(
       TE.Do,
       TE.apS("asset", TE.of(asset)),
-      TE.bind("enrich", ({ asset }) => yahooApi.chart(asset.ticker, range)),
-      TE.bind("baseRate", ({ enrich }) =>
-        getBaseCcyConversionRate(enrich.meta.currency, baseCcy)
+      TE.bind("chart", ({ asset }) => yahooApi.chart(asset.ticker, range)),
+      TE.bind("txs", ({ chart }) => {
+        return pipe(
+          chart.chart,
+          NeA.head,
+          (dp) => fromUnixTime(dp.timestamp),
+          getAssetTxs
+        );
+      }),
+      TE.bind("baseRate", ({ chart }) =>
+        getBaseCcyConversionRate(chart.meta.currency, baseCcy)
       ),
       TE.map(
-        ({ asset, enrich: { chart: origChart, price, meta }, baseRate }) => {
+        ({
+          asset,
+          txs,
+          chart: { chart: origChart, price, meta },
+          baseRate,
+        }) => {
           const toBase = (n: number) => n / baseRate;
           const investedBase = toBase(asset.invested);
+          console.log("chart", formatISO(fromUnixTime(origChart[0].timestamp)));
+          console.log("TX", formatISO(txs[0]?.date ?? new Date()));
 
           const chartCcy: ChartData = pipe(
             origChart,

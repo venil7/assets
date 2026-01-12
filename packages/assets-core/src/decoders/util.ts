@@ -70,6 +70,17 @@ export function mapDecoder<A, R>(
   );
 }
 
+export const mapDecoder1 =
+  <A, R>(f: (a: A) => t.Validation<R>) =>
+  (codec: t.Type<A, any>, name: string = codec.name): t.Type<R, A> => {
+    return new t.Type<R, A>(
+      name,
+      (u): u is R => codec.is(u) && E.isRight(f(u as A)),
+      (i, c) => pipe(codec.validate(i, c), E.chain(f)),
+      (r) => codec.encode(r as any as A) as any as A
+    );
+  };
+
 export const validationErr = (
   message: string,
   value: any = null

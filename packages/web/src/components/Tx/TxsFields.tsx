@@ -1,5 +1,5 @@
 import {
-  byDate,
+  byDateAsc,
   defaultTxsUpload,
   txsUploadValidator,
   type AppError,
@@ -40,7 +40,7 @@ export const TxsUploadFields: React.FC<TxsUploadFieldsProps> = ({
   const setReplace = setField("replace");
   const handleParse = (txs: PostTx[], error: Nullable<AppError>) => {
     if (error) return setTxs([]) || setError(error);
-    setTxs(pipe(txs, A.sort(byDate))) || setError(null);
+    setTxs(pipe(txs, A.sort(byDateAsc))) || setError(null);
   };
 
   return (
