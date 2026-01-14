@@ -19,8 +19,8 @@ export type TxId = GetTx["id"];
 export type PostTxsUpload = t.TypeOf<typeof PostTxsUploadDecoder>;
 export type EnrichedTx = t.TypeOf<typeof EnrichedTxDecoder>;
 
-export const defaultTx = (type: PostTx["type"] = "buy"): PostTx => ({
-  date: new Date(),
+export const defaultTx = (type: PostTx["type"], date: Date): PostTx => ({
+  date,
   quantity: 0,
   price: 0,
   comments: "",
@@ -34,8 +34,10 @@ export const byDateAsc = pipe(
 
 export const byDateDesc = pipe(byDateAsc, reverse);
 
-export const defaultBuyTx = (): PostTx => defaultTx("buy");
-export const defaultSellTx = (): PostTx => defaultTx("sell");
+export const defaultBuyTx = (date = new Date()): PostTx =>
+  defaultTx("buy", date);
+export const defaultSellTx = (date = new Date()): PostTx =>
+  defaultTx("sell", date);
 
 export const defaultTxsUpload = (
   txs: PostTx[] = [],

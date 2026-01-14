@@ -1,4 +1,4 @@
-import { formatISO, fromUnixTime } from "date-fns";
+import { fromUnixTime } from "date-fns";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as NeA from "fp-ts/lib/NonEmptyArray";
@@ -6,13 +6,16 @@ import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import type { Ccy } from "../decoders";
 import { DEFAULT_CHART_RANGE, type ChartRange } from "../decoders/yahoo/meta";
-import type {
-  ChartData,
-  EnrichedAsset,
-  GetAsset,
-  GetTx,
-  PeriodChanges,
-  Totals,
+import {
+  defaultBuyTx,
+  EARLIEST_DATE,
+  type ChartData,
+  type ChartDataItem,
+  type EnrichedAsset,
+  type GetAsset,
+  type GetTx,
+  type PeriodChanges,
+  type Totals,
 } from "../domain";
 import type { YahooApi } from "../http";
 import { changeInPct, changeInValue, sum } from "../utils/finance";
@@ -52,17 +55,8 @@ export const getAssetEnricher =
         }) => {
           const toBase = (n: number) => n / baseRate;
           const investedBase = toBase(asset.invested);
-          console.log("chart", formatISO(fromUnixTime(origChart[0].timestamp)));
-          console.log("TX", formatISO(txs[0]?.date ?? new Date()));
 
-          const chartCcy: ChartData = pipe(
-            origChart,
-            NeA.map((dp) => ({
-              ...dp,
-              // if no holdings, keep price per unit
-              price: dp.price * (asset.holdings || 1),
-            }))
-          );
+          const chartCcy: ChartData = enrichWithTxs(origChart, txs);
           const chartBase: ChartData = pipe(
             chartCcy,
             NeA.map((dp) => ({
@@ -215,4 +209,50 @@ export const calcAssetWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
       return a;
     })
   );
+};
+
+const enrichWithTxs = (chart: ChartData, txs: GetTx[]): ChartData => {
+  const earliestChartDate = fromUnixTime(chart[0].timestamp);
+  const earliestTxDate = txs[0]?.date;
+  if (!earliestTxDate) {
+    // no transactions exist for this asset;
+    // chart will just be showing price per 1 unit
+    txs = [
+      {
+        ...defaultBuyTx(EARLIEST_DATE),
+        quantity: 1,
+        holdings: 1,
+      } as GetTx,
+    ];
+  } else if (earliestTxDate > earliestChartDate) {
+    // chart starts earlier than earliest transaction
+    // chart will be showing zero units until first transaction is encountered
+    txs = [
+      {
+        ...defaultBuyTx(EARLIEST_DATE),
+        quantity: 0,
+        holdings: 0,
+      } as GetTx,
+      ...txs,
+    ];
+  }
+
+  let ci = 0;
+  const res: ChartDataItem[] = [];
+  for (let dp of chart) {
+    let currentTx = txs[ci];
+    const isLastTx = ci == txs.length - 1;
+    if (isLastTx) {
+      res.push({ ...dp, price: dp.price * currentTx.holdings });
+      continue;
+    }
+    const nextTx = txs[ci + 1];
+    console.log(dp.timestamp, nextTx.date.getTime());
+    if (dp.timestamp * 1000 >= nextTx.date.getTime()) {
+      ci += 1;
+      currentTx = nextTx;
+    }
+    res.push({ ...dp, price: dp.price * currentTx.holdings });
+  }
+  return res as ChartData;
 };
