@@ -1,6 +1,5 @@
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
-import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
@@ -59,7 +58,10 @@ export const boolean: t.Type<boolean, any> = t.union([
 
 export const chainDecoder =
   <A, R>(f: (a: A) => t.Validation<R>) =>
-  (codec: t.Type<A, any>, name: string = codec.name): t.Type<R, A> => {
+  (
+    codec: t.Type<A, any>,
+    name: string = `Chained(${codec.name})`
+  ): t.Type<R, A> => {
     return new t.Type<R, A>(
       name,
       (u): u is R => codec.is(u) && E.isRight(f(u as A)),
@@ -76,20 +78,6 @@ export const validationErr = (
   value,
   context: [],
 });
-
-export function nonEmptyArray<T>(
-  codec: t.Type<T, any, any>,
-  errorMessage = `Array ${codec.name} can't be empty`
-) {
-  return pipe(
-    t.array(codec),
-    chainDecoder((a) =>
-      a.length
-        ? E.of(a as NonEmptyArray<T>)
-        : E.left([validationErr(errorMessage)])
-    )
-  );
-}
 
 export const nonEmptyString = pipe(
   t.string,

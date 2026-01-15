@@ -1,13 +1,9 @@
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
+import { nonEmptyArray } from "io-ts-types";
 import { PostTxDecoder, PostTxsUploadDecoder } from "../decoders";
 import { nonFuture } from "../decoders/date";
-import {
-  boolean,
-  chainDecoder,
-  nonEmptyArray,
-  nonNegative,
-} from "../decoders/util";
+import { boolean, chainDecoder, nonNegative } from "../decoders/util";
 import type { PostTxsUpload } from "../domain";
 import { createValidator } from "./util";
 

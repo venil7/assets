@@ -1,6 +1,6 @@
 import * as t from "io-ts";
+import { nonEmptyArray } from "io-ts-types";
 import { PortfolioMetaDecoder } from "./portfolio";
-import { nonEmptyArray } from "./util";
 import { ChartDataPointDecoder } from "./yahoo/chart";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
