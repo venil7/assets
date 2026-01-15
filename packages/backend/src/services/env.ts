@@ -9,14 +9,14 @@ import * as IO from "fp-ts/lib/IOEither";
 import * as TE from "fp-ts/lib/TaskEither";
 import ms from "ms";
 
-export const env = (
+export const env = <S extends string>(
   name: string,
   defaultValue: Nullable<string> = null
-): Action<string> =>
+): Action<S> =>
   pipe(
     IO.tryCatch(() => {
       const val = process.env[name] ?? defaultValue;
-      if (val) return val;
+      if (val) return val as S;
       throw Error(`${name} is not defined`);
     }, handleError("Environment variable")),
     TE.fromIOEither

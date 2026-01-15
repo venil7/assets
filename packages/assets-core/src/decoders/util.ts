@@ -9,6 +9,7 @@ import {
   DateFromISOString,
   DateFromNumber,
   DateFromUnixTime,
+  NonEmptyString,
   date,
 } from "io-ts-types";
 import { validationErrors, type AppError } from "../domain/error";
@@ -79,12 +80,11 @@ export const validationErr = (
   context: [],
 });
 
-export const nonEmptyString = pipe(
-  t.string,
-  chainDecoder((s) =>
-    s.trim() === "" ? E.left([validationErr(`Can't be empty`)]) : E.of(s)
-  )
-);
+export const nonEmptyString = NonEmptyString as unknown as t.Type<
+  string,
+  string,
+  unknown
+>;
 
 export const nonNegative = pipe(
   NumberDecoder as t.Type<number>,
