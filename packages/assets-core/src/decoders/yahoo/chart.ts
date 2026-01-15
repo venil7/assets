@@ -6,7 +6,7 @@ import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
 import { changeInPct, changeInValue } from "../../utils/finance";
-import { mapDecoder, nullableDecoder, validationErr } from "../util";
+import { chainDecoder, nullableDecoder, validationErr } from "../util";
 import { ChartMetaDecoder } from "./meta";
 import { UnixDateDecoder, type PeriodChangesDecoder } from "./period";
 
@@ -71,75 +71,76 @@ const combineIndicators = (
   );
 };
 
-export const YahooChartDataDecoder = mapDecoder<
-  RawChartResponse,
-  {
-    meta: t.TypeOf<typeof ChartMetaDecoder>;
-    chart: NonEmptyArray<ChartDataPoint>;
-    price: t.TypeOf<typeof PeriodChangesDecoder>;
-  }
->(RawChartResponseDecoder, ({ chart }) => {
-  return pipe(
-    E.Do,
-    E.bind("chart", () => {
-      if (chart.error) {
-        const message = `${chart.error?.code} - ${chart.error?.description}`;
-        return E.left([validationErr(message, chart.error)]);
-      }
-      if (chart.result && chart.result.length > 0) {
-        const { meta, timestamp, indicators } = chart.result[0];
-        const prevClose: ChartDataPoint = {
-          price: meta.previousClose ?? meta.chartPreviousClose,
-          volume: 0,
-          timestamp: timestamp.length
-            ? timestamp[0] - 5 * 60
-            : meta.regularMarketTime,
-        };
-        const res = {
+type ProcessedChartResponse = {
+  meta: t.TypeOf<typeof ChartMetaDecoder>;
+  chart: NonEmptyArray<ChartDataPoint>;
+  price: t.TypeOf<typeof PeriodChangesDecoder>;
+};
+export const YahooChartDataDecoder = pipe(
+  RawChartResponseDecoder,
+  chainDecoder<RawChartResponse, ProcessedChartResponse>(({ chart }) => {
+    return pipe(
+      E.Do,
+      E.bind("chart", () => {
+        if (chart.error) {
+          const message = `${chart.error?.code} - ${chart.error?.description}`;
+          return E.left([validationErr(message, chart.error)]);
+        }
+        if (chart.result && chart.result.length > 0) {
+          const { meta, timestamp, indicators } = chart.result[0];
+          const prevClose: ChartDataPoint = {
+            price: meta.previousClose ?? meta.chartPreviousClose,
+            volume: 0,
+            timestamp: timestamp.length
+              ? timestamp[0] - 5 * 60
+              : meta.regularMarketTime,
+          };
+          const res = {
+            meta,
+            chart: [
+              prevClose,
+              // indicators quote is not always present
+              ...(indicators.quote.length
+                ? combineIndicators(timestamp, indicators.quote[0])
+                : []),
+            ] as NonEmptyArray<ChartDataPoint>,
+          };
+          return E.of(res);
+        }
+        return E.left([validationErr(`chart contains no data`)]);
+      }),
+      E.bind("start", ({ chart }) => {
+        return withFallback(
+          UnixDateDecoder,
+          Math.floor(new Date().getTime() / 1000) as t.TypeOf<
+            typeof UnixDateDecoder
+          >
+        ).decode(chart.meta.currentTradingPeriod?.regular?.start);
+      }),
+      E.bind("end", ({ chart }) => {
+        return UnixDateDecoder.decode(chart.meta.regularMarketTime);
+      }),
+      E.map(({ chart: { meta, chart }, start, end }) => {
+        const beginning = meta.previousClose ?? meta.chartPreviousClose;
+        return {
           meta,
-          chart: [
-            prevClose,
-            // indicators quote is not always present
-            ...(indicators.quote.length
-              ? combineIndicators(timestamp, indicators.quote[0])
-              : []),
-          ] as NonEmptyArray<ChartDataPoint>,
+          chart,
+          price: {
+            start,
+            end,
+            beginning,
+            current: meta.regularMarketPrice,
+            changePct: changeInPct({
+              before: beginning,
+              after: meta.regularMarketPrice,
+            }),
+            change: changeInValue({
+              before: beginning,
+              after: meta.regularMarketPrice,
+            }),
+          },
         };
-        return E.of(res);
-      }
-      return E.left([validationErr(`chart contains no data`)]);
-    }),
-    E.bind("start", ({ chart }) => {
-      return withFallback(
-        UnixDateDecoder,
-        Math.floor(new Date().getTime() / 1000) as t.TypeOf<
-          typeof UnixDateDecoder
-        >
-      ).decode(chart.meta.currentTradingPeriod?.regular?.start);
-    }),
-    E.bind("end", ({ chart }) => {
-      return UnixDateDecoder.decode(chart.meta.regularMarketTime);
-    }),
-    E.map(({ chart: { meta, chart }, start, end }) => {
-      const beginning = meta.previousClose ?? meta.chartPreviousClose;
-      return {
-        meta,
-        chart,
-        price: {
-          start,
-          end,
-          beginning,
-          current: meta.regularMarketPrice,
-          changePct: changeInPct({
-            before: beginning,
-            after: meta.regularMarketPrice,
-          }),
-          change: changeInValue({
-            before: beginning,
-            after: meta.regularMarketPrice,
-          }),
-        },
-      };
-    })
-  );
-});
+      })
+    );
+  })
+);

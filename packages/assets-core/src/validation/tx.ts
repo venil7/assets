@@ -4,7 +4,7 @@ import { PostTxDecoder, PostTxsUploadDecoder } from "../decoders";
 import { nonFuture } from "../decoders/date";
 import {
   boolean,
-  mapDecoder,
+  chainDecoder,
   nonEmptyArray,
   nonNegative,
 } from "../decoders/util";
@@ -12,7 +12,8 @@ import type { PostTxsUpload } from "../domain";
 import { createValidator } from "./util";
 
 export const txValidator = pipe(
-  mapDecoder(PostTxDecoder, ({ price, quantity, date }) =>
+  PostTxDecoder,
+  chainDecoder(({ price, quantity, date }) =>
     pipe(
       E.Do,
       E.apS("price", nonNegative.decode(price)),
@@ -24,7 +25,8 @@ export const txValidator = pipe(
 );
 
 export const txsUploadValidator = pipe(
-  mapDecoder(PostTxsUploadDecoder, ({ txs, replace }) =>
+  PostTxsUploadDecoder,
+  chainDecoder(({ txs, replace }) =>
     pipe(
       E.Do,
       E.apS(

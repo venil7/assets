@@ -57,20 +57,7 @@ export const boolean: t.Type<boolean, any> = t.union([
   t.boolean,
 ]);
 
-export function mapDecoder<A, R>(
-  codec: t.Type<A, any>,
-  f: (a: A) => t.Validation<R>,
-  name: string = codec.name
-): t.Type<R, A> {
-  return new t.Type<R, A>(
-    name,
-    (u): u is R => codec.is(u) && E.isRight(f(u as A)),
-    (i, c) => pipe(codec.validate(i, c), E.chain(f)),
-    (r) => codec.encode(r as unknown as A) as unknown as A
-  );
-}
-
-export const mapDecoder1 =
+export const chainDecoder =
   <A, R>(f: (a: A) => t.Validation<R>) =>
   (codec: t.Type<A, any>, name: string = codec.name): t.Type<R, A> => {
     return new t.Type<R, A>(
@@ -94,17 +81,26 @@ export function nonEmptyArray<T>(
   codec: t.Type<T, any, any>,
   errorMessage = `Array ${codec.name} can't be empty`
 ) {
-  return mapDecoder(t.array(codec), (a) =>
-    a.length
-      ? E.of(a as NonEmptyArray<T>)
-      : E.left([validationErr(errorMessage)])
+  return pipe(
+    t.array(codec),
+    chainDecoder((a) =>
+      a.length
+        ? E.of(a as NonEmptyArray<T>)
+        : E.left([validationErr(errorMessage)])
+    )
   );
 }
 
-export const nonEmptyString = mapDecoder(t.string, (s) =>
-  s.trim() === "" ? E.left([validationErr(`Can't be empty`)]) : E.of(s)
+export const nonEmptyString = pipe(
+  t.string,
+  chainDecoder((s) =>
+    s.trim() === "" ? E.left([validationErr(`Can't be empty`)]) : E.of(s)
+  )
 );
 
-export const nonNegative = mapDecoder(NumberDecoder as t.Type<number>, (n) =>
-  n <= 0 ? E.left([validationErr(`Can't be negative`)]) : E.of(n)
+export const nonNegative = pipe(
+  NumberDecoder as t.Type<number>,
+  chainDecoder((n) =>
+    n <= 0 ? E.left([validationErr(`Can't be negative`)]) : E.of(n)
+  )
 );
