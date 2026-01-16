@@ -89,6 +89,6 @@ export const nonEmptyString = NonEmptyString as unknown as t.Type<
 export const nonNegative = pipe(
   NumberDecoder as t.Type<number>,
   chainDecoder((n) =>
-    n <= 0 ? E.left([validationErr(`Can't be negative`)]) : E.of(n)
+    n <= 0 ? E.left([validationErr(`Can't be zero or less`)]) : E.of(n)
   )
 );

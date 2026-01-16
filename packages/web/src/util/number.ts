@@ -10,10 +10,11 @@ export const moneyFormatter =
     currency: Ccy = defaultCcy,
     locale = defaultLocale
   ): string => {
+    const div = currency == "GBp" ? 100 : 1;
     return new Intl.NumberFormat(locale, {
       style: "currency",
       currency,
-    }).format(number);
+    }).format(number / div);
   };
 
 export const decimalFormatter =

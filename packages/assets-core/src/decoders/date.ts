@@ -7,6 +7,6 @@ import { chainDecoder, dateDecoder, validationErr } from "./util";
 export const nonFuture = pipe(
   dateDecoder as t.Type<Date>,
   chainDecoder((d) =>
-    d > endOfToday() ? E.left([validationErr(`Can't be negative`)]) : E.of(d)
+    d > endOfToday() ? E.left([validationErr(`Can't be future date`)]) : E.of(d)
   )
 );

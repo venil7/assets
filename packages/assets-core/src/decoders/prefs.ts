@@ -16,7 +16,7 @@ export const BASE_CCYS = [
   "JPY",
 ] as const;
 
-export type Ccy = (typeof BASE_CCYS)[number];
+export type Ccy = (typeof BASE_CCYS)[number] | "GBp";
 
 export const CcyDecoder = pipe(
   BASE_CCYS as unknown as string[],

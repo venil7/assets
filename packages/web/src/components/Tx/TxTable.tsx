@@ -69,7 +69,7 @@ const TxTableRow = (
         {isoTimestamp(tx.date)}
       </td>
       <td /**quantity */>{decimal(tx.quantity)}</td>
-      <td /**price/unit */>{money(tx.price)}</td>
+      <td /**price/unit */>{money(tx.price, ccy)}</td>
       <td /**cost */>{money(tx.cost, ccy)}</td>
       <td /**value */>{money(tx.valueCcy, ccy)}</td>
       {/* <td>{decimal(tx.holdings, 5, locale)}</td>

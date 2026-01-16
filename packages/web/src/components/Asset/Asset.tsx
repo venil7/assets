@@ -1,4 +1,5 @@
 import {
+  type Ccy,
   type EnrichedAsset,
   type EnrichedTx,
   type GetAsset,
@@ -50,7 +51,9 @@ const RawAsset: React.FC<AssetProps> = ({
           <h3>
             {asset.name} ({asset.ticker})
           </h3>
-          <h5>{money(asset.meta.regularMarketPrice)}</h5>
+          <h5>
+            {money(asset.meta.regularMarketPrice, asset.meta.currency as Ccy)}
+          </h5>
         </div>
         <Totals
           totals={asset.totals.base}

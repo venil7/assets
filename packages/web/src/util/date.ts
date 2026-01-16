@@ -1,6 +1,6 @@
 import { format, formatISO } from "date-fns";
 
-export const DATE_FORMAT = "yyyy-MM-dd hh:mma";
+export const DATE_FORMAT = "yyyy MMM dd hh:mma";
 
 export const iso = (d: Date) =>
   formatISO(d, { format: "extended", representation: "date" });
