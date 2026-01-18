@@ -1,12 +1,7 @@
-import { byDateAsc, PostTxDecoder, type PostTx } from "@darkruby/assets-core";
-import { chainDecoder } from "@darkruby/assets-core/src/decoders/util";
-import * as A from "fp-ts/lib/Array";
-import * as E from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/lib/function";
+import { PostTxDecoder, type PostTx } from "@darkruby/assets-core";
 import * as t from "io-ts";
 import { fromCsv } from "./csv";
 
-export const CsvPostTxDecoder = pipe(
-  fromCsv<PostTx>(PostTxDecoder as t.Type<PostTx>) as any as t.Type<PostTx[]>,
-  chainDecoder((txs) => pipe(txs, A.sort(byDateAsc), E.of))
+export const CsvPostTxDecoder = fromCsv<PostTx>(
+  PostTxDecoder as t.Type<PostTx>,
 );

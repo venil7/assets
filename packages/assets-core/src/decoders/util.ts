@@ -28,7 +28,7 @@ export const liftTE = <T, U = unknown>(decoder: t.Decoder<U, T>) => {
       data,
       decoder.decode,
       TE.fromEither,
-      TE.mapLeft(validationErrors)
+      TE.mapLeft(validationErrors),
     );
   };
 };
@@ -39,7 +39,7 @@ export const liftRTE = <T, R, U = unknown>(decoder: t.Decoder<U, T>) => {
 };
 
 export const nullableDecoder = <T>(
-  decoder: t.Type<T, any, any>
+  decoder: t.Type<T, any, any>,
 ): t.Type<Optional<T>, any> => {
   return t.union([t.null, t.undefined, decoder]);
 };
@@ -61,19 +61,19 @@ export const chainDecoder =
   <A, R>(f: (a: A) => t.Validation<R>) =>
   (
     codec: t.Type<A, any>,
-    name: string = `Chained(${codec.name})`
+    name: string = `Chained(${codec.name})`,
   ): t.Type<R, A> => {
     return new t.Type<R, A>(
       name,
       (u): u is R => codec.is(u) && E.isRight(f(u as A)),
       (i, c) => pipe(codec.validate(i, c), E.chain(f)),
-      (r) => codec.encode(r as any as A) as any as A
+      (r) => codec.encode(r as any as A) as any as A,
     );
   };
 
 export const validationErr = (
   message: string,
-  value: any = null
+  value: any = null,
 ): t.ValidationError => ({
   message,
   value,
@@ -89,6 +89,6 @@ export const nonEmptyString = NonEmptyString as unknown as t.Type<
 export const nonNegative = pipe(
   NumberDecoder as t.Type<number>,
   chainDecoder((n) =>
-    n <= 0 ? E.left([validationErr(`Can't be zero or less`)]) : E.of(n)
-  )
+    n <= 0 ? E.left([validationErr(`Can't be zero or less`)]) : E.of(n),
+  ),
 );

@@ -100,8 +100,8 @@ test("Update portfolio", async () => {
 });
 
 test("CSV roundtrip", async () => {
-  const txs = [fakePortfolio(), fakePortfolio()];
-  const csv = CsvPostPortfolioDecoder.encode(txs);
-  const txs2 = await pipe(csv, liftTE(CsvPostPortfolioDecoder), run);
-  expect(txs2).toEqual(txs);
+  const portfolios = [fakePortfolio(), fakePortfolio()];
+  const csv = CsvPostPortfolioDecoder.encode(portfolios);
+  const portfolios2 = await pipe(csv, liftTE(CsvPostPortfolioDecoder), run);
+  expect(portfolios2).toEqual(portfolios);
 });

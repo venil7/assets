@@ -131,8 +131,8 @@ test("Update asset", async () => {
 });
 
 test("CSV roundtrip", async () => {
-  const txs = [fakeAsset(), fakeAsset()];
-  const csv = CsvPostAssetDecoder.encode(txs);
-  const txs2 = await pipe(csv, liftTE(CsvPostAssetDecoder), run);
-  expect(txs2).toEqual(txs);
+  const assets = [fakeAsset(), fakeAsset()];
+  const csv = CsvPostAssetDecoder.encode(assets);
+  const assets2 = await pipe(csv, liftTE(CsvPostAssetDecoder), run);
+  expect(assets2).toEqual(assets);
 });

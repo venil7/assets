@@ -8,18 +8,20 @@ import * as t from "io-ts";
 export const fromCsvBrowser = <A, O = A, I = unknown>(
   decoder: t.Type<A, O, I>
 ) => {
-  return new t.Type<A[], string, string>(
+    return new t.Type<A[], string>(
     `fromCsv(${decoder.name})`,
     (a): a is A[] => t.array(decoder as t.Mixed).is(a),
+    // decode: unknown => A[] | error
     ((inp) => {
       return pipe(
         E.tryCatch(
-          () => parse(inp, { columns: true, autoParse: true, cast: true }),
+          () => parse(String(inp), { columns: true, autoParse: true, cast: true }),
           (e) => [validationErr((e as Error).message)]
         ),
         E.chain(E.traverseArray((i) => decoder.decode(i as I)))
       );
-    }) as t.Validate<string, A[]>,
+    }) as t.Validate<unknown, A[]>,
+    // encode: A[] => string
     (as: A[]) => {
       return stringify(JSON.parse(JSON.stringify(as)), { header: true });
     }
