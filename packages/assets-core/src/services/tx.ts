@@ -3,6 +3,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import type { EnrichedAsset, EnrichedTx, GetTx } from "../domain";
 import { changeInPct, changeInValue } from "../utils/finance";
 import type { Action } from "../utils/utils";
+import { getToBase } from "./yahoo";
 
 export const getTxEnricher =
   (getEnrichedAsset: LazyArg<Action<EnrichedAsset>>) =>
@@ -11,7 +12,7 @@ export const getTxEnricher =
       TE.Do,
       TE.bind("asset", getEnrichedAsset),
       TE.map(({ asset }) => {
-        const toBase = (n: number) => n / asset.value.baseRate;
+        const toBase = getToBase(asset.value.baseRate);
 
         const buy = tx.type === "buy";
         const cost = tx.price * tx.quantity;
@@ -23,7 +24,7 @@ export const getTxEnricher =
         // if buy, calculates unrealized return
         const unrealizedReturnCcy = changeInValue({
           before: cost,
-          after: valueCcy,
+          after: valueCcy
         });
         // if sell calculates realized return
         const realizedReturnCcy = (() => {
@@ -35,12 +36,12 @@ export const getTxEnricher =
 
         const unrealizedReturnPct = changeInPct({
           before: tx.price,
-          after: asset.meta.regularMarketPrice,
+          after: asset.meta.regularMarketPrice
         });
 
         const realizedReturnPct = changeInPct({
           before: averageUnitCost,
-          after: tx.price,
+          after: tx.price
         });
 
         const returnPct = buy ? unrealizedReturnPct : realizedReturnPct;
@@ -53,7 +54,7 @@ export const getTxEnricher =
           valueBase,
           returnPct,
           returnCcy,
-          returnBase,
+          returnBase
         };
       })
     );

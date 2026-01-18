@@ -7,9 +7,10 @@ import type {
   PeriodChanges,
   Summary,
   Totals,
-  UnixDate,
+  UnixDate
 } from "../domain";
-import { nonEmpty } from "../utils/array";
+import { onEmpty } from "../utils/array";
+import { unixNow } from "../utils/date";
 import { changeInPct, changeInValue, sum } from "../utils/finance";
 import { combinePortfolioCharts, commonPortfolioRanges } from "./chart";
 
@@ -45,13 +46,13 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
     const start = pipe(
       portfolios,
       A.map(({ value }) => value.start),
-      nonEmpty(() => Math.floor(new Date().getTime() / 1000)),
+      onEmpty(unixNow),
       (s) => Math.min(...s)
     ) as UnixDate;
     const end = pipe(
       portfolios,
       A.map(({ value }) => value.end),
-      nonEmpty(() => Math.floor(new Date().getTime() / 1000)),
+      onEmpty(unixNow),
       (s) => Math.max(...s)
     ) as UnixDate;
 
@@ -61,18 +62,18 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
       change,
       changePct,
       start,
-      end,
+      end
     };
   })();
 
   const totals = ((): Totals => {
     const change = changeInValue({
       before: investedBase,
-      after: value.current,
+      after: value.current
     });
     const changePct = changeInPct({
       before: investedBase,
-      after: value.current,
+      after: value.current
     });
     return { change, changePct };
   })();

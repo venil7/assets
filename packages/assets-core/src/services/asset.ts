@@ -1,4 +1,4 @@
-import { fromUnixTime } from "date-fns";
+import { fromUnixTime, getUnixTime } from "date-fns";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as NeA from "fp-ts/lib/NonEmptyArray";
@@ -15,12 +15,12 @@ import {
   type GetAsset,
   type GetTx,
   type PeriodChanges,
-  type Totals,
+  type Totals
 } from "../domain";
 import type { YahooApi } from "../http";
 import { changeInPct, changeInValue, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
-import { baseCcyConversionRate } from "./yahoo";
+import { baseCcyConversionRate, getToBase } from "./yahoo";
 
 export const getAssetEnricher =
   (yahooApi: YahooApi) =>
@@ -51,9 +51,9 @@ export const getAssetEnricher =
           asset,
           txs,
           chart: { chart: origChart, price, meta },
-          baseRate,
+          baseRate
         }) => {
-          const toBase = (n: number) => n / baseRate;
+          const toBase = getToBase(baseRate);
           const investedBase = toBase(asset.invested);
 
           const chartCcy: ChartData = enrichWithTxs(origChart, txs);
@@ -61,7 +61,7 @@ export const getAssetEnricher =
             chartCcy,
             NeA.map((dp) => ({
               ...dp,
-              price: toBase(dp.price),
+              price: toBase(dp.price)
             }))
           );
 
@@ -72,7 +72,7 @@ export const getAssetEnricher =
             change: price.change,
             changePct: price.changePct,
             start: price.start,
-            end: price.end,
+            end: price.end
           };
 
           const valueBase: PeriodChanges = {
@@ -80,14 +80,14 @@ export const getAssetEnricher =
             current: toBase(valueCcy.current),
             change: changeInValue({
               before: toBase(valueCcy.beginning),
-              after: toBase(valueCcy.current),
+              after: toBase(valueCcy.current)
             }),
             changePct: changeInPct({
               before: toBase(valueCcy.beginning),
-              after: toBase(valueCcy.current),
+              after: toBase(valueCcy.current)
             }),
             start: price.start,
-            end: price.end,
+            end: price.end
           };
 
           const totalsCcy = ((): Totals => {
@@ -96,7 +96,7 @@ export const getAssetEnricher =
               O.map(() =>
                 changeInValue({
                   before: asset.invested,
-                  after: valueCcy.current,
+                  after: valueCcy.current
                 })
               ),
               O.getOrElse(() => 0)
@@ -104,7 +104,10 @@ export const getAssetEnricher =
             const changePct = pipe(
               O.fromNullable(asset.avg_price),
               O.map(() =>
-                changeInPct({ before: asset.invested, after: valueCcy.current })
+                changeInPct({
+                  before: asset.invested,
+                  after: valueCcy.current
+                })
               ),
               O.getOrElse(() => 0)
             );
@@ -117,7 +120,7 @@ export const getAssetEnricher =
               O.map(() =>
                 changeInValue({
                   before: toBase(asset.invested),
-                  after: valueBase.current,
+                  after: valueBase.current
                 })
               ),
               O.getOrElse(() => 0)
@@ -127,7 +130,7 @@ export const getAssetEnricher =
               O.map(() =>
                 changeInPct({
                   before: toBase(asset.invested),
-                  after: valueBase.current,
+                  after: valueBase.current
                 })
               ),
               O.getOrElse(() => 0)
@@ -141,19 +144,19 @@ export const getAssetEnricher =
             investedBase,
             chart: {
               ccy: chartCcy,
-              base: chartBase,
+              base: chartBase
             },
             value: {
               ccy: valueCcy,
               base: valueBase,
               baseRate,
               //weight cannot be calculated for single asset
-              weight: 0,
+              weight: 0
             },
             totals: {
               ccy: totalsCcy,
-              base: totalsBase,
-            },
+              base: totalsBase
+            }
           };
         }
       )
@@ -221,8 +224,8 @@ const enrichWithTxs = (chart: ChartData, txs: GetTx[]): ChartData => {
       {
         ...defaultBuyTx(EARLIEST_DATE),
         quantity: 1,
-        holdings: 1,
-      } as GetTx,
+        holdings: 1
+      } as GetTx
     ];
   } else if (earliestTxDate > earliestChartDate) {
     // chart starts earlier than earliest transaction
@@ -231,9 +234,9 @@ const enrichWithTxs = (chart: ChartData, txs: GetTx[]): ChartData => {
       {
         ...defaultBuyTx(EARLIEST_DATE),
         quantity: 0,
-        holdings: 0,
+        holdings: 0
       } as GetTx,
-      ...txs,
+      ...txs
     ];
   }
 
@@ -247,8 +250,7 @@ const enrichWithTxs = (chart: ChartData, txs: GetTx[]): ChartData => {
       continue;
     }
     const nextTx = txs[ci + 1];
-    console.log(dp.timestamp, nextTx.date.getTime());
-    if (dp.timestamp * 1000 >= nextTx.date.getTime()) {
+    if (dp.timestamp >= getUnixTime(nextTx.date)) {
       ci += 1;
       currentTx = nextTx;
     }

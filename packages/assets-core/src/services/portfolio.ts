@@ -6,7 +6,7 @@ import type { Ccy } from "../decoders";
 import {
   ChartRangeOrd,
   DEFAULT_CHART_RANGE,
-  type ChartRange,
+  type ChartRange
 } from "../decoders/yahoo/meta";
 import type {
   EnrichedPortfolio,
@@ -15,10 +15,11 @@ import type {
   GetTx,
   PeriodChanges,
   Totals,
-  UnixDate,
+  UnixDate
 } from "../domain";
 import type { YahooApi } from "../http";
-import { nonEmpty } from "../utils/array";
+import { onEmpty } from "../utils/array";
+import { unixNow } from "../utils/date";
 import { changeInPct, changeInValue, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
 import { calcAssetWeights, getAssetsEnricher } from "./asset";
@@ -66,13 +67,13 @@ export const getPortfolioEnricher =
           const start = pipe(
             assets,
             A.map(({ value }) => value.ccy.start),
-            nonEmpty(() => Math.floor(new Date().getTime() / 1000)),
+            onEmpty(unixNow),
             (s) => Math.min(...s)
           ) as UnixDate;
           const end = pipe(
             assets,
             A.map(({ value }) => value.ccy.end),
-            nonEmpty(() => Math.floor(new Date().getTime() / 1000)),
+            onEmpty(unixNow),
             (s) => Math.max(...s)
           ) as UnixDate;
 
@@ -82,18 +83,18 @@ export const getPortfolioEnricher =
             change,
             changePct,
             start,
-            end,
+            end
           };
         })();
 
         const totals = ((): Totals => {
           const change = changeInValue({
             before: investedBase,
-            after: value.current,
+            after: value.current
           });
           const changePct = changeInPct({
             before: investedBase,
-            after: value.current,
+            after: value.current
           });
           return { change, changePct };
         })();
@@ -119,7 +120,7 @@ export const getPortfolioEnricher =
           meta,
           // weight cannot be calc
           // for single portfolio
-          weight: 0,
+          weight: 0
         };
       })
     );

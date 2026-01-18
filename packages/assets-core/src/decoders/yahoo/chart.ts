@@ -5,6 +5,7 @@ import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
+import { unixNow } from "../../utils/date";
 import { changeInPct, changeInValue } from "../../utils/finance";
 import { chainDecoder, nullableDecoder, validationErr } from "../util";
 import { ChartMetaDecoder } from "./meta";
@@ -15,17 +16,17 @@ const QuoteDecoder = t.type({
   low: t.array(nullableDecoder(t.number)),
   high: t.array(nullableDecoder(t.number)),
   close: t.array(nullableDecoder(t.number)),
-  volume: t.array(nullableDecoder(t.number)),
+  volume: t.array(nullableDecoder(t.number))
 });
 
 const IndicatorsDecoder = t.type({
-  quote: withFallback(t.array(QuoteDecoder), []),
+  quote: withFallback(t.array(QuoteDecoder), [])
 });
 
 export const ChartDecoder = t.type({
   meta: ChartMetaDecoder,
   timestamp: withFallback(t.array(t.number), []), // may not be present
-  indicators: IndicatorsDecoder,
+  indicators: IndicatorsDecoder
 });
 
 const RawChartResponseDecoder = t.type({
@@ -34,10 +35,10 @@ const RawChartResponseDecoder = t.type({
     error: nullableDecoder(
       t.type({
         code: t.string,
-        description: t.string,
+        description: t.string
       })
-    ),
-  }),
+    )
+  })
 });
 
 type RawChartResponse = t.TypeOf<typeof RawChartResponseDecoder>;
@@ -51,7 +52,7 @@ type Indicators = ArrayElement<RawChartResult["indicators"]["quote"]>;
 const chartDataPointTypes = {
   timestamp: t.number,
   volume: t.number,
-  price: t.number,
+  price: t.number
 };
 
 export const ChartDataPointDecoder = t.type(chartDataPointTypes);
@@ -93,7 +94,7 @@ export const YahooChartDataDecoder = pipe(
             volume: 0,
             timestamp: timestamp.length
               ? timestamp[0] - 5 * 60
-              : meta.regularMarketTime,
+              : meta.regularMarketTime
           };
           const res = {
             meta,
@@ -102,20 +103,17 @@ export const YahooChartDataDecoder = pipe(
               // indicators quote is not always present
               ...(indicators.quote.length
                 ? combineIndicators(timestamp, indicators.quote[0])
-                : []),
-            ] as NonEmptyArray<ChartDataPoint>,
+                : [])
+            ] as NonEmptyArray<ChartDataPoint>
           };
           return E.of(res);
         }
         return E.left([validationErr(`chart contains no data`)]);
       }),
       E.bind("start", ({ chart }) => {
-        return withFallback(
-          UnixDateDecoder,
-          Math.floor(new Date().getTime() / 1000) as t.TypeOf<
-            typeof UnixDateDecoder
-          >
-        ).decode(chart.meta.currentTradingPeriod?.regular?.start);
+        return withFallback(UnixDateDecoder, unixNow()).decode(
+          chart.meta.currentTradingPeriod?.regular?.start
+        );
       }),
       E.bind("end", ({ chart }) => {
         return UnixDateDecoder.decode(chart.meta.regularMarketTime);
@@ -132,13 +130,13 @@ export const YahooChartDataDecoder = pipe(
             current: meta.regularMarketPrice,
             changePct: changeInPct({
               before: beginning,
-              after: meta.regularMarketPrice,
+              after: meta.regularMarketPrice
             }),
             change: changeInValue({
               before: beginning,
-              after: meta.regularMarketPrice,
-            }),
-          },
+              after: meta.regularMarketPrice
+            })
+          }
         };
       })
     );

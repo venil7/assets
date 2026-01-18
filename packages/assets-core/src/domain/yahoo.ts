@@ -1,15 +1,22 @@
-import { endOfToday, format, startOfToday, startOfYear, sub } from "date-fns";
+import {
+  endOfToday,
+  format,
+  fromUnixTime,
+  startOfToday,
+  startOfYear,
+  sub
+} from "date-fns";
 import * as t from "io-ts";
 import type { YahooChartDataDecoder } from "../decoders/yahoo/chart";
 import type { ChartInterval, ChartRange } from "../decoders/yahoo/meta";
 import type {
   PeriodChangesDecoder,
   TotalsDecoder,
-  UnixDateDecoder,
+  UnixDateDecoder
 } from "../decoders/yahoo/period";
 import type {
   YahooTickerDecoder,
-  YahooTickerSearchResultDecoder,
+  YahooTickerSearchResultDecoder
 } from "../decoders/yahoo/ticker";
 import type { ArrayItem } from "../utils/utils";
 import { EARLIEST_DATE } from "./tx";
@@ -52,24 +59,26 @@ export const intervalForRange = (range: ChartRange): ChartInterval => {
 
 type TimeFormatter = (ts: ChartDataItem["timestamp"]) => string;
 export const tfForRange = (r: ChartRange): TimeFormatter => {
-  switch (r) {
-    case "1d":
-    // return (t) => format(t * 1000, "HH:mm");
-    case "5d":
-      return (t) => format(t * 1000, "cccccc HH:mm");
-    case "1mo":
-    case "3mo":
-      return (t) => format(t * 1000, "d LLL HH:mm");
-    case "6mo":
-      return (t) => format(t * 1000, "d LLL");
-    case "1y":
-    case "2y":
-    case "5y":
-    case "10y":
-    case "ytd":
-    case "max":
-      return (t) => format(t * 1000, "d-LLL-yy");
-  }
+  const pattern = (() => {
+    switch (r) {
+      case "1d":
+      case "5d":
+        return "cccccc HH:mm";
+      case "1mo":
+        return "d LLL HH:mm";
+      case "3mo":
+      case "6mo":
+        return "d LLL";
+      case "1y":
+      case "2y":
+      case "5y":
+      case "10y":
+      case "ytd":
+      case "max":
+        return "d-LLL-yy";
+    }
+  })();
+  return (t) => format(fromUnixTime(t), pattern);
 };
 
 export const ealiest = (range: ChartRange): Date => {

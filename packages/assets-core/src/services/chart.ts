@@ -4,7 +4,7 @@ import { Heap } from "heap-js";
 import type { ChartDataPoint } from "../decoders/yahoo/chart";
 import type { ChartRange } from "../decoders/yahoo/meta";
 import type { ChartData, EnrichedAsset, EnrichedPortfolio } from "../domain";
-import { nonEmpty } from "../utils/array";
+import { onEmpty } from "../utils/array";
 
 const commonRanges =
   <Item>(getRanges: FunctionN<[Item], ChartRange[]>) =>
@@ -80,18 +80,18 @@ const combineCharts =
     }
     return pipe(
       points,
-      nonEmpty(() => ({ timestamp: 0, volume: 0, price: 0 }))
+      onEmpty(() => ({ timestamp: 0, volume: 0, price: 0 }))
     );
   };
 
 export const combineAssetCharts = combineCharts<EnrichedAsset>((a) => ({
   ticker: a.ticker,
   chart: a.chart.base,
-  price: a.value.base.current,
+  price: a.value.base.current
 }));
 
 export const combinePortfolioCharts = combineCharts<EnrichedPortfolio>((p) => ({
   ticker: `${p.id}${p.name}`,
   chart: p.chart,
-  price: p.value.current,
+  price: p.value.current
 }));

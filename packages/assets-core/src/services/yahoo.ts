@@ -7,10 +7,14 @@ import { generalError } from "../domain";
 import { type YahooApi } from "../http";
 import type { Action } from "../utils/utils";
 
+export const getToBase = (baseRate: number) => (n: number) => n / baseRate;
+
 export const baseCcyConversionRate =
   (yahooApi: YahooApi) =>
   (ccy: string, base: Ccy): Action<number> => {
     if (ccy === base) return TE.of(1);
+    if (ccy === "GBp" && base === "GBP") return TE.of(100);
+
     const term = `${base}/${ccy}`;
     return pipe(
       yahooApi.search(term), //eg gbpusd

@@ -70,7 +70,7 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
           This portfolio doesn have any assets yet
         </Info>
 
-        <Tabs tabs={["Chart", "Details"]}>
+        <Tabs tabs={["Chart", "Details"]} hidden={!portfolio.num_assets}>
           <TabContent tab={0}>
             <RangeChart
               onChange={onRange}
