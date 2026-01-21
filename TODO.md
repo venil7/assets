@@ -7,4 +7,5 @@
 [x] remove custom decoder nonEmptyString
 [ ] <portfolio details />
 [ ] FX impact, per transaction and total
-[ ] portfolio combine charts, for ssets with no holdings
+[x] portfolio combine charts, for ssets with no holdings
+[ ] explore if TX enricher can work wothout enriched asset

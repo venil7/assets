@@ -99,7 +99,7 @@ export const getPortfolioEnricher =
           return { change, changePct };
         })();
 
-        const chart = combineAssetCharts(assets);
+        const chart = combineAssetCharts(assets.filter((a) => a.holdings > 0));
 
         const meta = (() => {
           const range = pipe(

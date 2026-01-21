@@ -1,4 +1,4 @@
-import { run, yahooApi, type Action } from "@darkruby/assets-core";
+import { run, type Action } from "@darkruby/assets-core";
 import { createRequestHandler } from "@darkruby/fp-express";
 import { Database } from "bun:sqlite";
 import cors from "cors";
@@ -16,7 +16,7 @@ import { createWebService } from "./services";
 import {
   createCache,
   type AppCache,
-  type Stringifiable,
+  type Stringifiable
 } from "./services/cache";
 import { env, envDurationMsec, envNumber } from "./services/env";
 import { initializeApp } from "./services/init";
@@ -52,7 +52,7 @@ const cache = ({ cacheSize, cacheTtl }: Config): Action<AppCache> =>
     TE.of(
       new LRUCache<Stringifiable, any>({
         max: cacheSize,
-        ttl: cacheTtl,
+        ttl: cacheTtl
       })
     ),
     TE.map(createCache)
@@ -171,7 +171,7 @@ const app = () =>
         TE.bind("repo", () => repository(config)),
         TE.bind("cache", () => cache(config)),
         TE.bind("yahooApi", ({ cache }) => TE.of(cachedYahooApi(cache))),
-        TE.bind("service", ({ repo }) =>
+        TE.bind("service", ({ repo, yahooApi }) =>
           TE.of(createWebService(repo, yahooApi))
         )
       )

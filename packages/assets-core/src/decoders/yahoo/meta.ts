@@ -9,13 +9,13 @@ const TradingPeriodDecoder = t.type({
   timezone: t.string,
   end: t.number,
   start: t.number,
-  gmtoffset: t.number,
+  gmtoffset: t.number
 });
 
 const CurrentTradingPeriodDecoder = t.type({
   pre: nullableDecoder(TradingPeriodDecoder),
   regular: nullableDecoder(TradingPeriodDecoder),
-  post: nullableDecoder(TradingPeriodDecoder),
+  post: nullableDecoder(TradingPeriodDecoder)
 });
 
 const tradingPeriods = t.array(t.array(TradingPeriodDecoder));
@@ -34,11 +34,12 @@ const intervals = [
   "5d",
   "1wk",
   "1mo",
-  "3mo",
+  "3mo"
 ] as const;
 export type ChartInterval = (typeof intervals)[number];
 
 const ranges = [
+  "ytd",
   "1d",
   "5d",
   "1mo",
@@ -48,8 +49,7 @@ const ranges = [
   "2y",
   "5y",
   "10y",
-  "ytd",
-  "max",
+  "max"
 ] as const;
 export type ChartRange = (typeof ranges)[number];
 
@@ -70,7 +70,7 @@ export const RangeDecoder = pipe(
       codecs as [
         t.LiteralC<string>,
         t.LiteralC<string>,
-        ...t.LiteralC<string>[],
+        ...t.LiteralC<string>[]
       ]
     )
 ) as t.Type<ChartRange>;
@@ -94,5 +94,5 @@ export const ChartMetaDecoder = t.type({
   tradingPeriods: nullableDecoder(tradingPeriods),
   dataGranularity: t.string,
   validRanges: t.array(RangeDecoder),
-  range: RangeDecoder,
+  range: RangeDecoder
 });

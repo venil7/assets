@@ -1,11 +1,17 @@
 import {
+  addDays,
+  addMonths,
+  addSeconds,
+  addYears,
   endOfToday,
   format,
   fromUnixTime,
+  getUnixTime,
   startOfToday,
   startOfYear,
   sub
 } from "date-fns";
+import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
 import type { YahooChartDataDecoder } from "../decoders/yahoo/chart";
 import type { ChartInterval, ChartRange } from "../decoders/yahoo/meta";
@@ -18,7 +24,9 @@ import type {
   YahooTickerDecoder,
   YahooTickerSearchResultDecoder
 } from "../decoders/yahoo/ticker";
-import type { ArrayItem } from "../utils/utils";
+import { fuzzyIndexSearch } from "../utils/array";
+import { now } from "../utils/date";
+import type { ArrayItem, Optional } from "../utils/utils";
 import { EARLIEST_DATE } from "./tx";
 
 export type YahooTicker = t.TypeOf<typeof YahooTickerDecoder>;
@@ -109,4 +117,48 @@ export const ealiest = (range: ChartRange): Date => {
     default:
       return EARLIEST_DATE;
   }
+};
+
+export const rangeForDate = (date: Date): ChartRange => {
+  const today = now();
+  switch (true) {
+    case date >= today:
+      return "1d";
+    case date < addYears(today, -10):
+      return "max";
+    case date < addYears(today, -5):
+      return "10y";
+    case date < addYears(today, -2):
+      return "5y";
+    case date < addYears(today, -1):
+      return "2y";
+    case date < addMonths(today, -6):
+      return "1y";
+    case date < addMonths(today, -3):
+      return "6mo";
+    case date < addMonths(today, -1):
+      return "3mo";
+    case date < addDays(today, -5):
+      return "1mo";
+    case date < addDays(today, -1):
+      return "5d";
+    case date < addSeconds(today, -1):
+      return "1d";
+    default:
+      return "max";
+  }
+};
+
+export const priceForDate = (
+  data: YahooChartData,
+  date: Optional<Date>
+): number => {
+  // if no date supplied return Market price
+  if (!date) return data.meta.regularMarketPrice;
+  // else return best price approximation
+  const idx = pipe(
+    data.chart,
+    fuzzyIndexSearch<ChartDataItem>(getUnixTime(date), (item) => item.timestamp)
+  );
+  return data.chart[idx].price;
 };

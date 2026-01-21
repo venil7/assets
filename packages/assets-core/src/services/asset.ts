@@ -36,20 +36,16 @@ export const getAssetEnricher =
       TE.apS("asset", TE.of(asset)),
       TE.bind("chart", ({ asset }) => yahooApi.chart(asset.ticker, range)),
       TE.bind("txs", ({ chart }) => {
-        return pipe(
-          chart.chart,
-          NeA.head,
-          (dp) => fromUnixTime(dp.timestamp),
-          getAssetTxs
-        );
+        const earliestDp = NeA.head(chart.chart);
+        return getAssetTxs(fromUnixTime(earliestDp.timestamp));
       }),
       TE.bind("baseRate", ({ chart }) =>
         getBaseCcyConversionRate(chart.meta.currency, baseCcy)
       ),
       TE.map(
         ({
-          asset,
           txs,
+          asset,
           chart: { chart: origChart, price, meta },
           baseRate
         }) => {
