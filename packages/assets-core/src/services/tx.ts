@@ -1,9 +1,13 @@
-import { type LazyArg, pipe } from "fp-ts/lib/function";
+import { pipe, type LazyArg } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import type { EnrichedAsset, EnrichedTx, GetTx } from "../domain";
+import {
+  getToBase,
+  type EnrichedAsset,
+  type EnrichedTx,
+  type GetTx
+} from "../domain";
 import { changeInPct, changeInValue } from "../utils/finance";
 import type { Action } from "../utils/utils";
-import { getToBase } from "./yahoo";
 
 export const getTxEnricher =
   (getEnrichedAsset: LazyArg<Action<EnrichedAsset>>) =>

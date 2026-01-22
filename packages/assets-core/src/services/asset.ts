@@ -9,6 +9,7 @@ import { DEFAULT_CHART_RANGE, type ChartRange } from "../decoders/yahoo/meta";
 import {
   defaultBuyTx,
   EARLIEST_DATE,
+  getToBase,
   type ChartData,
   type ChartDataItem,
   type EnrichedAsset,
@@ -20,7 +21,6 @@ import {
 import type { YahooApi } from "../http";
 import { changeInPct, changeInValue, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
-import { baseCcyConversionRate, getToBase } from "./yahoo";
 
 export const getAssetEnricher =
   (yahooApi: YahooApi) =>
@@ -30,7 +30,7 @@ export const getAssetEnricher =
     baseCcy: Ccy,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedAsset> => {
-    const getBaseCcyConversionRate = baseCcyConversionRate(yahooApi);
+    // const getBaseCcyConversionRate = baseCcyConversionRate(yahooApi);
     return pipe(
       TE.Do,
       TE.apS("asset", TE.of(asset)),
@@ -40,7 +40,7 @@ export const getAssetEnricher =
         return getAssetTxs(fromUnixTime(earliestDp.timestamp));
       }),
       TE.bind("baseRate", ({ chart }) =>
-        getBaseCcyConversionRate(chart.meta.currency, baseCcy)
+        yahooApi.baseCcyConversionRate(chart.meta.currency, baseCcy)
       ),
       TE.map(
         ({

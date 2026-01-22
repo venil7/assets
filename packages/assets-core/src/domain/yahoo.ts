@@ -162,3 +162,5 @@ export const priceForDate = (
   );
   return data.chart[idx].price;
 };
+
+export const getToBase = (baseRate: number) => (n: number) => n / baseRate;

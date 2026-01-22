@@ -11,7 +11,7 @@ import {
   type Optional,
   type PortfolioId,
   type UserId,
-  type YahooApi,
+  type YahooApi
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { WebAction } from "@darkruby/fp-express";
@@ -19,7 +19,6 @@ import { pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
 import { mapWebError } from "../domain/error";
 import type { Repository } from "../repository";
-import { checkTickerExists } from "./yahoo";
 
 const assetDecoder = liftTE(PostAssetDecoder);
 
@@ -90,12 +89,11 @@ export const createAsset =
     const enrichAsset = getAssetEnricher(yahooApi);
     const getTxs = (assetId: AssetId) => (after: Date) =>
       repo.tx.getAll(assetId, userId, after);
-    const check = checkTickerExists(yahooApi);
     return pipe(
       TE.Do,
       TE.bind("pref", () => repo.prefs.get(userId)),
       TE.bind("asset", () => assetDecoder(payload)),
-      TE.tap(({ asset }) => check(asset.ticker)),
+      TE.tap(({ asset }) => yahooApi.checkTickerExists(asset.ticker)),
       TE.bind("created", ({ asset }) =>
         repo.asset.create(asset, portfolioId, userId)
       ),
@@ -116,12 +114,11 @@ export const updateAsset =
   ): WebAction<EnrichedAsset> => {
     const enrichAsset = getAssetEnricher(yahooApi);
     const getTxs = (after: Date) => repo.tx.getAll(assetId, userId, after);
-    const check = checkTickerExists(yahooApi);
     return pipe(
       TE.Do,
       TE.bind("pref", () => repo.prefs.get(userId)),
       TE.bind("asset", () => assetDecoder(payload)),
-      TE.tap(({ asset }) => check(asset.ticker)),
+      TE.tap(({ asset }) => yahooApi.checkTickerExists(asset.ticker)),
       TE.bind("updated", ({ asset }) =>
         repo.asset.update(assetId, portfolioId, userId, asset)
       ),

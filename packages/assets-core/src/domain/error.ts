@@ -27,7 +27,7 @@ export const handleError =
   (msg: string = "", type: AppErrorType = AppErrorType.General) =>
   (e: any): AppError => {
     const debug = false;
-    const message = `${msg}: ${debug ? JSON.stringify(e.stack) : JSON.stringify(e)}`;
+    const message = `${msg}: ${debug ? JSON.stringify(e.stack) : JSON.stringify(e.message)}`;
     return {
       message,
       type

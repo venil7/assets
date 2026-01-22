@@ -1,53 +1,64 @@
 import {
   yahooApi as rawYahooApi,
-  validationError,
-  type Action,
-  type YahooApi,
+  type Ccy,
+  type Optional,
+  type YahooApi
 } from "@darkruby/assets-core";
 import {
   DEFAULT_CHART_RANGE,
-  type ChartRange,
+  type ChartRange
 } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { createLogger } from "@darkruby/fp-express";
-import * as A from "fp-ts/lib/Array";
-import { identity, pipe } from "fp-ts/lib/function";
-import * as TE from "fp-ts/lib/TaskEither";
+
 import type { AppCache } from "./cache";
 
 const logger = createLogger("cached yahoo");
 
 export const cachedYahooApi = (cache: AppCache): YahooApi => {
-  const CHART_TTL = 1000 * 60 * 1; // 1 minutes
+  const CHART_TTL = 1000 * 60 * 10; // 1 minutes
   const SEARCH_TTL = 1000 * 60 * 10; // 10 minutes
+  const LOOKUP_TTL = 1000 * 60 * 60; // 1 hr
+  const search = (term: string) =>
+    cache.cachedAction(
+      `yahoo-search-${term}`,
+      () => rawYahooApi.search(term),
+      SEARCH_TTL
+    );
+  const chart = (symbol: string, range?: ChartRange) =>
+    cache.cachedAction(
+      `yahoo-chart-${symbol}-${range ?? DEFAULT_CHART_RANGE}`,
+      () => rawYahooApi.chart(symbol, range),
+      CHART_TTL
+    );
+  const meta = (symbol: string) =>
+    cache.cachedAction(
+      `yahoo-meta-${symbol}`,
+      () => rawYahooApi.meta(symbol),
+      LOOKUP_TTL
+    );
+  const baseCcyConversionRate = (
+    ccy: string,
+    base: Ccy,
+    date?: Optional<Date>
+  ) =>
+    cache.cachedAction(
+      `yahoo-ccy-lookup-${ccy}-${base}-${date?.getTime() ?? "latest"}`,
+      () => rawYahooApi.baseCcyConversionRate(ccy, base, date),
+      LOOKUP_TTL
+    );
+
+  const checkTickerExists = (symbol: string) =>
+    cache.cachedAction(
+      `yahoo-check-ticker-${symbol}`,
+      () => rawYahooApi.checkTickerExists(symbol),
+      LOOKUP_TTL
+    );
+
   return {
-    search: (term: string) =>
-      cache.cachedAction(
-        `yahoo-search-${term}`,
-        () => rawYahooApi.search(term),
-        SEARCH_TTL
-      ),
-    chart: (symbol: string, range?: ChartRange) =>
-      cache.cachedAction(
-        `yahoo-chart-${symbol}-${range ?? DEFAULT_CHART_RANGE}`,
-        () => rawYahooApi.chart(symbol, range),
-        CHART_TTL
-      ),
+    meta,
+    chart,
+    search,
+    baseCcyConversionRate,
+    checkTickerExists
   };
 };
-
-export const checkTickerExists =
-  (yahooApi: YahooApi) =>
-  (ticker: string): Action<boolean> => {
-    logger.info(`checking symbol: ${ticker}`);
-    return pipe(
-      yahooApi.search(ticker),
-      TE.map((a) => a.quotes),
-      TE.map(A.map((q) => q.symbol)),
-      TE.map(
-        A.exists((s) => s.toLocaleUpperCase() == ticker.toLocaleUpperCase())
-      ),
-      TE.filterOrElse(identity, () =>
-        validationError(`Symbol '${ticker}' cannot be added`)
-      )
-    );
-  };
