@@ -2,7 +2,7 @@ import {
   type Ccy,
   type EnrichedAsset,
   type EnrichedTx,
-  type PostTx,
+  type PostTx
 } from "@darkruby/assets-core";
 import classNames from "classnames";
 import { pipe } from "fp-ts/lib/function";
@@ -61,7 +61,7 @@ const TxTableRow = (
     );
   const ccy = asset.meta.currency as Ccy;
   const buy = tx.type == "buy";
-  const profit = tx.returnCcy >= 0;
+  const profit = tx.ccy.returnValue >= 0;
   return (
     <tr key={tx.id}>
       <td /**type */ className="capitalize">{tx.type}</td>
@@ -70,18 +70,18 @@ const TxTableRow = (
       </td>
       <td /**quantity */>{decimal(tx.quantity)}</td>
       <td /**price/unit */>{money(tx.price, ccy)}</td>
-      <td /**cost */>{money(tx.cost, ccy)}</td>
-      <td /**value */>{money(tx.valueCcy, ccy)}</td>
+      <td /**cost */>{money(tx.ccy.cost, ccy)}</td>
+      <td /**value */>{money(tx.ccy.value, ccy)}</td>
       {/* <td>{decimal(tx.holdings, 5, locale)}</td>
       <td>{money(tx.total_invested, ccy, locale)}</td> */}
       <td
         className={classNames({
           profit,
           loss: !profit,
-          unrealized: buy,
+          unrealized: buy
         })} /**return */
       >
-        {money(tx.returnCcy, ccy)}&nbsp; ({percent(tx.returnPct)})
+        {money(tx.ccy.returnValue, ccy)}&nbsp; ({percent(tx.ccy.returnPct)})
       </td>
       <td /**comments */ className="d-none d-md-table-cell ellipsis pre">
         {tx.comments}
@@ -101,7 +101,7 @@ export const TxTable = pipe(
   withProps({
     header: TxTableHeader,
     row: TxTableRow,
-    pageSize: 10,
+    pageSize: 10
   }),
   withCondition(
     (p) => !!p.items.length,

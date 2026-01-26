@@ -6,15 +6,15 @@ import {
   PostTxDecoder,
   PostTxsUploadDecoder,
   type AssetId,
-  type EnrichedAsset,
   type EnrichedTx,
+  type GetAsset,
   type Id,
   type Nullable,
   type Optional,
   type PortfolioId,
   type TxId,
   type UserId,
-  type YahooApi,
+  type YahooApi
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { WebAction } from "@darkruby/fp-express";
@@ -22,25 +22,22 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import { mapWebError } from "../domain/error";
 import type { Repository } from "../repository";
-import { getAsset as assetGetter } from "./asset";
 
 const txDecoder = liftTE(PostTxDecoder);
 const txUploadDecoder = liftTE(PostTxsUploadDecoder);
 
 const assetGetterHelper = (
   repo: Repository,
-  yahooApi: YahooApi,
   assetId: AssetId,
   portfolioId: PortfolioId,
   userId: UserId
 ) => {
-  const getAsset = assetGetter(repo, yahooApi);
   return () =>
     pipe(
-      getAsset(assetId, portfolioId, userId, "1d"),
+      repo.asset.get(assetId, portfolioId, userId),
       TE.mapLeft(handleError()),
       TE.filterOrElse(
-        (x): x is EnrichedAsset => Boolean(x),
+        (x): x is GetAsset => Boolean(x),
         () => generalError(`asset not found`)
       )
     );
@@ -54,14 +51,9 @@ export const getTx =
     portfolioId: PortfolioId,
     userId: UserId
   ): WebAction<Optional<EnrichedTx>> => {
-    const asset = assetGetterHelper(
-      repo,
-      yahooApi,
-      assetId,
-      portfolioId,
-      userId
-    );
-    const enrichTx = getTxEnricher(asset);
+    const txEnricher = getTxEnricher(yahooApi);
+    const getAsset = assetGetterHelper(repo, assetId, portfolioId, userId);
+    const enrichTx = txEnricher(getAsset);
     return pipe(
       repo.tx.get(txId, assetId, userId),
       TE.chain((tx) => (tx ? enrichTx(tx) : TE.of(null))),
@@ -77,17 +69,13 @@ export const getTxs =
     userId: UserId,
     after: Nullable<Date> = null
   ): WebAction<readonly EnrichedTx[]> => {
-    const asset = assetGetterHelper(
-      repo,
-      yahooApi,
-      assetId,
-      portfolioId,
-      userId
-    );
+    const txsEnricher = getTxsEnricher(yahooApi);
+    const getAsset = assetGetterHelper(repo, assetId, portfolioId, userId);
+    const enrichTxs = txsEnricher(getAsset);
 
     return pipe(
       repo.tx.getAll(assetId, userId, after),
-      TE.chain(getTxsEnricher(asset)),
+      TE.chain(enrichTxs),
       mapWebError
     );
   };
@@ -100,17 +88,13 @@ export const createTx =
     userId: UserId,
     payload: unknown
   ): WebAction<EnrichedTx> => {
-    const asset = assetGetterHelper(
-      repo,
-      yahooApi,
-      assetId,
-      portfolioId,
-      userId
-    );
+    const txEnricher = getTxEnricher(yahooApi);
+    const getAsset = assetGetterHelper(repo, assetId, portfolioId, userId);
+    const enrichTx = txEnricher(getAsset);
     return pipe(
       txDecoder(payload),
       TE.chain((tx) => repo.tx.create(tx, assetId, userId)),
-      TE.chain(getTxEnricher(asset)),
+      TE.chain(enrichTx),
       mapWebError
     );
   };
@@ -124,17 +108,13 @@ export const updateTx =
     userId: UserId,
     payload: unknown
   ): WebAction<EnrichedTx> => {
-    const asset = assetGetterHelper(
-      repo,
-      yahooApi,
-      assetId,
-      portfolioId,
-      userId
-    );
+    const txEnricher = getTxEnricher(yahooApi);
+    const getAsset = assetGetterHelper(repo, assetId, portfolioId, userId);
+    const enrichTx = txEnricher(getAsset);
     return pipe(
       txDecoder(payload),
       TE.chain((tx) => repo.tx.update(txId, tx, assetId, userId)),
-      TE.chain(getTxEnricher(asset)),
+      TE.chain(enrichTx),
       mapWebError
     );
   };

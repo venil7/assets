@@ -30,7 +30,6 @@ export const getAssetEnricher =
     baseCcy: Ccy,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedAsset> => {
-    // const getBaseCcyConversionRate = baseCcyConversionRate(yahooApi);
     return pipe(
       TE.Do,
       TE.apS("asset", TE.of(asset)),

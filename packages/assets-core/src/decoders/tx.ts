@@ -8,7 +8,7 @@ const baseTxTypes = {
   quantity: NumberDecoder,
   price: NumberDecoder,
   date: dateDecoder,
-  comments: withFallback(t.string, ""),
+  comments: withFallback(t.string, "")
 };
 
 const extTxTypes = {
@@ -19,7 +19,7 @@ const extTxTypes = {
   modified: dateDecoder,
   holdings: t.number,
   total_invested: t.number,
-  avg_price: nullableDecoder(t.number),
+  avg_price: nullableDecoder(t.number)
 };
 
 export const PostTxDecoder = t.type(baseTxTypes);
@@ -28,17 +28,24 @@ export const GetTxsDecoder = t.array(GetTxDecoder);
 
 export const PostTxsUploadDecoder = t.type({
   replace: t.boolean,
-  txs: t.array(PostTxDecoder),
+  txs: t.array(PostTxDecoder)
 });
 
 export const EnrichedTxDecoder = t.type({
   ...extTxTypes,
-  cost: t.number,
-  valueCcy: t.number,
-  valueBase: t.number,
-  returnPct: t.number,
-  returnBase: t.number,
-  returnCcy: t.number,
+  ccy: t.type({
+    cost: t.number,
+    value: t.number,
+    returnValue: t.number,
+    returnPct: t.number
+  }),
+  base: t.type({
+    cost: t.number,
+    value: t.number,
+    returnValue: t.number,
+    returnPct: t.number,
+    fxImpact: t.number
+  })
 });
 
 export const EnrichedTxsDecoder = t.array(EnrichedTxDecoder);

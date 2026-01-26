@@ -107,8 +107,6 @@ export const ealiest = (range: ChartRange): Date => {
       return sub(startOfToday(), { years: 2 });
     case "5y":
       return sub(startOfToday(), { years: 5 });
-    case "5y":
-      return sub(startOfToday(), { years: 5 });
     case "10y":
       return sub(startOfToday(), { years: 10 });
     case "ytd":

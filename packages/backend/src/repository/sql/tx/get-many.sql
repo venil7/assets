@@ -7,7 +7,7 @@ with selection as (
     and at1.date >= $after
   order by at1.date asc
 ),
--- select 1 tx straight after this daye
+-- select 1 tx straight after this day
 one_more as (
   select *
   from asset_transactions at2
