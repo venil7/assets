@@ -11,7 +11,7 @@ import {
   type Optional,
   type PortfolioId,
   type UserId,
-  type YahooApi,
+  type YahooApi
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { WebAction } from "@darkruby/fp-express";
@@ -44,17 +44,10 @@ export const getPortfolio =
       repo.tx.getAll(assetId, userId, after);
     return pipe(
       TE.Do,
-      TE.bind("pref", () => repo.prefs.get(userId)),
       TE.bind("portfolio", () => repo.portfolio.get(portfolioId, userId)),
-      TE.chain(({ portfolio, pref }) => {
+      TE.chain(({ portfolio }) => {
         const getAssets = () => repo.asset.getAll(portfolio!.id, userId);
-        return enrichPortfolio(
-          portfolio,
-          getAssets,
-          getTxs,
-          pref.base_ccy,
-          range
-        );
+        return enrichPortfolio(portfolio, getAssets, getTxs, range);
       }),
       mapWebError
     );
@@ -71,18 +64,11 @@ export const getPortfolios =
       repo.tx.getAll(assetId, userId, after);
     return pipe(
       TE.Do,
-      TE.bind("pref", () => repo.prefs.get(userId)),
       TE.bind("portfolios", () => repo.portfolio.getAll(userId)),
-      TE.chain(({ portfolios, pref }) => {
+      TE.chain(({ portfolios }) => {
         const getAssets = ({ id: portfolioId }: GetPortfolio) =>
           repo.asset.getAll(portfolioId, userId);
-        return enrichPortfolio(
-          portfolios,
-          getAssets,
-          getTxs,
-          pref.base_ccy,
-          range
-        );
+        return enrichPortfolio(portfolios, getAssets, getTxs, range);
       }),
       mapWebError
     );

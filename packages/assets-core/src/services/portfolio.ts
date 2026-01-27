@@ -2,7 +2,6 @@ import * as A from "fp-ts/lib/Array";
 import { pipe, type FunctionN, type LazyArg } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
 import * as TE from "fp-ts/lib/TaskEither";
-import type { Ccy } from "../decoders";
 import {
   ChartRangeOrd,
   DEFAULT_CHART_RANGE,
@@ -10,9 +9,9 @@ import {
 } from "../decoders/yahoo/meta";
 import type {
   EnrichedPortfolio,
+  EnrichedTx,
   GetAsset,
   GetPortfolio,
-  GetTx,
   PeriodChanges,
   Totals,
   UnixDate
@@ -20,7 +19,7 @@ import type {
 import type { YahooApi } from "../http";
 import { onEmpty } from "../utils/array";
 import { unixNow } from "../utils/date";
-import { changeInPct, changeInValue, sum } from "../utils/finance";
+import { change, changeInPct, changeInValue, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
 import { calcAssetWeights, getAssetsEnricher } from "./asset";
 import { combineAssetCharts, commonAssetRanges } from "./chart";
@@ -30,8 +29,7 @@ export const getPortfolioEnricher =
   (
     portfolio: GetPortfolio,
     getAssets: LazyArg<Action<GetAsset[]>>,
-    getAssetTxs: (asset: GetAsset, after: Date) => Action<GetTx[]>,
-    baseCcy: Ccy,
+    getEnrichedTxs: (asset: GetAsset) => Action<EnrichedTx[]>,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedPortfolio> => {
     const enrichAssets = getAssetsEnricher(yahooApi);
@@ -42,37 +40,37 @@ export const getPortfolioEnricher =
       TE.bind("assets", () => {
         return pipe(
           getAssets(),
-          TE.chain((a) => enrichAssets(a, getAssetTxs, baseCcy, range)),
+          TE.chain((a) => enrichAssets(a, getEnrichedTxs, range)),
           TE.map(calcAssetWeights)
         );
       }),
       TE.map(({ portfolio, assets }) => {
         const investedBase = pipe(
           assets,
-          sum(({ investedBase }) => investedBase)
+          sum(({ base }) => base.invested)
         );
 
         const value: PeriodChanges = (() => {
           const beginning = pipe(
             assets,
-            sum(({ value }) => value.base.beginning)
+            sum(({ base }) => base.changes.beginning)
           );
           const current = pipe(
             assets,
-            sum(({ value }) => value.base.current)
+            sum(({ base }) => base.changes.current)
           );
 
           const change = changeInValue({ before: beginning, after: current });
           const changePct = changeInPct({ before: beginning, after: current });
           const start = pipe(
             assets,
-            A.map(({ value }) => value.ccy.start),
+            A.map(({ ccy }) => ccy.changes.start),
             onEmpty(unixNow),
             (s) => Math.min(...s)
           ) as UnixDate;
           const end = pipe(
             assets,
-            A.map(({ value }) => value.ccy.end),
+            A.map(({ ccy }) => ccy.changes.end),
             onEmpty(unixNow),
             (s) => Math.max(...s)
           ) as UnixDate;
@@ -88,15 +86,12 @@ export const getPortfolioEnricher =
         })();
 
         const totals = ((): Totals => {
-          const change = changeInValue({
+          const [returnValue, returnPct] = change({
             before: investedBase,
             after: value.current
           });
-          const changePct = changeInPct({
-            before: investedBase,
-            after: value.current
-          });
-          return { change, changePct };
+
+          return { returnValue, returnPct };
         })();
 
         const chart = combineAssetCharts(assets.filter((a) => a.holdings > 0));
@@ -131,15 +126,14 @@ export const getPortfoliosEnricher =
   (
     portfolios: GetPortfolio[],
     getAssets: FunctionN<[GetPortfolio], Action<GetAsset[]>>,
-    getAssetTxs: (asset: GetAsset, after: Date) => Action<GetTx[]>,
-    baseCcy: Ccy,
+    getEnrichedTxs: (asset: GetAsset) => Action<EnrichedTx[]>,
     range?: ChartRange
   ): Action<EnrichedPortfolio[]> => {
     const enrichPortfolio = getPortfolioEnricher(yahooApi);
     return pipe(
       portfolios,
       TE.traverseArray((p) =>
-        enrichPortfolio(p, () => getAssets(p), getAssetTxs, baseCcy, range)
+        enrichPortfolio(p, () => getAssets(p), getEnrichedTxs, range)
       ),
       TE.map((ps) => calcPortfolioWeights(ps as EnrichedPortfolio[]))
     );
@@ -150,13 +144,12 @@ export const getOptionalPorfolioEnricher =
   (
     portfolio: Optional<GetPortfolio>,
     getAssets: () => Action<GetAsset[]>,
-    getAssetTxs: (asset: GetAsset, after: Date) => Action<GetTx[]>,
-    baseCcy: Ccy,
+    getEnrichedTxs: (asset: GetAsset) => Action<EnrichedTx[]>,
     range?: ChartRange
   ): Action<Optional<EnrichedPortfolio>> => {
     if (portfolio) {
       const enrichPortfolio = getPortfolioEnricher(yahooApi);
-      return enrichPortfolio(portfolio, getAssets, getAssetTxs, baseCcy, range);
+      return enrichPortfolio(portfolio, getAssets, getEnrichedTxs, range);
     }
     return TE.of(null);
   };

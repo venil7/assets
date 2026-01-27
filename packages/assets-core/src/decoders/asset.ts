@@ -33,20 +33,20 @@ export const GetAssetsDecoder = t.array(GetAssetDecoder);
 export const EnrichedAssetDecoder = t.type({
   ...extAssetTypes,
   meta: ChartMetaDecoder,
-  chart: t.type({
-    ccy: nonEmptyArray(ChartDataPointDecoder),
-    base: nonEmptyArray(ChartDataPointDecoder)
+  mktBaseRate: t.number,
+  weight: nullableDecoder(t.number),
+  foreignAsset: t.boolean, // if denominated in non base ccy
+  ccy: t.type({
+    chart: nonEmptyArray(ChartDataPointDecoder),
+    changes: PeriodChangesDecoder,
+    totals: TotalsDecoder
   }),
-  investedBase: t.number,
-  value: t.type({
-    ccy: PeriodChangesDecoder,
-    base: PeriodChangesDecoder,
-    weight: t.number,
-    baseRate: t.number
-  }),
-  totals: t.type({
-    ccy: TotalsDecoder,
-    base: TotalsDecoder
+  base: t.type({
+    invested: t.number,
+    fxImpact: t.number,
+    chart: nonEmptyArray(ChartDataPointDecoder),
+    changes: PeriodChangesDecoder,
+    totals: TotalsDecoder
   })
 });
 

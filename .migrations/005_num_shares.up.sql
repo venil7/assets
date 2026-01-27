@@ -4,9 +4,22 @@ drop view if exists asset_transactions;
 create view
   if not exists asset_transactions as
 with
+  total_contr as (
+    select
+      asset_id,
+      sum(quantity) as total_quantity
+    from
+      transactions t
+    group by
+      asset_id
+  ),
   subquery as (
     select
       t.*,
+      case
+        when t.type = 'buy' then (t.quantity / tc.total_quantity)
+        else 0
+      end AS contribution,
       SUM(
         CASE
           WHEN t.type = 'buy' THEN t.quantity
@@ -38,6 +51,7 @@ with
       p.user_id
     from
       transactions t
+      inner join total_contr tc on tc.asset_id = t.asset_id
       inner join assets a on a.id = t.asset_id
       inner join portfolios p on p.id = a.portfolio_id
   )

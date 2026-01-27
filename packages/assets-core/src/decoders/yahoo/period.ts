@@ -16,12 +16,14 @@ const periodChangesTypes = {
   change: t.number,
   changePct: t.number,
   start: UnixDateDecoder,
-  end: UnixDateDecoder,
+  end: UnixDateDecoder
 };
 
 const totalsTypes = {
-  change: t.number,
-  changePct: t.number,
+  // change: t.number,
+  // changePct: t.number,
+  returnValue: t.number,
+  returnPct: t.number
 };
 
 export const PeriodChangesDecoder = t.type(periodChangesTypes);

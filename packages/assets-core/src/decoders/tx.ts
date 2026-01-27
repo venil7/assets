@@ -17,8 +17,9 @@ const extTxTypes = {
   asset_id: t.number,
   created: dateDecoder,
   modified: dateDecoder,
-  holdings: t.number,
-  total_invested: t.number,
+  holdings: t.number, //total holdings at the time of this transaction
+  total_invested: t.number, // total invested at the time of this transaction
+  contribution: t.number, //contribution to asset ownership in % (buy only)
   avg_price: nullableDecoder(t.number)
 };
 

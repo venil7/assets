@@ -86,8 +86,8 @@ const combineCharts =
 
 export const combineAssetCharts = combineCharts<EnrichedAsset>((a) => ({
   ticker: a.ticker,
-  chart: a.chart.base,
-  price: a.value.base.current
+  chart: a.base.chart,
+  price: a.base.changes.current
 }));
 
 export const combinePortfolioCharts = combineCharts<EnrichedPortfolio>((p) => ({

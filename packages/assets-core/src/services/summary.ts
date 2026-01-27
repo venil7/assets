@@ -11,7 +11,7 @@ import type {
 } from "../domain";
 import { onEmpty } from "../utils/array";
 import { unixNow } from "../utils/date";
-import { changeInPct, changeInValue, sum } from "../utils/finance";
+import { change, changeInPct, changeInValue, sum } from "../utils/finance";
 import { combinePortfolioCharts, commonPortfolioRanges } from "./chart";
 
 export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
@@ -67,15 +67,12 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
   })();
 
   const totals = ((): Totals => {
-    const change = changeInValue({
+    const [returnValue, returnPct] = change({
       before: investedBase,
       after: value.current
     });
-    const changePct = changeInPct({
-      before: investedBase,
-      after: value.current
-    });
-    return { change, changePct };
+
+    return { returnValue, returnPct };
   })();
 
   return { chart, meta, value, totals };

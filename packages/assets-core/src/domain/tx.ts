@@ -5,7 +5,7 @@ import type {
   EnrichedTxDecoder,
   GetTxDecoder,
   PostTxDecoder,
-  PostTxsUploadDecoder,
+  PostTxsUploadDecoder
 } from "../decoders/tx";
 import { DateOrd } from "../utils/date";
 
@@ -24,13 +24,16 @@ export const defaultTx = (type: PostTx["type"], date: Date): PostTx => ({
   quantity: 0,
   price: 0,
   comments: "",
-  type,
+  type
 });
 
 export const byDateAsc = pipe(
   DateOrd,
   contramap<Date, PostTx>((tx) => tx.date)
 );
+
+export const buy = (tx: PostTx) => tx.type == "buy";
+export const sell = (tx: PostTx) => !buy(tx);
 
 export const byDateDesc = pipe(byDateAsc, reverse);
 
@@ -44,5 +47,5 @@ export const defaultTxsUpload = (
   replace = false
 ): PostTxsUpload => ({
   txs,
-  replace,
+  replace
 });
