@@ -56,7 +56,7 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
 
         <ListGroup variant="flush" hidden={asset.domestic}>
           <ListGroup.Item>
-            <strong>Fx Impact</strong>
+            <strong>Unrealized FX impact</strong>
             <span>{money(asset.base.fxImpact)}</span>
           </ListGroup.Item>
           <ListGroup.Item>

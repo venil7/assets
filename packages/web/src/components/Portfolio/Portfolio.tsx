@@ -4,7 +4,7 @@ import {
   type EnrichedPortfolio,
   type PostAsset,
   type PostPortfolio,
-  type PostTx,
+  type PostTx
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { pipe } from "fp-ts/lib/function";
@@ -43,7 +43,7 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
   onDeleteAsset,
   onUpdateAsset,
   onRange,
-  onAddTx,
+  onAddTx
 }: PortfolioProps) => {
   const handleAddAsset = () =>
     pipe(() => assetModal(defaultAsset()), TE.map(onAddAsset))();
@@ -61,8 +61,8 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
         <HorizontalStack className="top-toolbar">
           <AddBtn onClick={handleAddAsset} label="Asset" />
           <Totals
-            change={portfolio.value}
-            totals={portfolio.totals}
+            change={portfolio.base.changes}
+            totals={portfolio.base.totals}
             range={portfolio.meta.range}
           />
         </HorizontalStack>
@@ -74,7 +74,7 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
           <TabContent tab={0}>
             <RangeChart
               onChange={onRange}
-              data={portfolio.chart}
+              data={portfolio.base.chart}
               range={portfolio.meta.range}
               ranges={portfolio.meta.validRanges}
               hidden={!portfolio.num_assets}

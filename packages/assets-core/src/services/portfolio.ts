@@ -37,20 +37,39 @@ export const getPortfolioEnricher =
     return pipe(
       TE.Do,
       TE.apS("portfolio", TE.of(portfolio)),
-      TE.bind("assets", () => {
-        return pipe(
+      TE.bind("assets", () =>
+        pipe(
           getAssets(),
           TE.chain((a) => enrichAssets(a, getEnrichedTxs, range)),
           TE.map(calcAssetWeights)
-        );
-      }),
+        )
+      ),
       TE.map(({ portfolio, assets }) => {
-        const investedBase = pipe(
+        const invested = pipe(
           assets,
           sum(({ base }) => base.invested)
         );
 
-        const value: PeriodChanges = (() => {
+        const currencies = pipe(
+          new Set<string>(assets.map((a) => a.meta.currency)).values(),
+          Array.from<string>
+        );
+        const domestic = assets.reduce((d, a) => d && a.domestic, true);
+
+        const realizedGain = pipe(
+          assets,
+          sum(({ base }) => base.realizedGain)
+        );
+        const realizedGainPct = pipe(
+          assets,
+          sum(({ base, weight }) => base.realizedGainPct * (weight || 0))
+        );
+        const fxImpact = pipe(
+          assets,
+          sum(({ base }) => base.fxImpact)
+        );
+
+        const changes: PeriodChanges = (() => {
           const beginning = pipe(
             assets,
             sum(({ base }) => base.changes.beginning)
@@ -89,10 +108,9 @@ export const getPortfolioEnricher =
 
         const totals = ((): Totals => {
           const [returnValue, returnPct] = change({
-            before: investedBase,
-            after: value.current
+            before: invested,
+            after: changes.current
           });
-
           return { returnValue, returnPct };
         })();
 
@@ -110,14 +128,21 @@ export const getPortfolioEnricher =
 
         return {
           ...portfolio,
-          investedBase,
-          value,
-          totals,
-          chart,
           meta,
           // weight cannot be calc
           // for single portfolio
-          weight: 0
+          weight: 0,
+          currencies,
+          domestic,
+          base: {
+            changes,
+            chart,
+            invested,
+            totals,
+            realizedGain,
+            realizedGainPct,
+            fxImpact
+          }
         };
       })
     );
@@ -162,13 +187,13 @@ export const calcPortfolioWeights = (
 ): EnrichedPortfolio[] => {
   const total = pipe(
     portfolios,
-    sum(({ value }) => value.current)
+    sum(({ base }) => base.changes.current)
   );
   return pipe(
     portfolios,
     A.map((p: EnrichedPortfolio) => {
       if (total > 0) {
-        p.weight = p.value.current / total;
+        p.weight = p.base.changes.current / total;
       }
       return p;
     })

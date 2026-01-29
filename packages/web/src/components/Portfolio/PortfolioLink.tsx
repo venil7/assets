@@ -20,7 +20,7 @@ export type PortfolioLinkProps = {
 export const PortfolioLink = ({
   portfolio,
   onUpdate,
-  onDelete,
+  onDelete
 }: PortfolioLinkProps) => {
   const handleUpdate = pipe(() => portfolioModal(portfolio), TE.map(onUpdate));
   const handleDelete = pipe(
@@ -37,8 +37,8 @@ export const PortfolioLink = ({
               <div className="stick-left">{portfolio.name}</div>
               <div className="stick-right">
                 <Totals
-                  totals={portfolio.totals}
-                  change={portfolio.value}
+                  totals={portfolio.base.totals}
+                  change={portfolio.base.changes}
                   range={portfolio.meta.range}
                 />
               </div>

@@ -28,17 +28,17 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
 
   const investedBase = pipe(
     portfolios,
-    sum(({ investedBase }) => investedBase)
+    sum(({ base }) => base.invested)
   );
 
   const value: PeriodChanges = (() => {
     const beginning = pipe(
       portfolios,
-      sum(({ value }) => value.beginning)
+      sum(({ base }) => base.changes.beginning)
     );
     const current = pipe(
       portfolios,
-      sum(({ value }) => value.current)
+      sum(({ base }) => base.changes.current)
     );
 
     const [returnValue, returnPct] = change({
@@ -48,13 +48,13 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
 
     const start = pipe(
       portfolios,
-      A.map(({ value }) => value.start),
+      A.map(({ base }) => base.changes.start),
       onEmpty(unixNow),
       (s) => Math.min(...s)
     ) as UnixDate;
     const end = pipe(
       portfolios,
-      A.map(({ value }) => value.end),
+      A.map(({ base }) => base.changes.end),
       onEmpty(unixNow),
       (s) => Math.max(...s)
     ) as UnixDate;

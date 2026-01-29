@@ -9,7 +9,7 @@ type PortfolioDetailsProps = {
 };
 
 export const PortfolioDetails: React.FC<PortfolioDetailsProps> = ({
-  portfolio,
+  portfolio
 }) => {
   const { money, decimal, percent } = useFormatters();
   return (
@@ -17,22 +17,32 @@ export const PortfolioDetails: React.FC<PortfolioDetailsProps> = ({
       <HorizontalStack>
         <ListGroup variant="flush">
           <ListGroup.Item>
-            <strong>Total cost</strong>
-            <span>{money(portfolio.total_invested)}</span>
+            <strong>{portfolio.description}</strong>
           </ListGroup.Item>
-          <ListGroup.Item>
-            <strong>Total cost (base)</strong>
-            <span>{money(portfolio.investedBase)}</span>
-          </ListGroup.Item>
-        </ListGroup>
-        <ListGroup variant="flush">
           <ListGroup.Item>
             <strong>Num assets</strong>
             <span>{decimal(portfolio.num_assets)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>Net worth contribution</strong>
-            <span>{percent(portfolio.contribution)}</span>
+            <strong>Total cost (base)</strong>
+            <span>{money(portfolio.base.invested)}</span>
+          </ListGroup.Item>
+        </ListGroup>
+        <ListGroup variant="flush">
+          <ListGroup.Item>
+            <strong>Currencies</strong>
+            <span>{portfolio.currencies.join(", ")}</span>
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Realized gain (base)</strong>
+            <span>
+              {money(portfolio.base.realizedGain)} (
+              {percent(portfolio.base.realizedGainPct)})
+            </span>
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Unrealized FX impact</strong>
+            <span>{money(portfolio.base.fxImpact)}</span>
           </ListGroup.Item>
         </ListGroup>
       </HorizontalStack>
