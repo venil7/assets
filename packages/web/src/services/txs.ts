@@ -7,7 +7,7 @@ import {
   type PortfolioId,
   type PostTx,
   type PostTxsUpload,
-  type TxId,
+  type TxId
 } from "@darkruby/assets-core";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";

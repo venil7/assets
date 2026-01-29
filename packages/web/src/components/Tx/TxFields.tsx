@@ -4,7 +4,7 @@ import {
   type Identity,
   type Nullable,
   type PostTx,
-  type TxType,
+  type TxType
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import {
@@ -13,7 +13,7 @@ import {
   Col,
   Form,
   InputGroup,
-  Row,
+  Row
 } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
 import { useFormatters } from "../../hooks/prefs";
@@ -30,24 +30,24 @@ export type TxFieldsProps = Identity<
 >;
 
 export const TxFields: React.FC<TxFieldsProps> = ({
-  data,
+  data: tx,
   asset,
   onChange,
-  disabled,
+  disabled
 }) => {
-  const setField = usePartialChange(data, onChange);
+  const setField = usePartialChange(tx, onChange);
   const setPrice = setField("price") as (n: Nullable<number>) => void;
   const setDate = (d: Nullable<Date>) => setField("date")(d ?? new Date());
   const setQuantity = setField("quantity") as (n: Nullable<number>) => void;
   const { money } = useFormatters();
 
-  const basePrice = money(data.price / asset.value.baseRate);
+  const basePrice = money(tx.price / asset.mktBaseRate);
 
   return (
     <Form>
       <Form.Group className="mb-3">
         <TxTypeSwitch
-          value={data.type}
+          value={tx.type}
           onChange={setField("type")}
           disabled={disabled}
         />
@@ -55,7 +55,7 @@ export const TxFields: React.FC<TxFieldsProps> = ({
       <Form.Group className="mb-3">
         <Form.Label>Quantity</Form.Label>
         <FormNumber
-          value={data.quantity}
+          value={tx.quantity}
           onChange={setQuantity}
           disabled={disabled}
         />
@@ -67,7 +67,7 @@ export const TxFields: React.FC<TxFieldsProps> = ({
             <InputGroup>
               <InputGroup.Text>{asset.meta.currency}</InputGroup.Text>
               <FormNumber
-                value={data.price}
+                value={tx.price}
                 onChange={setPrice}
                 disabled={disabled}
               />
@@ -80,18 +80,14 @@ export const TxFields: React.FC<TxFieldsProps> = ({
         <Form.Label>Date</Form.Label>
         <Row>
           <Col>
-            <DatePicker
-              date={data.date}
-              onChange={setDate}
-              disabled={disabled}
-            />
+            <DatePicker date={tx.date} onChange={setDate} disabled={disabled} />
           </Col>
         </Row>
       </Form.Group>
       <Form.Group className="mb-3">
         <Form.Label>Comment</Form.Label>
         <TextArea
-          value={data.comments}
+          value={tx.comments}
           onChange={setField("comments")}
           disabled={disabled}
         />

@@ -2,10 +2,14 @@ import {
   getAssetEnricher,
   getAssetsEnricher,
   getOptionalAssetEnricher,
+  handleError,
   PostAssetDecoder,
+  type Action,
   type AssetId,
   type ChartRange,
   type EnrichedAsset,
+  type EnrichedTx,
+  type GetAsset,
   type Id,
   type Optional,
   type PortfolioId,
@@ -14,13 +18,20 @@ import {
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { WebAction } from "@darkruby/fp-express";
-import { pipe } from "fp-ts/function";
+import { flow, pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
 import { mapWebError } from "../domain/error";
 import type { Repository } from "../repository";
 import { getTxs as enrichedTxsGetter } from "./tx";
 
 const assetDecoder = liftTE(PostAssetDecoder);
+
+const getEnrichedTxs = (repo: Repository, yahooApi: YahooApi) =>
+  flow(enrichedTxsGetter(repo, yahooApi), TE.mapLeft(handleError())) as (
+    assetId: AssetId,
+    portfolioId: PortfolioId,
+    userId: UserId
+  ) => Action<EnrichedTx[]>;
 
 export const getAsset =
   (repo: Repository, yahooApi: YahooApi) =>
@@ -30,9 +41,9 @@ export const getAsset =
     userId: UserId,
     range: ChartRange
   ): WebAction<Optional<EnrichedAsset>> => {
-    const getEnrichedTxs = enrichedTxsGetter(repo, yahooApi);
     const enrichAsset = getOptionalAssetEnricher(yahooApi);
-    const getTxs = () => getEnrichedTxs(assetId, portfolioId, userId);
+    const getTxs = () =>
+      getEnrichedTxs(repo, yahooApi)(assetId, portfolioId, userId);
     return pipe(
       TE.Do,
       TE.bind("asset", () => repo.asset.get(assetId, portfolioId, userId)),
@@ -49,7 +60,8 @@ export const getAssets =
     range: ChartRange
   ): WebAction<readonly EnrichedAsset[]> => {
     const enrichAssets = getAssetsEnricher(yahooApi);
-    const getTxs = txsGetter(repo, yahooApi);
+    const getTxs = (asset: GetAsset) =>
+      getEnrichedTxs(repo, yahooApi)(asset.id, portfolioId, userId);
 
     return pipe(
       TE.Do,
@@ -81,8 +93,8 @@ export const createAsset =
     payload: unknown
   ): WebAction<EnrichedAsset> => {
     const enrichAsset = getAssetEnricher(yahooApi);
-    const getTxs = (assetId: AssetId) => (after: Date) =>
-      repo.tx.getAll(assetId, userId, after);
+    const getTxs = (assetId: AssetId) => () =>
+      getEnrichedTxs(repo, yahooApi)(assetId, portfolioId, userId);
     return pipe(
       TE.Do,
       TE.bind("asset", () => assetDecoder(payload)),
@@ -104,7 +116,8 @@ export const updateAsset =
     payload: unknown
   ): WebAction<EnrichedAsset> => {
     const enrichAsset = getAssetEnricher(yahooApi);
-    const getTxs = (after: Date) => repo.tx.getAll(assetId, userId, after);
+    const getTxs = () =>
+      getEnrichedTxs(repo, yahooApi)(assetId, portfolioId, userId);
     return pipe(
       TE.Do,
       TE.bind("asset", () => assetDecoder(payload)),

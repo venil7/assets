@@ -19,7 +19,7 @@ import {
   type Totals
 } from "../domain";
 import type { YahooApi } from "../http";
-import { changeInPct, changeInValue, sum } from "../utils/finance";
+import { avg, change, pctOf, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
 
 export const getAssetEnricher =
@@ -42,10 +42,27 @@ export const getAssetEnricher =
           origChart: { chart: origChart, price: rangePrice, meta },
           mktBaseRate
         }) => {
-          const toBase = getToBase(mktBaseRate);
-          const investedBase = toBase(asset.invested);
+          const buyTxs = pipe(txs, A.filter(buy));
+          const sellTxs = pipe(txs, A.filter(buy));
+
+          const avgBuyRate =
+            pipe(
+              buyTxs,
+              avg(({ base, contribution }) => base.rate * contribution)
+            ) || mktBaseRate; //can be zero, so failsafing
+          const avgSellRate =
+            pipe(
+              buyTxs,
+              avg(({ base, contribution }) => base.rate * contribution)
+            ) || mktBaseRate;
+
+          const toMktBase = getToBase(mktBaseRate);
+          const toAvgBuyBase = getToBase(avgBuyRate);
+          const toAvgSellBase = getToBase(avgSellRate);
+
+          const investedBase = toAvgBuyBase(asset.invested);
           const valueCcy = asset.holdings * rangePrice.current;
-          const valueBase = toBase(valueCcy);
+          const valueBase = toMktBase(valueCcy);
 
           const foreignAsset = meta.currency !== asset.base_ccy;
 
@@ -54,18 +71,12 @@ export const getAssetEnricher =
             chartCcy,
             NeA.map((dp) => ({
               ...dp,
-              price: toBase(dp.price)
+              price: toMktBase(dp.price)
             }))
           );
 
           const totalsCcy: Totals = (() => {
-            const returnValue = pipe(
-              txs,
-              A.filter(buy),
-              sum(({ ccy }) => ccy.returnValue)
-            );
-
-            const returnPct = changeInPct({
+            const [returnValue, returnPct] = change({
               before: asset.invested,
               after: valueCcy
             });
@@ -74,25 +85,26 @@ export const getAssetEnricher =
           })();
 
           const totalsBase: Totals = (() => {
-            const returnValue = pipe(
-              txs,
-              A.filter(buy),
-              sum(({ base }) => base.returnValue)
-            );
-
-            const returnPct = pipe(
-              txs,
-              A.filter(buy),
-              sum(({ base, contribution }) => contribution * base.returnPct)
-            );
+            const [returnValue, returnPct] = change({
+              before: investedBase,
+              after: valueBase
+            });
             return { returnValue, returnPct };
           })();
 
           const fxImpact = pipe(
-            txs,
-            A.filter(buy),
+            buyTxs,
             sum(({ base }) => base.fxImpact)
           );
+
+          const realizedGain = pipe(
+            sellTxs,
+            sum(({ ccy }) => ccy.returnValue)
+          );
+          const realizedGainPct = pctOf(asset.invested, realizedGain);
+
+          const realizedGainsBase = toAvgSellBase(realizedGain);
+          const realizedGainPctBase = pctOf(investedBase, realizedGainsBase);
 
           const changesCcy: PeriodChanges = {
             // if no holdings, we consider price for 1 unit
@@ -101,18 +113,17 @@ export const getAssetEnricher =
             current: rangePrice.current * (asset.holdings || 1)
           };
 
+          const [returnValueBase, returnPctBase] = change({
+            before: toMktBase(changesCcy.beginning),
+            after: toMktBase(changesCcy.current)
+          });
+
           const changesBase: PeriodChanges = {
             ...rangePrice,
-            beginning: toBase(changesCcy.beginning),
-            current: toBase(changesCcy.current),
-            change: changeInValue({
-              before: toBase(changesCcy.beginning),
-              after: toBase(changesCcy.current)
-            }),
-            changePct: changeInPct({
-              before: toBase(changesCcy.beginning),
-              after: toBase(changesCcy.current)
-            })
+            beginning: toMktBase(changesCcy.beginning),
+            current: toMktBase(changesCcy.current),
+            returnValue: returnValueBase,
+            returnPct: returnPctBase
           };
 
           return {
@@ -120,17 +131,22 @@ export const getAssetEnricher =
             meta,
             mktBaseRate,
             foreignAsset,
-            weight: null, // cannot calc weight for singlwe asset
+            weight: null, // cannot calc weight for single asset
             ccy: {
               chart: chartCcy,
               totals: totalsCcy,
-              changes: changesCcy
+              changes: changesCcy,
+              realizedGain,
+              realizedGainPct
             },
             base: {
               chart: chartBase,
               totals: totalsBase,
               changes: changesBase,
               invested: investedBase,
+              realizedGain: realizedGainsBase,
+              realizedGainPct: realizedGainPctBase,
+              avgBuyRate,
               fxImpact
             }
           };

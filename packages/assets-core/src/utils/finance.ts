@@ -1,4 +1,5 @@
 import * as A from "fp-ts/lib/Array";
+import { pipe } from "fp-ts/lib/function";
 import * as M from "fp-ts/lib/Monoid";
 
 export type ChangeInParams = { before: number; after: number };
@@ -15,7 +16,8 @@ export const change = ({
   changeInPct({ before, after })
 ];
 
-export const pctOf = (whole: number, frac: number): number => frac / whole;
+export const pctOf = (whole: number, frac: number): number =>
+  whole > 0 ? frac / whole : 0;
 
 export const sumMonoid: M.Monoid<number> = {
   empty: 0,
@@ -23,3 +25,7 @@ export const sumMonoid: M.Monoid<number> = {
 };
 
 export const sum = A.foldMap(sumMonoid);
+export const avg =
+  <A>(f: (a: A) => number) =>
+  (fa: A[]) =>
+    pipe(fa, sum(f)) / fa.length;

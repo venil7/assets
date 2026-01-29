@@ -18,7 +18,7 @@ export const defaultAsset = (): PostAsset => ({ name: "", ticker: "" });
 export const byAssetChangePct: Ord<EnrichedAsset> = pipe(
   ordNumber,
   reverse,
-  contramap<number, EnrichedAsset>((a) => a.ccy.changes.changePct)
+  contramap<number, EnrichedAsset>((a) => a.ccy.changes.returnPct)
 );
 
 export type AssetId = GetAsset["id"];

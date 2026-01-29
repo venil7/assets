@@ -3,7 +3,8 @@ import {
   type EnrichedPortfolio,
   type GetAsset,
   type GetPortfolio,
-  type Totals,
+  type Optional,
+  type Totals
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { identity, pipe } from "fp-ts/lib/function";
@@ -22,7 +23,7 @@ export function ChangeIndicator<T>({
   value,
   formatter,
   color,
-  numeric,
+  numeric
 }: ChangeBadgeProps<T>) {
   const bg = (() => {
     if (color) return color;
@@ -41,7 +42,7 @@ export const PctChangeIndicator = pipe(
   ChangeIndicator<number>,
   withProps({ numeric: identity }),
   withFormatters(({ percent }) => ({
-    formatter: (n) => percent(n),
+    formatter: (n) => percent(n)
   }))
 );
 
@@ -55,10 +56,10 @@ export const MoneyAndChangeIndicator: React.FC<
   MoneyAndChangeIndicatorProps
 > = ({ value, range }) => {
   const { money, percent } = useFormatters();
-  const numeric = (t: Totals) => t.changePct;
-  const formatter = ({ change, changePct }: Totals) => {
+  const numeric = (t: Totals) => t.returnPct;
+  const formatter = ({ returnValue, returnPct }: Totals) => {
     const pre = range ? `${range}: ` : "";
-    return `${pre}${money(change)} (${percent(changePct)})`;
+    return `${pre}${money(returnValue)} (${percent(returnPct)})`;
   };
   return (
     <ChangeIndicator<Totals>
@@ -70,23 +71,23 @@ export const MoneyAndChangeIndicator: React.FC<
 };
 
 export const WeightIndicator = pipe(
-  ChangeIndicator<number>,
+  ChangeIndicator<Optional<number>>,
   withProps({
     color: "dark",
-    numeric: identity,
+    numeric: (n) => n ?? 0
   }),
   withFormatters(({ percent }) => ({
-    formatter: (n) => `Weight: ${percent(n)}`,
+    formatter: (n) => `Weight: ${percent(n)}`
   }))
 );
 
 export const PortfolioPeriodChange = pipe(
   ChangeIndicator<EnrichedPortfolio>,
   withProps({
-    numeric: (p) => p.value.changePct,
+    numeric: (p) => p.value.returnPct
   }),
   withFormatters(({ percent }) => ({
-    formatter: (p) => `${p.meta.range}: ${percent(p.value.changePct)}`,
+    formatter: (p) => `${p.meta.range}: ${percent(p.value.returnPct)}`
   }))
 );
 
@@ -95,7 +96,7 @@ export const AssetCountIndicator = pipe(
   withProps({
     color: "dark",
     numeric: (p) => p.num_assets,
-    formatter: (p) => `Assets: ${p.num_assets}`,
+    formatter: (p) => `Assets: ${p.num_assets}`
   })
 );
 
@@ -103,10 +104,10 @@ export const HoldingsIndicator = pipe(
   ChangeIndicator<GetAsset>,
   withProps({
     color: "dark",
-    numeric: (p) => p.holdings,
+    numeric: (p) => p.holdings
   }),
   withFormatters(({ decimal }) => ({
-    formatter: (p) => `Holdings: ${decimal(p.holdings)}`,
+    formatter: (p) => `Holdings: ${decimal(p.holdings)}`
   }))
 );
 
@@ -114,19 +115,19 @@ export const TxCount = pipe(
   ChangeIndicator<GetAsset>,
   withProps({
     color: "dark",
-    numeric: (p) => p.num_txs,
+    numeric: (p) => p.num_txs
   }),
   withFormatters(({ decimal }) => ({
-    formatter: (p) => `Txs: ${decimal(p.num_txs)}`,
+    formatter: (p) => `Txs: ${decimal(p.num_txs)}`
   }))
 );
 
 export const AssetPeriodChange = pipe(
   ChangeIndicator<EnrichedAsset>,
   withProps({
-    numeric: (a) => a.value.ccy.changePct,
+    numeric: (a) => a.ccy.changes.returnPct
   }),
   withFormatters(({ percent }) => ({
-    formatter: (a) => `${a.meta.range}: ${percent(a.value.ccy.changePct)}`,
+    formatter: (a) => `${a.meta.range}: ${percent(a.ccy.changes.returnPct)}`
   }))
 );

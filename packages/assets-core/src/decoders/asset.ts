@@ -39,14 +39,19 @@ export const EnrichedAssetDecoder = t.type({
   ccy: t.type({
     chart: nonEmptyArray(ChartDataPointDecoder),
     changes: PeriodChangesDecoder,
-    totals: TotalsDecoder
+    totals: TotalsDecoder,
+    realizedGain: t.number,
+    realizedGainPct: t.number
   }),
   base: t.type({
     invested: t.number,
     fxImpact: t.number,
     chart: nonEmptyArray(ChartDataPointDecoder),
     changes: PeriodChangesDecoder,
-    totals: TotalsDecoder
+    totals: TotalsDecoder,
+    avgBuyRate: t.number,
+    realizedGain: t.number,
+    realizedGainPct: t.number
   })
 });
 

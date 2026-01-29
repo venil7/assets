@@ -1,7 +1,7 @@
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
-import { ChartRangeOrd, DEFAULT_CHART_RANGE } from "../decoders/yahoo/meta";
+import { byDuration, DEFAULT_CHART_RANGE } from "../decoders/yahoo/meta";
 import type {
   EnrichedPortfolio,
   PeriodChanges,
@@ -11,7 +11,7 @@ import type {
 } from "../domain";
 import { onEmpty } from "../utils/array";
 import { unixNow } from "../utils/date";
-import { change, changeInPct, changeInValue, sum } from "../utils/finance";
+import { change, sum } from "../utils/finance";
 import { combinePortfolioCharts, commonPortfolioRanges } from "./chart";
 
 export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
@@ -20,7 +20,7 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
     const range = pipe(
       portfolios,
       A.map((a) => a.meta.range),
-      A.reduce(DEFAULT_CHART_RANGE, Ord.max(ChartRangeOrd))
+      A.reduce(DEFAULT_CHART_RANGE, Ord.max(byDuration))
     );
     const validRanges = commonPortfolioRanges(portfolios);
     return { range, validRanges };
@@ -41,8 +41,11 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
       sum(({ value }) => value.current)
     );
 
-    const change = changeInValue({ before: beginning, after: current });
-    const changePct = changeInPct({ before: beginning, after: current });
+    const [returnValue, returnPct] = change({
+      before: beginning,
+      after: current
+    });
+
     const start = pipe(
       portfolios,
       A.map(({ value }) => value.start),
@@ -59,8 +62,8 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
     return {
       beginning,
       current,
-      change,
-      changePct,
+      returnValue,
+      returnPct,
       start,
       end
     };

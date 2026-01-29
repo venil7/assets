@@ -29,6 +29,7 @@ export const getTxEnricher =
         const toMktBase = getToBase(mktBaseRate);
 
         const buy = tx.type === "buy";
+        const rate = buy ? buyBaseRate : mktBaseRate;
         const costCcy = tx.price * tx.quantity;
         const valueCcy = meta.regularMarketPrice * tx.quantity;
         const costBase = toBuyBase(costCcy);
@@ -82,7 +83,8 @@ export const getTxEnricher =
             value: valueBase,
             returnValue: returnBase,
             returnPct: returnPctBase,
-            fxImpact
+            fxImpact,
+            rate
           }
         };
       })

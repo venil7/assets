@@ -6,7 +6,7 @@ import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
 import { unixNow } from "../../utils/date";
-import { changeInPct, changeInValue } from "../../utils/finance";
+import { change } from "../../utils/finance";
 import { chainDecoder, nullableDecoder, validationErr } from "../util";
 import { ChartMetaDecoder } from "./meta";
 import { UnixDateDecoder, type PeriodChangesDecoder } from "./period";
@@ -119,7 +119,12 @@ export const YahooChartDataDecoder = pipe(
         return UnixDateDecoder.decode(chart.meta.regularMarketTime);
       }),
       E.map(({ chart: { meta, chart }, start, end }) => {
+        const current = meta.regularMarketPrice;
         const beginning = meta.previousClose ?? meta.chartPreviousClose;
+        const [returnValue, returnPct] = change({
+          before: beginning,
+          after: meta.regularMarketPrice
+        });
         return {
           meta,
           chart,
@@ -127,15 +132,9 @@ export const YahooChartDataDecoder = pipe(
             start,
             end,
             beginning,
-            current: meta.regularMarketPrice,
-            changePct: changeInPct({
-              before: beginning,
-              after: meta.regularMarketPrice
-            }),
-            change: changeInValue({
-              before: beginning,
-              after: meta.regularMarketPrice
-            })
+            current,
+            returnPct,
+            returnValue
           }
         };
       })

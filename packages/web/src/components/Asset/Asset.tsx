@@ -4,7 +4,7 @@ import {
   type EnrichedTx,
   type GetAsset,
   type PostTx,
-  type PostTxsUpload,
+  type PostTxsUpload
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { pipe } from "fp-ts/lib/function";
@@ -41,7 +41,7 @@ const RawAsset: React.FC<AssetProps> = ({
   onAddTx,
   onRange,
   onDeleteAll,
-  onUploadTxs,
+  onUploadTxs
 }: AssetProps) => {
   const { money, decimal } = useFormatters();
   return (
@@ -56,8 +56,8 @@ const RawAsset: React.FC<AssetProps> = ({
           </h5>
         </div>
         <Totals
-          totals={asset.totals.base}
-          change={asset.value.base}
+          totals={asset.base.totals}
+          change={asset.base.changes}
           range={asset.meta.range}
         />
       </HorizontalStack>
@@ -65,7 +65,7 @@ const RawAsset: React.FC<AssetProps> = ({
         <TabContent tab={0}>
           <RangeChart
             onChange={onRange}
-            data={asset.chart.base}
+            data={asset.base.chart}
             range={asset.meta.range}
             ranges={asset.meta.validRanges}
           />

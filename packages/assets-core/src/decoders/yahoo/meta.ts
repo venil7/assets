@@ -55,12 +55,11 @@ export type ChartRange = (typeof ranges)[number];
 
 export const DEFAULT_CHART_RANGE: ChartRange = "1d";
 
-export const ChartRangeOrd: Ord<ChartRange> = fromCompare((a, b) =>
-  NumOrd.compare(
-    ranges.findIndex((r) => r === a),
-    ranges.findIndex((r) => r === b)
-  )
-);
+export const byDuration: Ord<ChartRange> = fromCompare((a, b) => {
+  const first = ranges.findIndex((r) => r === a);
+  const second = ranges.findIndex((r) => r === b);
+  return NumOrd.compare(first, second);
+});
 
 export const RangeDecoder = pipe(
   ranges as unknown as string[],

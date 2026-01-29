@@ -47,7 +47,7 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Total cost (base)</strong>
-            <span>{money(asset.investedBase)}</span>
+            <span>{money(asset.base.invested)}</span>
           </ListGroup.Item>
         </ListGroup>
 

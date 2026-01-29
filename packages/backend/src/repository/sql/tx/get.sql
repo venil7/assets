@@ -4,12 +4,13 @@ select id,
   quantity,
   price,
   date,
-  created,
-  modified,
   comments,
   holdings,
   total_invested,
-  avg_price
+  avg_price,
+  contribution,
+  created,
+  modified
 from asset_transactions at
 where at.id = $txId
   and at.asset_id = $assetId

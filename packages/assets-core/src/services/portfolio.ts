@@ -3,7 +3,7 @@ import { pipe, type FunctionN, type LazyArg } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
 import * as TE from "fp-ts/lib/TaskEither";
 import {
-  ChartRangeOrd,
+  byDuration,
   DEFAULT_CHART_RANGE,
   type ChartRange
 } from "../decoders/yahoo/meta";
@@ -19,7 +19,7 @@ import type {
 import type { YahooApi } from "../http";
 import { onEmpty } from "../utils/array";
 import { unixNow } from "../utils/date";
-import { change, changeInPct, changeInValue, sum } from "../utils/finance";
+import { change, sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
 import { calcAssetWeights, getAssetsEnricher } from "./asset";
 import { combineAssetCharts, commonAssetRanges } from "./chart";
@@ -60,8 +60,10 @@ export const getPortfolioEnricher =
             sum(({ base }) => base.changes.current)
           );
 
-          const change = changeInValue({ before: beginning, after: current });
-          const changePct = changeInPct({ before: beginning, after: current });
+          const [returnValue, returnPct] = change({
+            before: beginning,
+            after: current
+          });
           const start = pipe(
             assets,
             A.map(({ ccy }) => ccy.changes.start),
@@ -78,8 +80,8 @@ export const getPortfolioEnricher =
           return {
             beginning,
             current,
-            change,
-            changePct,
+            returnValue,
+            returnPct,
             start,
             end
           };
@@ -100,7 +102,7 @@ export const getPortfolioEnricher =
           const range = pipe(
             assets,
             A.map((a) => a.meta.range),
-            A.reduce(DEFAULT_CHART_RANGE, Ord.max(ChartRangeOrd))
+            A.reduce(DEFAULT_CHART_RANGE, Ord.max(byDuration))
           );
           const validRanges = commonAssetRanges(assets);
           return { range, validRanges };
@@ -126,15 +128,16 @@ export const getPortfoliosEnricher =
   (
     portfolios: GetPortfolio[],
     getAssets: FunctionN<[GetPortfolio], Action<GetAsset[]>>,
-    getEnrichedTxs: (asset: GetAsset) => Action<EnrichedTx[]>,
+    getEnrichedTxs: FunctionN<[GetAsset, GetPortfolio], Action<EnrichedTx[]>>,
     range?: ChartRange
   ): Action<EnrichedPortfolio[]> => {
     const enrichPortfolio = getPortfolioEnricher(yahooApi);
     return pipe(
       portfolios,
-      TE.traverseArray((p) =>
-        enrichPortfolio(p, () => getAssets(p), getEnrichedTxs, range)
-      ),
+      TE.traverseArray((p) => {
+        const getTxs = (asset: GetAsset) => getEnrichedTxs(asset, p);
+        return enrichPortfolio(p, () => getAssets(p), getTxs, range);
+      }),
       TE.map((ps) => calcPortfolioWeights(ps as EnrichedPortfolio[]))
     );
   };

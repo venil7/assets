@@ -41,10 +41,10 @@ const cachedAction =
     const get = getter(cache);
     const res = get(key);
     if (O.isSome(res)) {
-      log.debug(`hit for ${key}`);
+      // log.debug(`hit for ${key}`);
       return TE.of(res.value as T);
     }
-    log.debug(`miss for ${key}`);
+    // log.debug(`miss for ${key}`);
     const set = setter(cache);
 
     return pipe(
@@ -60,6 +60,6 @@ export const createCache = (cache: Cache) => {
     has: has(cache),
     getter: getter(cache),
     setter: setter(cache),
-    cachedAction: cachedAction(cache),
+    cachedAction: cachedAction(cache)
   };
 };

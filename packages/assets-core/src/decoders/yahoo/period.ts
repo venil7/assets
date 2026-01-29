@@ -10,20 +10,17 @@ export const UnixDateDecoder = t.brand(
   "UnixDate"
 );
 
+const totalsTypes = {
+  returnValue: t.number,
+  returnPct: t.number
+};
+
 const periodChangesTypes = {
   beginning: t.number,
   current: t.number,
-  change: t.number,
-  changePct: t.number,
+  ...totalsTypes,
   start: UnixDateDecoder,
   end: UnixDateDecoder
-};
-
-const totalsTypes = {
-  // change: t.number,
-  // changePct: t.number,
-  returnValue: t.number,
-  returnPct: t.number
 };
 
 export const PeriodChangesDecoder = t.type(periodChangesTypes);

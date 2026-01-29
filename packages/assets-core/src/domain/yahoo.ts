@@ -34,8 +34,8 @@ export type YahooTickerSearchResult = t.TypeOf<
   typeof YahooTickerSearchResultDecoder
 >;
 
-export type PeriodChanges = t.TypeOf<typeof PeriodChangesDecoder>;
 export type Totals = t.TypeOf<typeof TotalsDecoder>;
+export type PeriodChanges = t.TypeOf<typeof PeriodChangesDecoder>;
 
 export type YahooChartData = t.TypeOf<typeof YahooChartDataDecoder>;
 export type ChartMeta = YahooChartData["meta"];
