@@ -35,6 +35,13 @@ export const byDateAsc = pipe(
 export const buy = (tx: PostTx) => tx.type == "buy";
 export const sell = (tx: PostTx) => !buy(tx);
 
+export const cloneTx = ({
+  type,
+  quantity,
+  price,
+  comments
+}: PostTx): PostTx => ({ type, date: new Date(), quantity, price, comments });
+
 export const byDateDesc = pipe(byDateAsc, reverse);
 
 export const defaultBuyTx = (date = new Date()): PostTx =>

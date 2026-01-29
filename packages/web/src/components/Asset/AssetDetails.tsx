@@ -38,7 +38,7 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
             <span>{decimal(asset.holdings)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>Cost per unit</strong>
+            <strong>Avg unit cost</strong>
             <span>{money(asset.avg_price, asset.meta.currency as Ccy)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
@@ -46,19 +46,33 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
             <span>{money(asset.invested, asset.meta.currency as Ccy)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>Total cost (base)</strong>
-            <span>{money(asset.base.invested)}</span>
+            <strong>Realized gain</strong>
+            <span>
+              {money(asset.ccy.realizedGain, asset.meta.currency as Ccy)} (
+              {percent(asset.ccy.realizedGainPct)})
+            </span>
           </ListGroup.Item>
         </ListGroup>
 
-        <ListGroup variant="flush">
+        <ListGroup variant="flush" hidden={asset.domestic}>
           <ListGroup.Item>
-            <strong>Transactions</strong>
-            <span>{decimal(asset.num_txs)}</span>
+            <strong>Fx Impact</strong>
+            <span>{money(asset.base.fxImpact)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>Portfolio cost contribution</strong>
-            <span>{percent(asset.portfolio_contribution)}</span>
+            <strong>Avg unit cost (base)</strong>
+            <span>{money(asset.base.avgPrice)}</span>
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Total cost (base)</strong>
+            <span>{money(asset.base.invested)}</span>
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Realized gain (base)</strong>
+            <span>
+              {money(asset.base.realizedGain)} (
+              {percent(asset.base.realizedGainPct)})
+            </span>
           </ListGroup.Item>
         </ListGroup>
       </HorizontalStack>

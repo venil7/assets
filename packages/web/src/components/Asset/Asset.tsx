@@ -79,6 +79,7 @@ const RawAsset: React.FC<AssetProps> = ({
         asset={asset}
         onAdd={onAddTx}
         onEdit={onEditTx}
+        onClone={onAddTx}
         onDelete={onDeleteTx}
         onDeleteAll={onDeleteAll}
         onUploadTxs={onUploadTxs}

@@ -78,7 +78,7 @@ export const getYahooApi = (methods: Methods) => {
       ),
       TE.let("symbol", ({ search }) => search.quotes[0].symbol),
       TE.bind("chart", ({ symbol, date }) =>
-        chart(symbol, maybeRangeForDate(date))
+        chart(symbol, /*maybeRangeForDate(date)*/ "max")
       ),
       TE.map(({ chart, date }) => {
         const price = priceForDate(chart, date);

@@ -9,6 +9,7 @@ import {
   defaultBuyTx,
   EARLIEST_DATE,
   getToBase,
+  sell,
   type ChartData,
   type ChartDataItem,
   type EnrichedAsset,
@@ -19,8 +20,8 @@ import {
   type Totals
 } from "../domain";
 import type { YahooApi } from "../http";
-import { avg, change, pctOf, sum } from "../utils/finance";
-import type { Action, Optional } from "../utils/utils";
+import { change, pctOf, sum } from "../utils/finance";
+import { defined, type Action, type Optional } from "../utils/utils";
 
 export const getAssetEnricher =
   (yahooApi: YahooApi) =>
@@ -34,6 +35,7 @@ export const getAssetEnricher =
       TE.bind("origChart", () => yahooApi.chart(asset.ticker, range)),
       TE.bind("txs", getTxs),
       TE.bind("mktBaseRate", ({ origChart: { meta } }) =>
+        // possibly optimize by taking from tx
         yahooApi.baseCcyConversionRate(meta.currency, asset.base_ccy)
       ),
       TE.map(
@@ -43,28 +45,33 @@ export const getAssetEnricher =
           mktBaseRate
         }) => {
           const buyTxs = pipe(txs, A.filter(buy));
-          const sellTxs = pipe(txs, A.filter(buy));
+          const sellTxs = pipe(txs, A.filter(sell));
 
           const avgBuyRate =
             pipe(
               buyTxs,
-              avg(({ base, contribution }) => base.rate * contribution)
+              sum(({ base, contribution }) => base.rate * contribution)
             ) || mktBaseRate; //can be zero, so failsafing
           const avgSellRate =
             pipe(
               buyTxs,
-              avg(({ base, contribution }) => base.rate * contribution)
+              sum(({ base, contribution }) => base.rate * contribution)
             ) || mktBaseRate;
 
           const toMktBase = getToBase(mktBaseRate);
           const toAvgBuyBase = getToBase(avgBuyRate);
           const toAvgSellBase = getToBase(avgSellRate);
 
+          const avgPrice = defined(asset.avg_price)
+            ? asset.avg_price! / avgBuyRate
+            : null;
+
           const investedBase = toAvgBuyBase(asset.invested);
           const valueCcy = asset.holdings * rangePrice.current;
           const valueBase = toMktBase(valueCcy);
 
-          const foreignAsset = meta.currency !== asset.base_ccy;
+          const domestic =
+            meta.currency.toUpperCase() == asset.base_ccy.toUpperCase();
 
           const chartCcy: ChartData = enrichChart(origChart, txs);
           const chartBase: ChartData = pipe(
@@ -130,7 +137,7 @@ export const getAssetEnricher =
             ...asset,
             meta,
             mktBaseRate,
-            foreignAsset,
+            domestic,
             weight: null, // cannot calc weight for single asset
             ccy: {
               chart: chartCcy,
@@ -147,6 +154,7 @@ export const getAssetEnricher =
               realizedGain: realizedGainsBase,
               realizedGainPct: realizedGainPctBase,
               avgBuyRate,
+              avgPrice,
               fxImpact
             }
           };

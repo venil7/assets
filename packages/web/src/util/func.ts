@@ -1,4 +1,4 @@
-import type { Optional } from "@darkruby/assets-core";
+import { defined, type Optional } from "@darkruby/assets-core";
 
 export type RestParams<T extends (...args: any) => string> =
   Parameters<T> extends [any, ...infer R] ? R : never;
@@ -10,5 +10,5 @@ export const fallback = <F extends (...args: any) => string>(
   return (
     p: Optional<Parameters<typeof func>[0]>,
     ...r: RestParams<typeof func>
-  ): string => (p === undefined || p === null ? nodata : func(p, ...r));
+  ): string => (!defined(p) ? nodata : func(p, ...r));
 };

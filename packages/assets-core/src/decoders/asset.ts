@@ -35,7 +35,7 @@ export const EnrichedAssetDecoder = t.type({
   meta: ChartMetaDecoder,
   mktBaseRate: t.number,
   weight: nullableDecoder(t.number),
-  foreignAsset: t.boolean, // if denominated in non base ccy
+  domestic: t.boolean, // if denominated in non base ccy
   ccy: t.type({
     chart: nonEmptyArray(ChartDataPointDecoder),
     changes: PeriodChangesDecoder,
@@ -50,6 +50,7 @@ export const EnrichedAssetDecoder = t.type({
     changes: PeriodChangesDecoder,
     totals: TotalsDecoder,
     avgBuyRate: t.number,
+    avgPrice: nullableDecoder(t.number),
     realizedGain: t.number,
     realizedGainPct: t.number
   })

@@ -1,4 +1,5 @@
 import {
+  cloneTx,
   type Ccy,
   type EnrichedAsset,
   type EnrichedTx,
@@ -13,8 +14,8 @@ import { useFormatters } from "../../hooks/prefs";
 import { isoTimestamp } from "../../util/date";
 import { Dark } from "../Form/Alert";
 import { confirmationModal } from "../Modals/Confirmation";
-import { PortfolioMenu } from "../Portfolio/Menu";
 import { PagedTable } from "../Table/Table";
+import { TxMenu } from "./Menu";
 import { txModal } from "./TxFields";
 import "./TxTable.scss";
 
@@ -22,6 +23,7 @@ export type TxTableProps = {
   asset: EnrichedAsset;
   onDelete: (txid: number) => void;
   onEdit: (txid: number, tx: PostTx) => void;
+  onClone: (tx: PostTx) => void;
   disabled?: boolean;
 };
 
@@ -46,7 +48,7 @@ const TxTableHeader = ({ disabled }: TxTableProps) => (
 const TxTableRow = (
   tx: EnrichedTx,
   idx: number,
-  { disabled, asset, onDelete, onEdit }: TxTableProps
+  { disabled, asset, onDelete, onEdit, onClone }: TxTableProps
 ) => {
   const { money, decimal, percent } = useFormatters();
   const handleEdit = (txid: number, tx: PostTx) =>
@@ -54,6 +56,8 @@ const TxTableRow = (
       () => txModal(tx, asset),
       TE.map((tx) => onEdit(txid, tx))
     );
+  const handleClone = (tx: PostTx) =>
+    pipe(() => txModal(tx, asset), TE.map(cloneTx), TE.map(onClone));
   const handleDelete = (txid: number) =>
     pipe(
       () => confirmationModal(`Delete transaction?`),
@@ -87,9 +91,10 @@ const TxTableRow = (
         {tx.comments}
       </td>
       <td /**menu */ hidden={disabled}>
-        <PortfolioMenu
-          onDelete={handleDelete(tx.id)}
+        <TxMenu
+          onClone={handleClone(tx)}
           onEdit={handleEdit(tx.id, tx)}
+          onDelete={handleDelete(tx.id)}
         />
       </td>
     </tr>
