@@ -210,6 +210,8 @@ export const calcAssetWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
 };
 
 const enrichChart = (chart: ChartData, txs: GetTx[]): ChartData => {
+  let txi = 0; // current tx index
+
   const earliestChartDate = fromUnixTime(chart[0].timestamp);
   const earliestTxDate = txs[0]?.date;
   if (!earliestTxDate) {
@@ -222,31 +224,41 @@ const enrichChart = (chart: ChartData, txs: GetTx[]): ChartData => {
         holdings: 1
       } as GetTx
     ];
-  } else if (earliestTxDate > earliestChartDate) {
+  }
+  if (earliestTxDate < earliestChartDate) {
+    // there are transaction earlier that chart begins
+    // we need to fast forward until tx just before chart begins
+    while (
+      txi + 1 < txs.length &&
+      getUnixTime(txs[txi + 1].date) < chart[0].timestamp
+    ) {
+      txi += 1;
+    }
+  }
+  if (earliestTxDate > earliestChartDate) {
     // chart starts earlier than earliest transaction
     // chart will be showing zero units until first transaction is encountered
     txs = [
       {
         ...defaultBuyTx(EARLIEST_DATE),
-        quantity: 0,
+        // quantity: 0,
         holdings: 0
       } as GetTx,
       ...txs
     ];
   }
 
-  let ci = 0;
   const res: ChartDataItem[] = [];
   for (let dp of chart) {
-    let currentTx = txs[ci];
-    const isLastTx = ci == txs.length - 1;
+    let currentTx = txs[txi];
+    const isLastTx = txi == txs.length - 1;
     if (isLastTx) {
       res.push({ ...dp, price: dp.price * currentTx.holdings });
       continue;
     }
-    const nextTx = txs[ci + 1];
+    const nextTx = txs[txi + 1];
     if (dp.timestamp >= getUnixTime(nextTx.date)) {
-      ci += 1;
+      txi += 1;
       currentTx = nextTx;
     }
     res.push({ ...dp, price: dp.price * currentTx.holdings });
