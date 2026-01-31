@@ -33,7 +33,7 @@ export const GetAssetsDecoder = t.array(GetAssetDecoder);
 export const EnrichedAssetDecoder = t.type({
   ...extAssetTypes,
   meta: ChartMetaDecoder,
-  mktBaseRate: t.number,
+  mktFxRate: t.number,
   weight: nullableDecoder(t.number),
   domestic: t.boolean, // if denominated in non base ccy
   ccy: t.type({

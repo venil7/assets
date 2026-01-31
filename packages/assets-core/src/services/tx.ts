@@ -18,19 +18,19 @@ export const getTxEnricher =
       TE.Do,
       TE.bind("asset", getAsset),
       TE.bind("meta", ({ asset }) => yahooApi.meta(asset.ticker)),
-      TE.bind("txBaseRate", ({ meta, asset }) =>
+      TE.bind("txFxRate", ({ meta, asset }) =>
         yahooApi.baseCcyConversionRate(meta.currency, asset.base_ccy, tx.date)
       ),
-      TE.bind("mktBaseRate", ({ meta, asset }) =>
+      TE.bind("mktFxRate", ({ meta, asset }) =>
         yahooApi.baseCcyConversionRate(meta.currency, asset.base_ccy)
       ),
-      TE.map(({ asset, meta, txBaseRate, mktBaseRate }) => {
-        const toMktBase = getToBase(mktBaseRate);
+      TE.map(({ asset, meta, txFxRate, mktFxRate }) => {
+        const toMktBase = getToBase(mktFxRate.rate);
         const averageUnitCost = asset.avg_price!;
 
         switch (tx.type) {
           case "buy": {
-            const toBuyBase = getToBase(txBaseRate);
+            const toBuyBase = getToBase(txFxRate.rate);
             const costCcy = tx.price * tx.quantity;
             const valueCcy = meta.regularMarketPrice * tx.quantity;
             const [returnCcy, returnPctCcy] = change({
@@ -45,7 +45,7 @@ export const getTxEnricher =
               after: valueBase
             });
 
-            const fxImpact = (txBaseRate - mktBaseRate) * valueCcy;
+            const fxImpact = (txFxRate.rate - mktFxRate.rate) * valueCcy;
 
             return {
               ...tx,
@@ -60,8 +60,8 @@ export const getTxEnricher =
                 value: valueBase,
                 returnValue: returnBase,
                 returnPct: returnPctBase,
-                fxImpact,
-                rate: txBaseRate
+                fxRate: txFxRate.rate,
+                fxImpact
               }
             };
           }
@@ -96,8 +96,8 @@ export const getTxEnricher =
                 value: valueBase,
                 returnValue: returnBase,
                 returnPct: returnPctBase,
-                fxImpact: null,
-                rate: txBaseRate
+                fxRate: txFxRate.rate,
+                fxImpact: null
               }
             };
           }

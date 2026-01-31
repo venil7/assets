@@ -1,3 +1,4 @@
+import { formatISO } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
 import {
   EnrichedAssetDecoder,
@@ -6,6 +7,7 @@ import {
   EnrichedPortfoliosDecoder,
   EnrichedTxDecoder,
   EnrichedTxsDecoder,
+  FxDecoder,
   GetUserDecoder,
   GetUsersDecoder,
   IdDecoder,
@@ -13,7 +15,8 @@ import {
   SummaryDecoder,
   TokenDecoder,
   YahooTickerSearchResultDecoder,
-  type ChartRange,
+  type Ccy,
+  type ChartRange
 } from "../decoders";
 import type {
   AssetId,
@@ -21,6 +24,7 @@ import type {
   EnrichedAsset,
   EnrichedPortfolio,
   EnrichedTx,
+  Fx,
   GetUser,
   Id,
   NewUser,
@@ -36,9 +40,10 @@ import type {
   TickerSearchResult,
   Token,
   TxId,
-  UserId,
+  UnixDate,
+  UserId
 } from "../domain";
-import type { Action } from "../utils/utils";
+import type { Action, Optional } from "../utils/utils";
 import * as rest from "./rest";
 
 const getApi = (baseUrl: string) => (methods: rest.Methods) => {
@@ -73,7 +78,14 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   };
   const AUTH_URL = `${API_URL}/auth`;
   const REFRESH_TOKEN_URL = `${AUTH_URL}/refresh_token`;
-  const TICKER_URL = `${API_URL}/lookup/ticker`;
+  const TICKER_URL = (ticker: string) => {
+    const url = `${API_URL}/lookup/ticker`;
+    return `${url}?term=${ticker}`;
+  };
+  const FX_URL = (base: Ccy, ccy: string, date: Optional<Date | UnixDate>) => {
+    const url = `${API_URL}/lookup/fx/${base}/${ccy}`;
+    return date ? `${url}/${formatISO(date)}` : url;
+  };
   const TXS_URL = (portfolioId: PortfolioId, assetId: AssetId) =>
     `${API_URL}/portfolios/${portfolioId}/assets/${assetId}/tx`;
   const TX_URL = (portfolioId: PortfolioId, assetId: AssetId, txId: TxId) =>
@@ -200,9 +212,12 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
 
   const lookupTicker = (ticker: string) =>
     methods.get<TickerSearchResult>(
-      `${TICKER_URL}?term=${ticker}`,
+      TICKER_URL(ticker),
       YahooTickerSearchResultDecoder
     );
+
+  const fxRate = (base: Ccy, ccy: string, date: Optional<Date | UnixDate>) =>
+    methods.get<Fx>(FX_URL(base, ccy, date), FxDecoder);
 
   return {
     user: {
@@ -210,34 +225,34 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       getMany: getUsers,
       update: updateUser,
       create: createUser,
-      delete: deleteUser,
+      delete: deleteUser
     },
     profile: {
       get: getProfile,
       update: updateProfile,
       password: updatePassword,
-      delete: deleteProfile,
+      delete: deleteProfile
     },
     prefs: {
       get: getPrefs,
-      update: updatePrefs,
+      update: updatePrefs
     },
     summary: {
-      get: getSummary,
+      get: getSummary
     },
     portfolio: {
       get: getPortfolio,
       getMany: getPortfolios,
       create: createPortfolio,
       update: updatePortfolio,
-      delete: deletePortfolio,
+      delete: deletePortfolio
     },
     asset: {
       get: getAsset,
       getMany: getAssets,
       create: createAsset,
       update: updateAsset,
-      delete: deleteAsset,
+      delete: deleteAsset
     },
     tx: {
       get: getTx,
@@ -246,14 +261,15 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       update: updateTx,
       delete: deleteTx,
       deleteAllAsset: deleteAllAsset,
-      uploadAsset: uploadAsset,
+      uploadAsset: uploadAsset
     },
     auth: {
-      refreshToken: getRefreshToken,
+      refreshToken: getRefreshToken
     },
     yahoo: {
       lookupTicker,
-    },
+      fxRate
+    }
   };
 };
 

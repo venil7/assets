@@ -34,7 +34,7 @@ export const getAssetEnricher =
       TE.Do,
       TE.bind("origChart", () => yahooApi.chart(asset.ticker, range)),
       TE.bind("txs", getTxs),
-      TE.bind("mktBaseRate", ({ origChart: { meta } }) =>
+      TE.bind("mktFxRate", ({ origChart: { meta } }) =>
         // possibly optimize by taking from tx
         yahooApi.baseCcyConversionRate(meta.currency, asset.base_ccy)
       ),
@@ -42,7 +42,7 @@ export const getAssetEnricher =
         ({
           txs,
           origChart: { chart: origChart, price: rangePrice, meta },
-          mktBaseRate
+          mktFxRate
         }) => {
           const buyTxs = pipe(txs, A.filter(buy));
           const sellTxs = pipe(txs, A.filter(sell));
@@ -50,15 +50,15 @@ export const getAssetEnricher =
           const avgBuyRate =
             pipe(
               buyTxs,
-              sum(({ base, contribution }) => base.rate * contribution)
-            ) || mktBaseRate; //can be zero, so failsafing
+              sum(({ base, contribution }) => base.fxRate * contribution)
+            ) || mktFxRate.rate; //can be zero, so failsafing
           const avgSellRate =
             pipe(
               buyTxs,
-              sum(({ base, contribution }) => base.rate * contribution)
-            ) || mktBaseRate;
+              sum(({ base, contribution }) => base.fxRate * contribution)
+            ) || mktFxRate.rate;
 
-          const toMktBase = getToBase(mktBaseRate);
+          const toMktBase = getToBase(mktFxRate.rate);
           const toAvgBuyBase = getToBase(avgBuyRate);
           const toAvgSellBase = getToBase(avgSellRate);
 
@@ -110,7 +110,10 @@ export const getAssetEnricher =
           );
           const realizedGainPct = pctOf(asset.invested, realizedGain);
 
-          const realizedGainsBase = toAvgSellBase(realizedGain);
+          const realizedGainsBase = pipe(
+            sellTxs,
+            sum(({ base }) => base.returnValue)
+          );
           const realizedGainPctBase = pctOf(investedBase, realizedGainsBase);
 
           const changesCcy: PeriodChanges = {
@@ -136,7 +139,7 @@ export const getAssetEnricher =
           return {
             ...asset,
             meta,
-            mktBaseRate,
+            mktFxRate: mktFxRate.rate,
             domestic,
             weight: null, // cannot calc weight for single asset
             ccy: {

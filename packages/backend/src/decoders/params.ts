@@ -1,12 +1,17 @@
 import {
+  CcyDecoder,
   UserIdDecoder,
   type Action,
   type AssetId,
   type PortfolioId,
   type TxId,
-  type UserId,
+  type UserId
 } from "@darkruby/assets-core";
-import { liftTE } from "@darkruby/assets-core/src/decoders/util";
+import {
+  dateDecoder,
+  liftTE,
+  nullableDecoder
+} from "@darkruby/assets-core/src/decoders/util";
 import { RangeDecoder } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import type { RequestHandler } from "express";
 import { pipe } from "fp-ts/lib/function";
@@ -17,6 +22,12 @@ import { NumberFromString, withFallback } from "io-ts-types";
 const numberFromUrl = pipe(NumberFromString, liftTE);
 export const stringFromUrl = pipe(t.string, liftTE);
 export const rangeFromUrl = pipe(withFallback(RangeDecoder, "1d"), liftTE);
+export const ccyFromUrl = pipe(CcyDecoder, liftTE);
+export const dateFromUrl = pipe(dateDecoder, liftTE);
+export const optDateFromUrl = pipe(
+  withFallback(nullableDecoder(dateDecoder), undefined),
+  liftTE
+);
 
 type Req = Parameters<RequestHandler>[0];
 export const urlPortfolioId = (req: Req): Action<PortfolioId> =>

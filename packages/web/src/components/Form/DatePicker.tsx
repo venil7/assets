@@ -20,7 +20,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   time = true,
   disabled = false,
   latest = endOfToday(),
-  earliest = startOfDay(EARLIEST_DATE),
+  earliest = startOfDay(EARLIEST_DATE)
 }: DatePickerProps) => {
   const includeDateIntervals = useMemo(
     () => [{ start: earliest, end: latest }],
@@ -29,13 +29,15 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   const handleChange = (d: Nullable<Date>) => (d ? onChange(d) : void 0);
   return (
     <DatePickerLib
+      closeOnScroll
       selected={date}
+      showYearDropdown
       disabled={disabled}
       showTimeSelect={time}
       onChange={handleChange}
-      includeDateIntervals={includeDateIntervals}
-      customInput={<DatePickerButton />}
       dateFormat={DATE_FORMAT}
+      customInput={<DatePickerButton />}
+      includeDateIntervals={includeDateIntervals}
     />
   );
 };

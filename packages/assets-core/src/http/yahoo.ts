@@ -1,3 +1,4 @@
+import { getUnixTime } from "date-fns";
 import * as A from "fp-ts/lib/Array";
 import { identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -12,9 +13,12 @@ import {
   rangeForDate,
   validationError,
   type ChartMeta,
+  type Fx,
+  type UnixDate,
   type YahooChartData,
   type YahooTickerSearchResult
 } from "../domain";
+import { now } from "../utils/date";
 import { defined, type Action, type Optional } from "../utils/utils";
 import { methods, type Methods } from "./rest";
 
@@ -62,9 +66,21 @@ export const getYahooApi = (methods: Methods) => {
     ccy: string,
     base: Ccy,
     date: Optional<Date> = undefined /**no date means latest market rate */
-  ): Action<number> => {
-    if (ccy === base) return TE.of(1);
-    if (ccy === "GBp" && base === "GBP") return TE.of(100);
+  ): Action<Fx> => {
+    if (ccy === base)
+      return TE.of({
+        ccy,
+        base,
+        rate: 1,
+        time: getUnixTime(date ?? now()) as UnixDate
+      });
+    if (ccy === "GBp" && base === "GBP")
+      return TE.of({
+        ccy,
+        base,
+        rate: 100,
+        time: getUnixTime(date ?? now()) as UnixDate
+      });
 
     const term = `${base}/${ccy}`;
 
@@ -81,10 +97,13 @@ export const getYahooApi = (methods: Methods) => {
         chart(symbol, /*maybeRangeForDate(date)*/ "max")
       ),
       TE.map(({ chart, date }) => {
-        const price = priceForDate(chart, date);
+        let rate = priceForDate(chart, date);
         // if price in pence adjust accordingly
-        if (ccy === "GBp") return price * 100;
-        return price;
+        if (ccy === "GBp") {
+          rate *= 100;
+        }
+        const time = getUnixTime(date ?? now()) as UnixDate;
+        return { ccy, base, rate, time };
       })
     );
   };

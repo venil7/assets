@@ -43,7 +43,7 @@ const RawAsset: React.FC<AssetProps> = ({
   onDeleteAll,
   onUploadTxs
 }: AssetProps) => {
-  const { money, decimal } = useFormatters();
+  const { money } = useFormatters();
   return (
     <div className="asset-details">
       <HorizontalStack className="top-toolbar">

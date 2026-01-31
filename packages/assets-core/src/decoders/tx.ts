@@ -43,7 +43,7 @@ export const EnrichedTxDecoder = t.type({
   base: t.type({
     cost: t.number,
     value: t.number,
-    rate: t.number,
+    fxRate: t.number,
     returnValue: t.number,
     returnPct: t.number,
     fxImpact: nullableDecoder(t.number)

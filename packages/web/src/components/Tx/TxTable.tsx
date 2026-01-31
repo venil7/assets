@@ -57,11 +57,11 @@ const TxTableRow = (
   const { money, decimal, percent } = useFormatters();
   const handleEdit = (txid: number, tx: PostTx) =>
     pipe(
-      () => txModal(tx, asset),
+      () => txModal(tx, { asset }),
       TE.map((tx) => onEdit(txid, tx))
     );
   const handleClone = (tx: PostTx) =>
-    pipe(() => txModal(tx, asset), TE.map(cloneTx), TE.map(onClone));
+    pipe(() => txModal(tx, { asset }), TE.map(cloneTx), TE.map(onClone));
   const handleDelete = (txid: number) =>
     pipe(
       () => confirmationModal(`Delete transaction?`),
@@ -102,7 +102,7 @@ const TxTableRow = (
       >
         {money(tx.base.returnValue)}&nbsp; ({percent(tx.base.returnPct)})
       </td>
-      <td /**fx rate */ hidden={domestic}>{money(tx.base.rate, ccy)}</td>
+      <td /**fx rate */ hidden={domestic}>{money(tx.base.fxRate, ccy)}</td>
       <td
         /**fx impact */ hidden={domestic}
         className={classNames({

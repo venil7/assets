@@ -146,6 +146,7 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
 
       const lookup = express();
       lookup.get("/ticker", handlers.yahoo.search);
+      lookup.get("/fx/:base/:ccy/:date", handlers.yahoo.fxRate);
       api.use("/lookup", lookup);
 
       exp.use("/api/v1", api);
