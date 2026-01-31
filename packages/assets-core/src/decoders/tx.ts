@@ -46,7 +46,7 @@ export const EnrichedTxDecoder = t.type({
     rate: t.number,
     returnValue: t.number,
     returnPct: t.number,
-    fxImpact: t.number
+    fxImpact: nullableDecoder(t.number)
   })
 });
 

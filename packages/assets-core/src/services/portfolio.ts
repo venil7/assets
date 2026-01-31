@@ -66,7 +66,7 @@ export const getPortfolioEnricher =
         );
         const fxImpact = pipe(
           assets,
-          sum(({ base }) => base.fxImpact)
+          sum(({ base }) => base.fxImpact ?? 0)
         );
 
         const changes: PeriodChanges = (() => {

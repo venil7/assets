@@ -18,75 +18,90 @@ export const getTxEnricher =
       TE.Do,
       TE.bind("asset", getAsset),
       TE.bind("meta", ({ asset }) => yahooApi.meta(asset.ticker)),
-      TE.bind("buyBaseRate", ({ meta, asset }) =>
+      TE.bind("txBaseRate", ({ meta, asset }) =>
         yahooApi.baseCcyConversionRate(meta.currency, asset.base_ccy, tx.date)
       ),
       TE.bind("mktBaseRate", ({ meta, asset }) =>
         yahooApi.baseCcyConversionRate(meta.currency, asset.base_ccy)
       ),
-      TE.map(({ asset, meta, buyBaseRate, mktBaseRate }) => {
-        const toBuyBase = getToBase(buyBaseRate);
+      TE.map(({ asset, meta, txBaseRate, mktBaseRate }) => {
         const toMktBase = getToBase(mktBaseRate);
-
-        const buy = tx.type === "buy";
-        const rate = buy ? buyBaseRate : mktBaseRate;
-        const costCcy = tx.price * tx.quantity;
-        const valueCcy = meta.regularMarketPrice * tx.quantity;
-        const costBase = toBuyBase(costCcy);
-        const valueBase = toMktBase(valueCcy);
-
         const averageUnitCost = asset.avg_price!;
 
-        // if buy, calculates unrealized return
-        const [unrealizedReturnCcy, unrealizedReturnPct] = change({
-          before: costCcy,
-          after: valueCcy
-        });
-        // if sell calculates realized return
-        const [realizedReturnCcy, realizedReturnPct] = change({
-          before: averageUnitCost * tx.quantity,
-          after: costCcy //cost here is selling price*amount
-        });
+        switch (tx.type) {
+          case "buy": {
+            const toBuyBase = getToBase(txBaseRate);
+            const costCcy = tx.price * tx.quantity;
+            const valueCcy = meta.regularMarketPrice * tx.quantity;
+            const [returnCcy, returnPctCcy] = change({
+              before: costCcy,
+              after: valueCcy
+            });
+            const costBase = toBuyBase(costCcy);
+            const valueBase = toMktBase(valueCcy);
 
-        const returnCcy = buy ? unrealizedReturnCcy : realizedReturnCcy;
-        const returnPctCcy = buy ? unrealizedReturnPct : realizedReturnPct;
+            const [returnBase, returnPctBase] = change({
+              before: costBase,
+              after: valueBase
+            });
 
-        const [unrealizedReturnBase, unrealizedReturnPctBase] = change({
-          before: costBase,
-          after: valueBase
-        });
+            const fxImpact = (txBaseRate - mktBaseRate) * valueCcy;
 
-        const [realizedReturnBase, realizedReturnPctBase] = change({
-          before: toMktBase(averageUnitCost) * tx.quantity, // this is wrong, but no better data available
-          after: costBase
-        });
-        const returnBase = buy ? unrealizedReturnBase : realizedReturnBase;
-        const returnPctBase = buy
-          ? unrealizedReturnPctBase
-          : realizedReturnPctBase;
-        const fxImpact = (() => {
-          const buyValue0 = toBuyBase(valueCcy);
-          const returnBase0 = buyValue0 - costBase;
-          return returnBase - returnBase0;
-        })();
-
-        return {
-          ...tx,
-          ccy: {
-            cost: costCcy,
-            value: valueCcy,
-            returnValue: returnCcy,
-            returnPct: returnPctCcy
-          },
-          base: {
-            cost: costBase,
-            value: valueBase,
-            returnValue: returnBase,
-            returnPct: returnPctBase,
-            fxImpact,
-            rate
+            return {
+              ...tx,
+              ccy: {
+                cost: costCcy,
+                value: valueCcy,
+                returnValue: returnCcy,
+                returnPct: returnPctCcy
+              },
+              base: {
+                cost: costBase,
+                value: valueBase,
+                returnValue: returnBase,
+                returnPct: returnPctBase,
+                fxImpact,
+                rate: txBaseRate
+              }
+            };
           }
-        };
+          case "sell": {
+            const costCcy = averageUnitCost * tx.quantity;
+            const valueCcy = tx.price * tx.quantity;
+
+            const [returnCcy, returnPctCcy] = change({
+              before: costCcy,
+              after: valueCcy
+            });
+
+            // before is wrong, but no better data available
+            const costBase = toMktBase(averageUnitCost) * tx.quantity;
+            const valueBase = toMktBase(meta.regularMarketPrice) * tx.quantity;
+
+            const [returnBase, returnPctBase] = change({
+              before: costBase,
+              after: valueBase
+            });
+
+            return {
+              ...tx,
+              ccy: {
+                cost: costCcy,
+                value: valueCcy,
+                returnValue: returnCcy,
+                returnPct: returnPctCcy
+              },
+              base: {
+                cost: costBase,
+                value: valueBase,
+                returnValue: returnBase,
+                returnPct: returnPctBase,
+                fxImpact: null,
+                rate: txBaseRate
+              }
+            };
+          }
+        }
       })
     );
   };

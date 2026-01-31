@@ -101,7 +101,7 @@ export const getAssetEnricher =
 
           const fxImpact = pipe(
             buyTxs,
-            sum(({ base }) => base.fxImpact)
+            sum(({ base }) => base.fxImpact ?? 0)
           );
 
           const realizedGain = pipe(
