@@ -7,7 +7,12 @@ with
   total_contr as (
     select
       asset_id,
-      sum(quantity) as total_quantity
+      sum(
+        case
+          when t.type = 'buy' then quantity
+          else - quantity
+        end
+      ) as total_quantity
     from
       transactions t
     group by
@@ -18,7 +23,7 @@ with
       t.*,
       case
         when t.type = 'buy' then (t.quantity / tc.total_quantity)
-        else 0
+        else - (t.quantity / tc.total_quantity)
       end AS contribution,
       SUM(
         CASE

@@ -16,6 +16,7 @@ import { Dark } from "../Form/Alert";
 import { confirmationModal } from "../Modals/Confirmation";
 import { PagedTable } from "../Table/Table";
 import { TxMenu } from "./Menu";
+import { txDetailsModal } from "./TxDetail";
 import { txModal } from "./TxFields";
 import "./TxTable.scss";
 
@@ -38,10 +39,7 @@ const TxTableHeader = ({ disabled, asset }: TxTableProps) => (
       <th>Value</th>
       <th>Return</th>
       <th hidden={asset.domestic}>Return (base)</th>
-      <th hidden={asset.domestic}>Fx rate</th>
       <th hidden={asset.domestic}>Fx imact</th>
-      {/* <th>Holdings after tx</th>
-      <th>Invested after tx</th> */}
       <th className="d-none d-md-table-cell">Comments</th>
       <th hidden={disabled}>&#xfe19;</th>
     </tr>
@@ -50,11 +48,12 @@ const TxTableHeader = ({ disabled, asset }: TxTableProps) => (
 
 const TxTableRow = (
   tx: EnrichedTx,
-  idx: number,
+  _idx: number,
   { disabled, asset, onDelete, onEdit, onClone }: TxTableProps
 ) => {
   const domestic = asset.domestic;
   const { money, decimal, percent } = useFormatters();
+  const handleView = (tx: EnrichedTx) => () => txDetailsModal(tx, { asset });
   const handleEdit = (txid: number, tx: PostTx) =>
     pipe(
       () => txModal(tx, { asset }),
@@ -72,7 +71,7 @@ const TxTableRow = (
   const profitCcy = tx.ccy.returnValue >= 0;
   const profitBase = tx.base.returnValue >= 0;
   return (
-    <tr key={tx.id}>
+    <tr key={tx.id} onClick={handleView(tx)}>
       <td /**type */ className="capitalize">{tx.type}</td>
       <td /**date*/ className="d-none d-md-table-cell">
         {isoTimestamp(tx.date)}
@@ -102,7 +101,6 @@ const TxTableRow = (
       >
         {money(tx.base.returnValue)}&nbsp; ({percent(tx.base.returnPct)})
       </td>
-      <td /**fx rate */ hidden={domestic}>{money(tx.base.fxRate, ccy)}</td>
       <td
         /**fx impact */ hidden={domestic}
         className={classNames({
@@ -115,7 +113,7 @@ const TxTableRow = (
       <td /**comments */ className="d-none d-md-table-cell ellipsis pre">
         {tx.comments.substring(0, 20)}
       </td>
-      <td /**menu */ hidden={disabled}>
+      <td /**menu */ hidden={disabled} onClick={(evt) => evt.stopPropagation()}>
         <TxMenu
           onClone={handleClone(tx)}
           onEdit={handleEdit(tx.id, tx)}

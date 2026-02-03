@@ -8,16 +8,12 @@ import { createForm, type FieldsProps } from "../Form/Form";
 import { FormEdit } from "../Form/FormControl";
 import { createModal } from "../Modals/Modal";
 
-type PortfolioFieldsProps = FieldsProps<PostPortfolio>; /*{
-  data: PostPortfolio;
-  onChange: (p: PostPortfolio) => void;
-  disabled?: boolean;
-};*/
+type PortfolioFieldsProps = FieldsProps<PostPortfolio>;
 
 const PortfolioFields: React.FC<PortfolioFieldsProps> = ({
   data,
   onChange,
-  disabled,
+  disabled
 }) => {
   const setField = usePartialChange(data, onChange);
 

@@ -2,7 +2,6 @@
 
 1.7.0
 [x] fix mapDecoder -> chainDecoder
-[-] new mapDecoder
 [x] fix timestamps (\* 1000)
 [x] fix GBp price display
 [x] remove custom decoder nonEmptyString
@@ -12,9 +11,9 @@
 [x] explore if TX enricher can work wothout enriched asset
 [x] clone from existing transaction
 [x] show rate in add tx window
-[ ] show tx details
-[?] possibly remove node_modules, from Dockerfile
+[x] show tx details
 --
+[-] possibly remove node_modules, replace with bun Native encryption
 [ ] chore: move fp-express to backed
 [ ] chore: move assets-core to core
 [ ] research chart merges to Polars

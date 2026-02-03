@@ -18,9 +18,11 @@ export const createValidator =
       },
       get valid() {
         return E.isRight(v);
-      },
+      }
     };
   };
+
+export const defaultValidator = createValidator(t.any);
 
 export const filter = (predicate: () => boolean, message: string) =>
   E.filterOrElse(predicate, () => [validationErr(message)]);
