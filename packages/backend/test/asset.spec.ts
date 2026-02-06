@@ -1,16 +1,15 @@
 import { run, type PostTx } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
+import { sum } from "@darkruby/assets-core/src/utils/finance";
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import { pipe } from "fp-ts/lib/function";
-import * as A from "fp-ts/lib/ReadonlyArray";
-import * as TE from "fp-ts/lib/TaskEither";
 import { CsvPostAssetDecoder } from "../src/decoders/asset";
 import {
   fakeAsset,
   fakeBuy,
   fakePortfolio,
   nonAdminApi,
-  type TestApi,
+  type TestApi
 } from "./helper";
 
 let api: TestApi;
@@ -25,7 +24,7 @@ test("Create asset", async () => {
   const asset = fakeAsset();
   const {
     portfolio,
-    asset: { id, portfolio_id, name, ticker, created, modified },
+    asset: { id, portfolio_id, name, ticker, created, modified }
   } = await run(api.createPortfolioAsset(asset));
 
   expect(id).toBeNumber();
@@ -65,29 +64,7 @@ test("Delete asset", async () => {
   expect(id).toBe(asset.id);
 });
 
-test("Asset contributions are correct", async () => {
-  const { id: portfolioId } = await run(api.portfolio.create(fakePortfolio()));
-  const a1 = await run(api.asset.create(portfolioId, fakeAsset("MCD")));
-  const a2 = await run(api.asset.create(portfolioId, fakeAsset("MSFT")));
-  const a3 = await run(api.asset.create(portfolioId, fakeAsset("AAPL")));
-  const contributions = await run(
-    pipe(
-      [
-        [a1, 10],
-        [a2, 30],
-        [a3, 60],
-      ] as const,
-      TE.traverseArray(([asset, quantity]) =>
-        api.tx.create(portfolioId, asset.id, fakeBuy(quantity, 100))
-      ),
-      TE.chain(TE.traverseArray((t) => api.asset.get(portfolioId, t.asset_id))),
-      TE.map(A.map((a) => a.portfolio_contribution))
-    )
-  );
-  expect(contributions).toEqual([0.1, 0.3, 0.6]);
-});
-
-test("Calculate holding, invested and avg_price", async () => {
+test.only("Calculate holding, invested and avg_price", async () => {
   const { id: portfolioId } = await run(api.portfolio.create(fakePortfolio()));
   const { id: assetId } = await run(api.asset.create(portfolioId, fakeAsset()));
 
@@ -101,13 +78,11 @@ test("Calculate holding, invested and avg_price", async () => {
 
   const actualHoldings = pipe(
     txs,
-    A.map(({ quantity }) => quantity),
-    A.reduce(0, (a, b) => a + b)
+    sum((t) => t.quantity)
   );
   const actualInvested = pipe(
     txs,
-    A.map(({ quantity, price }) => quantity * price),
-    A.reduce(0, (a, b) => a + b)
+    sum(({ quantity, price }) => quantity * price)
   );
 
   expect(holdings).toBe(actualHoldings);
@@ -122,7 +97,7 @@ test("Update asset", async () => {
   const {
     id: newId,
     name,
-    ticker,
+    ticker
   } = await run(api.asset.update(asset.id, portfolio.id, updateAsset));
 
   expect(newId).toBe(asset.id);

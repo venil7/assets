@@ -22,8 +22,7 @@ const extAssetTypes = {
   invested: t.number,
   num_txs: t.number,
   avg_price: nullableDecoder(t.number),
-  base_ccy: CcyDecoder,
-  portfolio_contribution: t.number
+  base_ccy: CcyDecoder
 };
 
 export const PostAssetDecoder = t.type(baseAssetTypes);
