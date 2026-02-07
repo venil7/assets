@@ -12,7 +12,7 @@
 [x] clone from existing transaction
 [x] show rate in add tx window
 [x] show tx details
-[ ] asset_holding -> assets_ext, asset_transactions to be replaced by transactions_ext
+[x] asset_holding -> assets_ext, asset_transactions to be replaced by transactions_ext
 --
 [-] possibly remove node_modules, replace with bun Native encryption
 [ ] chore: move fp-express to backed

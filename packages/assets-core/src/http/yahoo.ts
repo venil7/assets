@@ -10,7 +10,6 @@ import {
   handleError,
   intervalForRange,
   priceForDate,
-  rangeForDate,
   validationError,
   type ChartMeta,
   type Fx,
@@ -19,11 +18,8 @@ import {
   type YahooTickerSearchResult
 } from "../domain";
 import { now } from "../utils/date";
-import { defined, type Action, type Optional } from "../utils/utils";
+import { type Action, type Optional } from "../utils/utils";
 import { methods, type Methods } from "./rest";
-
-const maybeRangeForDate = (d: Optional<Date>) =>
-  defined(d) ? rangeForDate(d) : undefined;
 
 export const getYahooApi = (methods: Methods) => {
   const SEARCH_URL = (term: string) =>

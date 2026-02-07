@@ -1,7 +1,12 @@
 -- views
+-- deleting views no longer in use
 drop view if exists assets_contributions;
 
--- transactions ext
+drop view if exists asset_transactions;
+
+drop view if exists asset_holdings;
+
+-- transactions_ext
 drop view if exists transactions_ext;
 
 create view
@@ -17,8 +22,6 @@ with
     from
       transactions
   ),
-  -- avg_price as (
-  -- ),
   total_contr as (
     select
       asset_id,
@@ -49,10 +52,17 @@ select
   case
     when tc.total_quantity = 0 then 0
     else quantity_ext / tc.total_quantity
-  end AS contribution
+  end AS contribution,
+  a.name,
+  a.ticker,
+  p.name as portfolio_name,
+  p.description as portfolio_description,
+  p.user_id
 from
   txs_ext t
   join total_contr tc on t.asset_id = tc.asset_id
+  inner join assets a on a.id = t.asset_id
+  inner join portfolios p on p.id = a.portfolio_id
 window
   upto_tx as (
     partition by
@@ -64,11 +74,9 @@ window
 order by
   date;
 
--- asset holdings
-drop view if exists asset_holdings;
-
+-- asset holdings, rename -> assets_ext
 create view
-  if not exists asset_holdings as
+  if not exists assets_ext as
 with
   avg_unit_cost as (
     select
@@ -85,7 +93,6 @@ with
     select
       asset_id,
       sum(quantity_ext) as holdings,
-      -- sum(quantity_ext) as invested,
       count(*) as num_txs
     from
       transactions_ext
@@ -118,7 +125,7 @@ with
       sum(invested) as total_invested,
       count(id) as num_assets
     from
-      asset_holdings
+      assets_ext
     group by
       portfolio_id
   )
@@ -139,19 +146,38 @@ window
       p.user_id
   );
 
--- asset_transactions
-drop view if exists asset_transactions;
+-- redefine triggers with new view names
+drop trigger if exists check_holdings_before_insert_sell;
 
-create view
-  if not exists asset_transactions as
+create trigger check_holdings_before_insert_sell before insert on transactions for each row when new.type = 'sell' begin
 select
-  t.*,
-  a.name,
-  a.ticker,
-  p.name as portfolio_name,
-  p.description as portfolio_description,
-  p.user_id
-from
-  transactions_ext t
-  inner join assets a on a.id = t.asset_id
-  inner join portfolios p on p.id = a.portfolio_id;
+  case
+    when (
+      select
+        holdings
+      from
+        assets_ext a
+      where
+        id = new.asset_id
+    ) < new.quantity then raise (abort, 'Insufficient holdings')
+  end;
+
+end;
+
+drop trigger if exists check_holdings_before_update_sell;
+
+create trigger check_holdings_before_update_sell before
+update on transactions for each row when new.type = 'sell' begin
+select
+  case
+    when (
+      select
+        holdings
+      from
+        assets_ext a
+      where
+        id = new.asset_id
+    ) < new.quantity then raise (abort, 'Insufficient holdings')
+  end;
+
+end;
