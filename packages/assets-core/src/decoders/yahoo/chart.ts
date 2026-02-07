@@ -75,7 +75,7 @@ const combineIndicators = (
 type ProcessedChartResponse = {
   meta: t.TypeOf<typeof ChartMetaDecoder>;
   chart: NonEmptyArray<ChartDataPoint>;
-  price: t.TypeOf<typeof PeriodChangesDecoder>;
+  periodChanges: t.TypeOf<typeof PeriodChangesDecoder>;
 };
 export const YahooChartDataDecoder = pipe(
   RawChartResponseDecoder,
@@ -128,7 +128,7 @@ export const YahooChartDataDecoder = pipe(
         return {
           meta,
           chart,
-          price: {
+          periodChanges: {
             start,
             end,
             beginning,

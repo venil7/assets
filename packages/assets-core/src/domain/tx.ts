@@ -1,3 +1,4 @@
+import { getUnixTime } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
 import { contramap, reverse } from "fp-ts/lib/Ord";
 import * as t from "io-ts";
@@ -7,7 +8,9 @@ import type {
   PostTxDecoder,
   PostTxsUploadDecoder
 } from "../decoders/tx";
+import { fuzzyIndexSearch, nonEmpty } from "../utils/array";
 import { DateOrd } from "../utils/date";
+import type { UnixDate } from "./yahoo";
 
 export const EARLIEST_DATE = new Date(0);
 
@@ -32,8 +35,8 @@ export const byDateAsc = pipe(
   contramap<Date, PostTx>((tx) => tx.date)
 );
 
-export const buy = (tx: PostTx) => tx.type == "buy";
-export const sell = (tx: PostTx) => !buy(tx);
+export const byBuy = (tx: PostTx) => tx.type == "buy";
+export const bySell = (tx: PostTx) => !byBuy(tx);
 
 export const cloneTx = ({
   type,
@@ -56,3 +59,16 @@ export const defaultTxsUpload = (
   txs,
   replace
 });
+
+export const txsAfterTimestamp =
+  (timestamp: UnixDate) =>
+  <T extends GetTx>(txs: T[]): T[] => {
+    if (nonEmpty(txs)) {
+      return pipe(
+        txs,
+        fuzzyIndexSearch(timestamp, (tx) => getUnixTime(tx.date)),
+        txs.slice.bind(txs)
+      );
+    }
+    return [];
+  };

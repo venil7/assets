@@ -14,7 +14,11 @@
 [x] show tx details
 [x] asset_holding -> assets_ext, asset_transactions to be replaced by transactions_ext
 --
+[ ] move asset to another portfolio
+[ ] window titles
 [-] possibly remove node_modules, replace with bun Native encryption
 [ ] chore: move fp-express to backed
 [ ] chore: move assets-core to core
 [ ] research chart merges to Polars
+[ ] empty portfolio bug
+[ ] delete non empty portfolio bug

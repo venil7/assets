@@ -7,6 +7,8 @@ export const onEmpty =
     return [fallback()];
   };
 
+export const nonEmpty = <T>(a: T[]): a is NA.NonEmptyArray<T> => a.length > 1;
+
 export const fuzzyIndexSearch =
   <T>(needle: number, get: (i: T) => number) =>
   (items: NA.NonEmptyArray<T>): number => {
