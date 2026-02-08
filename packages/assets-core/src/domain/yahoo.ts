@@ -155,11 +155,11 @@ export const priceForDate = (
 ): number => {
   // if no date supplied return Market price
   if (!date) return data.meta.regularMarketPrice;
-  // else return best price approximation
-  const idx = pipe(
-    data.chart,
-    fuzzyIndexSearch<ChartDataItem>(getUnixTime(date), (item) => item.timestamp)
+  // else return best price approximation, by fuzzy searching in chart data
+  const fuzzyFindChartIndex = fuzzyIndexSearch<ChartDataItem>(
+    (item) => item.timestamp
   );
+  const idx = pipe(data.chart, fuzzyFindChartIndex(getUnixTime(date)));
   return data.chart[idx].price;
 };
 

@@ -3,8 +3,10 @@ import { withFallback } from "io-ts-types";
 import { NumberDecoder } from "./number";
 import { dateDecoder, nullableDecoder } from "./util";
 
+export const TxTypeDecoder = t.union([t.literal("buy"), t.literal("sell")]);
+
 const baseTxTypes = {
-  type: t.union([t.literal("buy"), t.literal("sell")]),
+  type: TxTypeDecoder,
   quantity: NumberDecoder,
   price: NumberDecoder,
   date: dateDecoder,
@@ -17,7 +19,8 @@ const extTxTypes = {
   asset_id: t.number,
   created: dateDecoder,
   modified: dateDecoder,
-  holdings: t.number, //total holdings at the time of this transaction
+  quantity_ext: t.number, // positive for buys, negative for sells
+  holdings: t.number, // total holdings at the time of this transaction
   total_invested: t.number, // total invested at the time of this transaction
   contribution: t.number, //contribution to asset ownership in % (buy only)
   avg_price: nullableDecoder(t.number)

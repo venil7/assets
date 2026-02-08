@@ -64,11 +64,11 @@ export const txsAfterTimestamp =
   (timestamp: UnixDate) =>
   <T extends GetTx>(txs: T[]): T[] => {
     if (nonEmpty(txs)) {
-      return pipe(
-        txs,
-        fuzzyIndexSearch(timestamp, (tx) => getUnixTime(tx.date)),
-        txs.slice.bind(txs)
+      const fuzzyFindTxByTimestamp = fuzzyIndexSearch<GetTx>(
+        (tx) => getUnixTime(tx.date),
+        "left"
       );
+      return pipe(txs, fuzzyFindTxByTimestamp(timestamp), txs.slice.bind(txs));
     }
     return [];
   };

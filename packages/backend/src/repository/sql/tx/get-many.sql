@@ -2,6 +2,7 @@ select id,
   asset_id,
   type,
   quantity,
+  quantity_ext, -- quantity with buy/sell sign
   price,
   date,
   comments,

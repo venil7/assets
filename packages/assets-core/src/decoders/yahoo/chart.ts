@@ -90,7 +90,7 @@ export const YahooChartDataDecoder = pipe(
         if (chart.result && chart.result.length > 0) {
           const { meta, timestamp, indicators } = chart.result[0];
           const prevClose: ChartDataPoint = {
-            price: meta.previousClose ?? meta.chartPreviousClose,
+            price: meta.chartPreviousClose,
             volume: 0,
             timestamp: timestamp.length
               ? timestamp[0] - 5 * 60
@@ -99,7 +99,8 @@ export const YahooChartDataDecoder = pipe(
           const res = {
             meta,
             chart: [
-              prevClose,
+              //include previous close only when relevant
+              ...(meta.previousClose ? [prevClose] : []),
               // indicators quote is not always present
               ...(indicators.quote.length
                 ? combineIndicators(timestamp, indicators.quote[0])

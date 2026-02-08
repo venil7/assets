@@ -10,6 +10,7 @@ import {
   defaultBuyTx,
   EARLIEST_DATE,
   getToBase,
+  txsAfterTimestamp,
   type ChartData,
   type ChartDataItem,
   type EnrichedAsset,
@@ -43,9 +44,13 @@ export const getAssetEnricher =
         ({ txs, origChart: { chart, periodChanges, meta }, mktFxRate }) => {
           const buyTxs = pipe(txs, A.filter(byBuy));
           const sellTxs = pipe(txs, A.filter(bySell));
-          // const periodTxs = pipe(txs, txsAfterTimestamp(periodChanges.start));
-
-          // console.log(periodTxs.length);
+          // transactions
+          const prePeriodTxs = pipe(
+            txs,
+            txsAfterTimestamp(periodChanges.start)
+          );
+          const periodTxs = prePeriodTxs.slice(1);
+          console.log(prePeriodTxs.length, periodTxs.length);
 
           const avgBuyRate =
             pipe(
@@ -66,12 +71,28 @@ export const getAssetEnricher =
           const valueCcy = asset.holdings * periodChanges.current;
           const chartCcy: ChartData = enrichChart(chart, txs);
 
-          const changesCcy: PeriodChanges = {
+          const changesCcy: PeriodChanges = (() => {
             // if no holdings, we consider price for 1 unit
-            ...periodChanges,
-            beginning: periodChanges.beginning * (asset.holdings || 1),
-            current: periodChanges.current * (asset.holdings || 1)
-          };
+            const valuePeriodBeginning =
+              periodChanges.beginning * (prePeriodTxs[0]?.holdings || 1);
+            const currentValue = periodChanges.current * (asset.holdings || 1);
+
+            const [rawReturn, rawReturnPct] = change({
+              before: valuePeriodBeginning,
+              after: currentValue
+            });
+            // periodReturn = (quantityAtPeriodStart * priceAtPeriodStart)-(quantityAtPeriodEnd * priceAtPeriodEnd) - sum(periodTxs.quantity_ext)
+            // periodReturnPct = periodReturn/currentValue
+            const returnValue = rawReturn;
+            const returnPct = rawReturnPct;
+            return {
+              ...periodChanges,
+              returnValue,
+              returnPct,
+              beginning: valuePeriodBeginning,
+              current: currentValue
+            };
+          })();
 
           const totalsCcy: Totals = (() => {
             const [returnValue, returnPct] = change({
@@ -141,10 +162,10 @@ export const getAssetEnricher =
             });
             return {
               ...periodChanges,
-              beginning: beginningBase,
-              current: currentBase,
               returnValue: returnValueBase,
-              returnPct: returnPctBase
+              returnPct: returnPctBase,
+              beginning: beginningBase,
+              current: currentBase
             };
           })();
 
