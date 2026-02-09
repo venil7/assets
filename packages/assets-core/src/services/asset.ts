@@ -9,6 +9,7 @@ import {
   bySell,
   defaultBuyTx,
   EARLIEST_DATE,
+  earliestTxBeforeTimestamp,
   getToBase,
   txsAfterTimestamp,
   type ChartData,
@@ -21,6 +22,7 @@ import {
   type Totals
 } from "../domain";
 import type { YahooApi } from "../http";
+import { unixNow } from "../utils/date";
 import { change, pctOf, sum } from "../utils/finance";
 import { maybe } from "../utils/func";
 import { type Action, type Optional } from "../utils/utils";
@@ -34,152 +36,149 @@ export const getAssetEnricher =
   ): Action<EnrichedAsset> => {
     return pipe(
       TE.Do,
-      TE.bind("origChart", () => yahooApi.chart(asset.ticker, range)),
+      TE.bind("chart", () => yahooApi.chart(asset.ticker, range)),
       TE.bind("txs", getTxs),
-      TE.bind("mktFxRate", ({ origChart: { meta } }) =>
+      TE.bind("mktFxRate", ({ chart: { meta } }) =>
         // possibly optimize by taking from tx
         yahooApi.baseCcyConversionRate(meta.currency, asset.base_ccy)
       ),
       TE.map(
-        ({ txs, origChart: { chart, periodChanges, meta }, mktFxRate }) => {
+        ({
+          txs,
+          chart: { chart: origChart, periodChanges, meta },
+          mktFxRate
+        }) => {
           const buyTxs = pipe(txs, A.filter(byBuy));
           const sellTxs = pipe(txs, A.filter(bySell));
           // transactions
-          const prePeriodTxs = pipe(
+          const beforePeriodTx = pipe(
             txs,
-            txsAfterTimestamp(periodChanges.start)
+            earliestTxBeforeTimestamp(periodChanges.start)
           );
-          const periodTxs = prePeriodTxs.slice(1);
-          console.log(prePeriodTxs.length, periodTxs.length);
-
-          const avgBuyRate =
-            pipe(
-              buyTxs,
-              sum(({ base, contribution }) => base.fxRate * contribution)
-            ) || mktFxRate.rate; //can be zero, so failsafing
-
-          // const avgSellRate =
-          //   pipe(
-          //     buyTxs,
-          //     sum(({ base, contribution }) => base.fxRate * contribution)
-          //   ) || mktFxRate.rate;
+          const periodTxs = pipe(txs, txsAfterTimestamp(periodChanges.start));
 
           const domestic =
             meta.currency.toUpperCase() == asset.base_ccy.toUpperCase();
 
-          // Ccy
-          const valueCcy = asset.holdings * periodChanges.current;
-          const chartCcy: ChartData = enrichChart(chart, txs);
+          const ccy = ((): EnrichedAsset["ccy"] => {
+            const value = asset.holdings * periodChanges.current;
+            const chart: ChartData = enrichChart(origChart, txs);
+            const totals: Totals = (() => {
+              const [returnValue, returnPct] = change({
+                before: asset.invested,
+                after: value
+              });
+              return { returnValue, returnPct };
+            })();
+            const changes: PeriodChanges = (() => {
+              const beginning =
+                periodChanges.beginning *
+                // if no holdings, we assume that holding is 1,
+                (asset.holdings ? (beforePeriodTx?.holdings ?? 0) : 1);
+              const current = periodChanges.current * (asset.holdings || 1);
+              const periodTxsCost = sum<EnrichedTx>((tx) => tx.ccy.cost)(
+                periodTxs
+              );
+              const returnValue = current - beginning - periodTxsCost;
+              const returnPct = returnValue / current;
 
-          const changesCcy: PeriodChanges = (() => {
-            // if no holdings, we consider price for 1 unit
-            const valuePeriodBeginning =
-              periodChanges.beginning * (prePeriodTxs[0]?.holdings || 1);
-            const currentValue = periodChanges.current * (asset.holdings || 1);
-
-            const [rawReturn, rawReturnPct] = change({
-              before: valuePeriodBeginning,
-              after: currentValue
-            });
-            // periodReturn = (quantityAtPeriodStart * priceAtPeriodStart)-(quantityAtPeriodEnd * priceAtPeriodEnd) - sum(periodTxs.quantity_ext)
-            // periodReturnPct = periodReturn/currentValue
-            const returnValue = rawReturn;
-            const returnPct = rawReturnPct;
+              return {
+                ...periodChanges,
+                returnValue,
+                returnPct,
+                beginning,
+                current
+              };
+            })();
+            const realizedGain = pipe(
+              sellTxs,
+              sum(({ ccy }) => ccy.returnValue)
+            );
+            const realizedGainPct = pctOf(asset.invested, realizedGain);
             return {
-              ...periodChanges,
-              returnValue,
-              returnPct,
-              beginning: valuePeriodBeginning,
-              current: currentValue
+              chart,
+              totals,
+              changes,
+              realizedGain,
+              realizedGainPct
             };
           })();
 
-          const totalsCcy: Totals = (() => {
-            const [returnValue, returnPct] = change({
-              before: asset.invested,
-              after: valueCcy
-            });
+          const base: EnrichedAsset["base"] = (() => {
+            const buyTxsTotalCost = sum<EnrichedTx>(({ ccy }) => ccy.cost)(
+              buyTxs
+            );
+            const avgBuyRate =
+              pipe(
+                buyTxs,
+                sum(
+                  ({ base, ccy }) => base.fxRate * (ccy.cost / buyTxsTotalCost)
+                )
+              ) || mktFxRate.rate; // can be zero, so failsafing
 
-            return { returnValue, returnPct };
-          })();
+            const toMktBase = getToBase(mktFxRate.rate);
+            const toAvgBuyBase = getToBase(avgBuyRate);
 
-          const realizedGainCcy = pipe(
-            sellTxs,
-            sum(({ ccy }) => ccy.returnValue)
-          );
-          const realizedGainPctCcy = pctOf(asset.invested, realizedGainCcy);
+            const avgPrice = pipe(asset.avg_price, maybe(toAvgBuyBase));
+            const invested = toAvgBuyBase(asset.invested);
+            const value = toMktBase(ccy.changes.current);
 
-          const ccy: EnrichedAsset["ccy"] = {
-            chart: chartCcy,
-            totals: totalsCcy,
-            changes: changesCcy,
-            realizedGain: realizedGainCcy,
-            realizedGainPct: realizedGainPctCcy
-          };
+            const chart: ChartData = pipe(
+              ccy.chart,
+              NeA.map((dp) => ({
+                ...dp,
+                price: toMktBase(dp.price)
+              }))
+            );
 
-          // Base
-          const toMktBase = getToBase(mktFxRate.rate);
-          const toAvgBuyBase = getToBase(avgBuyRate);
-          // const toAvgSellBase = getToBase(avgSellRate); // ?
+            const totals: Totals = (() => {
+              const [returnValue, returnPct] = change({
+                before: invested,
+                after: value
+              });
+              return { returnValue, returnPct };
+            })();
 
-          const avgPriceBase = pipe(asset.avg_price, maybe(toAvgBuyBase));
-          const investedBase = toAvgBuyBase(asset.invested);
-          const valueBase = toMktBase(valueCcy);
+            const fxImpact = pipe(
+              buyTxs,
+              sum(({ base }) => base.fxImpact ?? 0)
+            );
 
-          const chartBase: ChartData = pipe(
-            chartCcy,
-            NeA.map((dp) => ({
-              ...dp,
-              price: toMktBase(dp.price)
-            }))
-          );
+            const realizedGain = pipe(
+              sellTxs,
+              sum(({ base }) => base.returnValue)
+            );
+            const realizedGainPct = pctOf(invested, realizedGain);
 
-          const totalsBase: Totals = (() => {
-            const [returnValue, returnPct] = change({
-              before: investedBase,
-              after: valueBase
-            });
-            return { returnValue, returnPct };
-          })();
+            const changes: PeriodChanges = (() => {
+              const beginning = toMktBase(ccy.changes.beginning);
+              const current = toMktBase(ccy.changes.current);
+              const periodTxsCost = sum<EnrichedTx>((tx) => tx.base.cost)(
+                periodTxs
+              );
+              const returnValue = current - beginning - periodTxsCost;
+              const returnPct = returnValue / current;
+              return {
+                ...periodChanges,
+                returnValue,
+                returnPct,
+                beginning,
+                current
+              };
+            })();
 
-          const fxImpact = pipe(
-            buyTxs,
-            sum(({ base }) => base.fxImpact ?? 0)
-          );
-
-          const realizedGainsBase = pipe(
-            sellTxs,
-            sum(({ base }) => base.returnValue)
-          );
-          const realizedGainPctBase = pctOf(investedBase, realizedGainsBase);
-
-          const changesBase: PeriodChanges = (() => {
-            const beginningBase = toMktBase(changesCcy.beginning);
-            const currentBase = toMktBase(changesCcy.current);
-            const [returnValueBase, returnPctBase] = change({
-              before: beginningBase,
-              after: currentBase
-            });
             return {
-              ...periodChanges,
-              returnValue: returnValueBase,
-              returnPct: returnPctBase,
-              beginning: beginningBase,
-              current: currentBase
+              chart,
+              totals,
+              changes,
+              fxImpact,
+              invested,
+              avgPrice,
+              avgBuyRate,
+              realizedGain,
+              realizedGainPct
             };
           })();
-
-          const base: EnrichedAsset["base"] = {
-            chart: chartBase,
-            totals: totalsBase,
-            changes: changesBase,
-            invested: investedBase,
-            realizedGain: realizedGainsBase,
-            realizedGainPct: realizedGainPctBase,
-            avgBuyRate,
-            avgPrice: avgPriceBase,
-            fxImpact
-          };
 
           return {
             ...asset,
@@ -244,7 +243,7 @@ export const calcAssetWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
 const enrichChart = (chart: ChartData, txs: GetTx[]): ChartData => {
   let txi = 0; // current tx index
 
-  const earliestChartDate = fromUnixTime(chart[0].timestamp);
+  const earliestChartDate = fromUnixTime(chart[0]?.timestamp ?? unixNow());
   const earliestTxDate = txs[0]?.date;
   if (!earliestTxDate) {
     // no transactions exist for this asset;

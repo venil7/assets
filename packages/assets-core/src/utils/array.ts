@@ -7,7 +7,7 @@ export const onEmpty =
     return [fallback()];
   };
 
-export const nonEmpty = <T>(a: T[]): a is NA.NonEmptyArray<T> => a.length > 1;
+export const nonEmpty = <T>(a: T[]): a is NA.NonEmptyArray<T> => a.length > 0;
 
 export type FuzzySearchStrategy =
   | "closest"

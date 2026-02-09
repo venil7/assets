@@ -22,3 +22,4 @@
 [ ] research chart merges to Polars
 [ ] empty portfolio bug
 [ ] delete non empty portfolio bug
+[ ] preferences should reste breadcrumb

@@ -10,6 +10,7 @@ import type {
 } from "../decoders/tx";
 import { fuzzyIndexSearch, nonEmpty } from "../utils/array";
 import { DateOrd } from "../utils/date";
+import type { Optional } from "../utils/utils";
 import type { UnixDate } from "./yahoo";
 
 export const EARLIEST_DATE = new Date(0);
@@ -60,15 +61,28 @@ export const defaultTxsUpload = (
   replace
 });
 
+export const earliestTxBeforeTimestamp =
+  (ts: UnixDate) =>
+  <T extends GetTx>(txs: T[]): Optional<T> => {
+    if (nonEmpty(txs)) {
+      const fuzzyFindTxBeforeTimestamp = fuzzyIndexSearch<GetTx>(
+        (tx) => getUnixTime(tx.date),
+        "left-unsafe"
+      );
+      const idx = pipe(txs, fuzzyFindTxBeforeTimestamp(ts));
+      return txs[idx];
+    }
+  };
+
 export const txsAfterTimestamp =
-  (timestamp: UnixDate) =>
+  (ts: UnixDate) =>
   <T extends GetTx>(txs: T[]): T[] => {
     if (nonEmpty(txs)) {
       const fuzzyFindTxByTimestamp = fuzzyIndexSearch<GetTx>(
         (tx) => getUnixTime(tx.date),
-        "left"
+        "right-unsafe"
       );
-      return pipe(txs, fuzzyFindTxByTimestamp(timestamp), txs.slice.bind(txs));
+      return pipe(txs, fuzzyFindTxByTimestamp(ts), txs.slice.bind(txs));
     }
     return [];
   };

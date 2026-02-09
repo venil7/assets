@@ -23,10 +23,7 @@ const RawRangeChart: React.FC<RangeChartProps> = ({
   onChange
 }) => {
   const timeFormatter = useMemo(() => tfForRange(range), [range]);
-  const sortedRanges = useMemo(
-    () => pipe(ranges, A.sort(byDuration)),
-    [ranges]
-  );
+
   return (
     <div className="range-chart">
       <Chart data={data} timeFormatter={timeFormatter} />
@@ -52,9 +49,13 @@ const RangeButtons: React.FC<RangeButtonsProps> = ({
   className,
   onChange
 }) => {
+  const sortedRanges = useMemo(
+    () => pipe(ranges, A.sort(byDuration)),
+    [ranges]
+  );
   return (
     <ButtonGroup className={className}>
-      {ranges.map((rng) => {
+      {sortedRanges.map((rng) => {
         const variant = rng == range ? "primary" : "secondary";
         return (
           <Button key={rng} variant={variant} onClick={() => onChange(rng)}>

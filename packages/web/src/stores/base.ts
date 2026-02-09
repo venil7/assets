@@ -34,12 +34,10 @@ export const createStoreBase = <T>(
       }),
       TE.chain(() => action),
       TE.chainFirstIOK((value) => () => {
-        // console.info("ok", value);
         fetching.value = false;
         data.value = value;
       }),
       TE.orElseW((err: AppError) => {
-        // console.error(err);
         return pipe(
           TE.fromIO(() => {
             fetching.value = false;

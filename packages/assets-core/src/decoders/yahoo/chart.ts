@@ -96,32 +96,38 @@ export const YahooChartDataDecoder = pipe(
               ? timestamp[0] - 5 * 60
               : meta.regularMarketTime
           };
+          let chart1 = meta.previousClose ? [prevClose] : [];
+          chart1 = [
+            ...chart1,
+            ...(indicators.quote.length
+              ? combineIndicators(timestamp, indicators.quote[0])
+              : [])
+          ];
+          if (!chart1.length) {
+            chart1 = [prevClose];
+          }
           const res = {
             meta,
-            chart: [
-              //include previous close only when relevant
-              ...(meta.previousClose ? [prevClose] : []),
-              // indicators quote is not always present
-              ...(indicators.quote.length
-                ? combineIndicators(timestamp, indicators.quote[0])
-                : [])
-            ] as NonEmptyArray<ChartDataPoint>
+            chart: chart1 as NonEmptyArray<ChartDataPoint>
           };
           return E.of(res);
         }
         return E.left([validationErr(`chart contains no data`)]);
       }),
-      E.bind("start", ({ chart }) => {
-        return withFallback(UnixDateDecoder, unixNow()).decode(
-          chart.meta.currentTradingPeriod?.regular?.start
-        );
-      }),
+      E.bind("start", ({ chart }) =>
+        withFallback(UnixDateDecoder, unixNow()).decode(
+          chart.chart[0]?.timestamp
+        )
+      ),
       E.bind("end", ({ chart }) => {
-        return UnixDateDecoder.decode(chart.meta.regularMarketTime);
+        return UnixDateDecoder.decode(
+          chart.chart[chart.chart.length - 1]?.timestamp
+        );
       }),
       E.map(({ chart: { meta, chart }, start, end }) => {
         const current = meta.regularMarketPrice;
-        const beginning = meta.previousClose ?? meta.chartPreviousClose;
+        const beginning =
+          chart[0]?.price ?? meta.previousClose ?? meta.chartPreviousClose;
         const [returnValue, returnPct] = change({
           before: beginning,
           after: meta.regularMarketPrice

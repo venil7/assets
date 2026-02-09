@@ -14,7 +14,7 @@ import { txsUploadModal } from "../components/Tx/TxsFields";
 import {
   decimalFormatter,
   moneyFormatter,
-  percentFormatter,
+  percentFormatter
 } from "../util/number";
 
 const money = moneyFormatter("AUD", "fr-FR");
@@ -29,7 +29,6 @@ const Tab4: React.FC = () => {
       setTx(zzz.right.txs);
     }
   };
-  console.log(tx);
   return (
     <>
       <button onClick={handleUpload}>x</button>

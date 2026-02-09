@@ -31,8 +31,8 @@ export const getTxEnricher =
         switch (tx.type) {
           case "buy": {
             const toBuyBase = getToBase(txFxRate.rate);
-            const costCcy = tx.price * tx.quantity;
-            const valueCcy = meta.regularMarketPrice * tx.quantity;
+            const costCcy = tx.price * tx.quantity_ext;
+            const valueCcy = meta.regularMarketPrice * tx.quantity_ext;
             const [returnCcy, returnPctCcy] = change({
               before: costCcy,
               after: valueCcy
@@ -66,8 +66,8 @@ export const getTxEnricher =
             };
           }
           case "sell": {
-            const costCcy = averageUnitCost * tx.quantity;
-            const valueCcy = tx.price * tx.quantity;
+            const costCcy = averageUnitCost * tx.quantity_ext;
+            const valueCcy = tx.price * tx.quantity_ext;
 
             const [returnCcy, returnPctCcy] = change({
               before: costCcy,
@@ -75,8 +75,9 @@ export const getTxEnricher =
             });
 
             // before is wrong, but no better data available
-            const costBase = toMktBase(averageUnitCost) * tx.quantity;
-            const valueBase = toMktBase(meta.regularMarketPrice) * tx.quantity;
+            const costBase = toMktBase(averageUnitCost) * tx.quantity_ext;
+            const valueBase =
+              toMktBase(meta.regularMarketPrice) * tx.quantity_ext;
 
             const [returnBase, returnPctBase] = change({
               before: costBase,
