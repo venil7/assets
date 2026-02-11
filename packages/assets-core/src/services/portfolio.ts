@@ -41,6 +41,7 @@ export const getPortfolioEnricher =
         pipe(
           getAssets(),
           TE.chain((a) => enrichAssets(a, getEnrichedTxs, range)),
+          TE.map(A.filter((a) => Boolean(a.invested))),
           TE.map(calcAssetWeights)
         )
       ),
