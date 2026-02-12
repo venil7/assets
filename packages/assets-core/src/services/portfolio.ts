@@ -19,7 +19,7 @@ import type {
 import type { YahooApi } from "../http";
 import { onEmpty } from "../utils/array";
 import { unixNow } from "../utils/date";
-import { change, sum } from "../utils/finance";
+import { sum } from "../utils/finance";
 import type { Action, Optional } from "../utils/utils";
 import { calcAssetWeights, getAssetsEnricher } from "./asset";
 import { combineAssetCharts, commonAssetRanges } from "./chart";
@@ -80,19 +80,23 @@ export const getPortfolioEnricher =
             sum(({ base }) => base.changes.current)
           );
 
-          const [returnValue, returnPct] = change({
-            before: beginning,
-            after: current
-          });
+          const returnValue = pipe(
+            assets,
+            sum((a) => a.base.changes.returnValue)
+          );
+          const returnPct = pipe(
+            assets,
+            sum((a) => a.base.changes.returnPct * a.weight!)
+          );
           const start = pipe(
             assets,
-            A.map(({ ccy }) => ccy.changes.start),
+            A.map(({ base }) => base.changes.start),
             onEmpty(unixNow),
             (s) => Math.min(...s)
           ) as UnixDate;
           const end = pipe(
             assets,
-            A.map(({ ccy }) => ccy.changes.end),
+            A.map(({ base }) => base.changes.end),
             onEmpty(unixNow),
             (s) => Math.max(...s)
           ) as UnixDate;
@@ -108,14 +112,18 @@ export const getPortfolioEnricher =
         })();
 
         const totals = ((): Totals => {
-          const [returnValue, returnPct] = change({
-            before: invested,
-            after: changes.current
-          });
+          const returnValue = pipe(
+            assets,
+            sum((a) => a.base.totals.returnValue)
+          );
+          const returnPct = pipe(
+            assets,
+            sum((a) => a.base.totals.returnPct * a.weight!)
+          );
           return { returnValue, returnPct };
         })();
 
-        const chart = combineAssetCharts(assets.filter((a) => a.holdings > 0));
+        const chart = combineAssetCharts(assets);
 
         const meta = (() => {
           const range = pipe(

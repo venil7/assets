@@ -121,7 +121,7 @@ export const getAssetEnricher =
 
             const avgPrice = pipe(asset.avg_price, maybe(toAvgBuyBase));
             const invested = toAvgBuyBase(asset.invested);
-            const value = toMktBase(ccy.changes.current);
+            const value = asset.holdings ? toMktBase(ccy.changes.current) : 0;
 
             const chart: ChartData = pipe(
               ccy.chart,

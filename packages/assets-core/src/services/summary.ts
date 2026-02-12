@@ -11,10 +11,10 @@ import type {
 } from "../domain";
 import { onEmpty } from "../utils/array";
 import { unixNow } from "../utils/date";
-import { change, sum } from "../utils/finance";
+import { sum } from "../utils/finance";
 import { combinePortfolioCharts, commonPortfolioRanges } from "./chart";
 
-export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
+export const enrichSummary = (portfolios: EnrichedPortfolio[]): Summary => {
   const chart = combinePortfolioCharts(portfolios);
   const meta = (() => {
     const range = pipe(
@@ -26,11 +26,6 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
     return { range, validRanges };
   })();
 
-  const investedBase = pipe(
-    portfolios,
-    sum(({ base }) => base.invested)
-  );
-
   const value: PeriodChanges = (() => {
     const beginning = pipe(
       portfolios,
@@ -40,11 +35,14 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
       portfolios,
       sum(({ base }) => base.changes.current)
     );
-
-    const [returnValue, returnPct] = change({
-      before: beginning,
-      after: current
-    });
+    const returnValue = pipe(
+      portfolios,
+      sum((p) => p.base.changes.returnValue)
+    );
+    const returnPct = pipe(
+      portfolios,
+      sum((p) => p.base.changes.returnPct * p.weight)
+    );
 
     const start = pipe(
       portfolios,
@@ -52,6 +50,7 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
       onEmpty(unixNow),
       (s) => Math.min(...s)
     ) as UnixDate;
+
     const end = pipe(
       portfolios,
       A.map(({ base }) => base.changes.end),
@@ -70,10 +69,14 @@ export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
   })();
 
   const totals = ((): Totals => {
-    const [returnValue, returnPct] = change({
-      before: investedBase,
-      after: value.current
-    });
+    const returnValue = pipe(
+      portfolios,
+      sum((p) => p.base.totals.returnValue)
+    );
+    const returnPct = pipe(
+      portfolios,
+      sum((p) => p.base.totals.returnPct * p.weight)
+    );
 
     return { returnValue, returnPct };
   })();
