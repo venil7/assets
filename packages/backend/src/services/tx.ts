@@ -9,7 +9,6 @@ import {
   type EnrichedTx,
   type GetAsset,
   type Id,
-  type Nullable,
   type Optional,
   type PortfolioId,
   type TxId,
@@ -66,15 +65,14 @@ export const getTxs =
   (
     assetId: AssetId,
     portfolioId: PortfolioId,
-    userId: UserId,
-    after: Nullable<Date> = null
+    userId: UserId
   ): WebAction<readonly EnrichedTx[]> => {
     const txsEnricher = getTxsEnricher(yahooApi);
     const getAsset = assetGetterHelper(repo, assetId, portfolioId, userId);
     const enrichTxs = txsEnricher(getAsset);
 
     return pipe(
-      repo.tx.getAll(assetId, userId, after),
+      repo.tx.getAll(assetId, userId),
       TE.chain(enrichTxs),
       mapWebError
     );

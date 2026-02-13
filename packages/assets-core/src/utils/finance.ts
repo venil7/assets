@@ -17,7 +17,7 @@ export const change = ({
 ];
 
 export const pctOf = (whole: number, frac: number): number =>
-  whole > 0 ? frac / whole : 0;
+  whole != 0 ? frac / whole : 0;
 
 export const sumMonoid: M.Monoid<number> = {
   empty: 0,

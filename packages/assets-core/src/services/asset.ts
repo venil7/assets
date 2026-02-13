@@ -50,6 +50,9 @@ export const getAssetEnricher =
         }) => {
           const buyTxs = pipe(txs, A.filter(byBuy));
           const sellTxs = pipe(txs, A.filter(bySell));
+          const buyTxsTotalCost = sum<EnrichedTx>(({ ccy }) => ccy.cost)(
+            buyTxs
+          );
           // transactions
           const beforePeriodTx = pipe(
             txs,
@@ -80,7 +83,7 @@ export const getAssetEnricher =
                 periodTxs
               );
               const returnValue = current - beginning - periodTxsCost;
-              const returnPct = returnValue / current;
+              const returnPct = pctOf(current, returnValue);
 
               return {
                 ...periodChanges,
@@ -90,11 +93,13 @@ export const getAssetEnricher =
                 current
               };
             })();
+
             const realizedGain = pipe(
               sellTxs,
-              sum(({ ccy }) => ccy.returnValue)
+              sum(({ ccy }) => ccy.returnValue),
+              Math.abs
             );
-            const realizedGainPct = pctOf(asset.invested, realizedGain);
+            const realizedGainPct = pctOf(buyTxsTotalCost, realizedGain);
             return {
               chart,
               totals,
@@ -105,9 +110,6 @@ export const getAssetEnricher =
           })();
 
           const base: EnrichedAsset["base"] = (() => {
-            const buyTxsTotalCost = sum<EnrichedTx>(({ ccy }) => ccy.cost)(
-              buyTxs
-            );
             const avgBuyRate =
               pipe(
                 buyTxs,
@@ -139,6 +141,10 @@ export const getAssetEnricher =
               return { returnValue, returnPct };
             })();
 
+            const buyTxsTotalCostBase = sum<EnrichedTx>(
+              ({ base }) => base.cost
+            )(buyTxs);
+
             const fxImpact = pipe(
               buyTxs,
               sum(({ base }) => base.fxImpact ?? 0)
@@ -146,9 +152,10 @@ export const getAssetEnricher =
 
             const realizedGain = pipe(
               sellTxs,
-              sum(({ base }) => base.returnValue)
+              sum(({ base }) => base.returnValue),
+              Math.abs
             );
-            const realizedGainPct = pctOf(invested, realizedGain);
+            const realizedGainPct = pctOf(buyTxsTotalCostBase, realizedGain);
 
             const changes: PeriodChanges = (() => {
               const beginning = toMktBase(ccy.changes.beginning);
@@ -157,7 +164,7 @@ export const getAssetEnricher =
                 periodTxs
               );
               const returnValue = current - beginning - periodTxsCost;
-              const returnPct = returnValue / current;
+              const returnPct = pctOf(current, returnValue);
               return {
                 ...periodChanges,
                 returnValue,

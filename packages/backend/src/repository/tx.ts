@@ -1,29 +1,26 @@
 import {
-  EARLIEST_DATE,
   handleError,
   validationError,
   type Action,
   type AppError,
   type AssetId,
   type GetTx,
-  type Nullable,
   type Optional,
   type PostTx,
   type PostTxsUpload,
   type TxId,
-  type UserId,
+  type UserId
 } from "@darkruby/assets-core";
 import {
   GetTxDecoder,
   GetTxsDecoder,
-  PostTxDecoder,
+  PostTxDecoder
 } from "@darkruby/assets-core/src/decoders/tx";
 import {
   liftTE,
-  nullableDecoder,
+  nullableDecoder
 } from "@darkruby/assets-core/src/decoders/util";
 import { type Changes, type Database } from "bun:sqlite";
-import { formatISO } from "date-fns";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as ID from "fp-ts/lib/Identity";
@@ -35,7 +32,7 @@ import {
   queryMany,
   queryOne,
   transaction,
-  type ExecutionResult,
+  type ExecutionResult
 } from "./database";
 import type { OrderDir } from "./ordering";
 import {
@@ -44,7 +41,7 @@ import {
   getTxSql,
   getTxsSql,
   insertTxSql,
-  updateTxSql,
+  updateTxSql
 } from "./sql" with { type: "macro" };
 
 const sql = {
@@ -54,8 +51,8 @@ const sql = {
     insert: TE.of(insertTxSql()),
     update: TE.of(updateTxSql()),
     delete: TE.of(deleteTxSql()),
-    deleteAllAsset: TE.of(deleteAssetTxsSql()),
-  },
+    deleteAllAsset: TE.of(deleteAssetTxsSql())
+  }
 };
 
 export const getTxs =
@@ -63,13 +60,11 @@ export const getTxs =
   (
     assetId: AssetId,
     userId: UserId,
-    afterDate: Nullable<Date> = null,
     orderDir: OrderDir = "desc",
     paging = defaultPaging()
   ): Action<GetTx[]> => {
-    const after = formatISO(afterDate ?? EARLIEST_DATE);
     return pipe(
-      queryMany<unknown[]>({ userId, assetId, after, orderDir, ...paging }),
+      queryMany<unknown[]>({ userId, assetId, orderDir, ...paging }),
       ID.ap(sql.tx.getMany),
       ID.ap(db),
       TE.chain(liftTE(GetTxsDecoder))
@@ -94,7 +89,7 @@ export const createTx =
       execute<unknown[]>({
         assetId,
         ...PostTxDecoder.encode(tx),
-        date: tx.date.toISOString(),
+        date: tx.date.toISOString()
       } as Record<string, any>),
       ID.ap(sql.tx.insert),
       ID.ap(db),
@@ -114,7 +109,7 @@ export const updateTx =
         assetId,
         ...PostTxDecoder.encode(tx),
         txId,
-        date: tx.date.toISOString(),
+        date: tx.date.toISOString()
       } as Record<string, any>),
       ID.ap(sql.tx.update),
       ID.ap(db),
@@ -154,7 +149,7 @@ export const uploadAssetTxs =
         ),
         A.reduce<Changes, ExecutionResult>([0, 0], ([, rows], c) => [
           Number(c.lastInsertRowid),
-          rows + c.changes,
+          rows + c.changes
         ])
       );
     };
