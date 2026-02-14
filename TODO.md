@@ -21,5 +21,5 @@
 [ ] chore: move assets-core to core
 [ ] research chart merges to Polars
 [ ] empty portfolio bug
-[ ] delete non empty portfolio bug
-[ ] preferences should reste breadcrumb
+[x] delete non empty portfolio bug
+[x] preferences should reset breadcrumb
