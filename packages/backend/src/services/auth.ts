@@ -6,11 +6,11 @@ import {
   type Action,
   type Optional,
   type Profile,
-  type UserId,
+  type UserId
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { Token } from "@darkruby/assets-core/src/domain/token";
-import { compare } from "bcrypt";
+import { password as Pwd } from "bun";
 import type { RequestHandler } from "express";
 import { identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -44,7 +44,7 @@ export const verifyPassword = (
 ): Action<boolean> => {
   return pipe(
     TE.tryCatch(
-      () => compare(password, phash),
+      () => Pwd.verify(password, phash),
       handleError("Unable to auth", AppErrorType.Auth)
     ),
     TE.filterOrElse(identity, () => authError("Wrong password?"))

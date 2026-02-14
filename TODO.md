@@ -16,7 +16,7 @@
 --
 [ ] move asset to another portfolio
 [ ] window titles
-[-] possibly remove node_modules, replace with bun Native encryption
+[x] possibly remove node_modules, replace with bun Native encryption
 [ ] chore: move fp-express to backed
 [ ] chore: move assets-core to core
 [ ] research chart merges to Polars
