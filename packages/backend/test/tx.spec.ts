@@ -23,7 +23,7 @@ test("Create transaction", async () => {
     asset,
   } = await run(api.createPortfolioAssetTx(buyTx));
   expect(id).toBeNumber();
-  expect(asset_id).toBe(asset.id!);
+  expect(asset_id).toBe(asset.id);
   expect(type).toBe("buy");
   expect(quantity).toBe(10);
   expect(price).toBe(100);
@@ -33,21 +33,21 @@ test("Create transaction", async () => {
 });
 
 test("Get multiple transactions", async () => {
-  const { txs, asset } = await run(
+  const { txs, asset, portfolio } = await run(
     api.createPortfolioAssetTxs([buyTx, buyTx, buyTx])
   );
-  const transactions = await run(api.tx.getMany(asset.id!));
+  const transactions = await run(api.tx.getMany(portfolio.id, asset.id));
   expect(transactions).toSatisfy(
     (a) => Array.isArray(a) && a.length == txs.length
   );
 });
 
 test("Get single transaction", async () => {
-  const { tx, asset } = await run(api.createPortfolioAssetTx(buyTx));
+  const { tx, asset, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
   const { id, asset_id, type, quantity, price, date, created, modified } =
-    await run(api.tx.get(asset.id!, tx.id!));
+    await run(api.tx.get(portfolio.id, asset.id, tx.id));
   expect(id).toBeNumber();
-  expect(asset_id).toBe(asset.id!);
+  expect(asset_id).toBe(asset.id);
   expect(type).toBeString();
   expect(quantity).toBeNumber();
   expect(price).toBeNumber();
@@ -57,13 +57,15 @@ test("Get single transaction", async () => {
 });
 
 test("Delete transaction", async () => {
-  const { tx, asset } = await run(api.createPortfolioAssetTx(buyTx));
-  const { id } = await run(api.tx.delete(asset.id!, tx.id!));
+  const { tx, asset, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
+  const { id } = await run(api.tx.delete(portfolio.id, asset.id, tx.id));
   expect(tx.id).toBe(id);
 });
 
 test("Update buy tx", async () => {
-  const { asset, tx } = await run(api.createPortfolioAssetTx(fakeBuy()));
+  const { portfolio, asset, tx } = await run(
+    api.createPortfolioAssetTx(fakeBuy())
+  );
 
   const updateTx = fakeBuy();
   const {
@@ -71,7 +73,7 @@ test("Update buy tx", async () => {
     type,
     quantity,
     price,
-  } = await run(api.tx.update(tx.id!, asset.id!, updateTx));
+  } = await run(api.tx.update(portfolio.id, asset.id, tx.id, updateTx));
 
   expect(newId).toBe(tx.id);
   expect(type).toBe(updateTx.type);
@@ -80,9 +82,9 @@ test("Update buy tx", async () => {
 });
 
 test("Insufficient holdings when selling more than own", async () => {
-  const { asset } = await run(api.createPortfolioAssetTx(buyTx));
+  const { asset, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
   const error = await pipe(
-    api.tx.create(asset.id!, fakeSell(11, 1)),
+    api.tx.create(portfolio.id, asset.id, fakeSell(11, 1)),
     TE.orElseW(TE.of),
     run
   );
@@ -90,9 +92,9 @@ test("Insufficient holdings when selling more than own", async () => {
 });
 
 test("Insufficient holdings when updating existing transaction", async () => {
-  const { asset, tx } = await run(api.createPortfolioAssetTx(buyTx));
+  const { asset, tx, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
   const error = await pipe(
-    api.tx.update(tx.id!, asset.id!, fakeSell(11, 1)),
+    api.tx.update(portfolio.id, asset.id, tx.id, fakeSell(11, 1)),
     TE.orElseW(TE.of),
     run
   );
@@ -108,19 +110,23 @@ test("CSV roundtrip", async () => {
 
 test("Delete all txs of an asset", async () => {
   const txs = [fakeBuy(), fakeBuy(), fakeBuy(), fakeBuy()];
-  const { asset } = await run(api.createPortfolioAssetTxs(txs));
-  const res = await run(api.tx.deleteAllAsset(asset.id));
+  const { asset, portfolio } = await run(api.createPortfolioAssetTxs(txs));
+  const res = await run(api.tx.deleteAllAsset(portfolio.id, asset.id));
   expect(res.id).toEqual(txs.length);
-  const allTxs = await run(api.tx.getMany(asset.id));
+  const allTxs = await run(api.tx.getMany(portfolio.id, asset.id));
   expect(allTxs.length).toEqual(0);
 });
 
 test("Bulk upload with replace", async () => {
   const txs = [fakeBuy(), fakeBuy(), fakeBuy(), fakeBuy()];
   const additionalTxs = [fakeBuy(), fakeBuy()];
-  const { asset } = await run(api.createPortfolioAssetTxs(txs));
+  const { asset, portfolio } = await run(api.createPortfolioAssetTxs(txs));
   const newTxs = await run(
-    api.tx.uploadAsset(asset.id, defaultTxsUpload(additionalTxs, true))
+    api.tx.uploadAsset(
+      portfolio.id,
+      asset.id,
+      defaultTxsUpload(additionalTxs, true)
+    )
   );
   expect(newTxs.length).toEqual(additionalTxs.length);
 });
@@ -128,9 +134,13 @@ test("Bulk upload with replace", async () => {
 test("Bulk upload with no replace", async () => {
   const txs = [fakeBuy(), fakeBuy(), fakeBuy(), fakeBuy()];
   const additionalTxs = [fakeBuy(), fakeBuy()];
-  const { asset } = await run(api.createPortfolioAssetTxs(txs));
+  const { asset, portfolio } = await run(api.createPortfolioAssetTxs(txs));
   const newTxs = await run(
-    api.tx.uploadAsset(asset.id, defaultTxsUpload(additionalTxs, false))
+    api.tx.uploadAsset(
+      portfolio.id,
+      asset.id,
+      defaultTxsUpload(additionalTxs, false)
+    )
   );
   expect(newTxs.length).toEqual(txs.length + additionalTxs.length);
 });

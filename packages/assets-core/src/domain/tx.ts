@@ -1,12 +1,19 @@
+import { getUnixTime } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
-import { contramap } from "fp-ts/lib/Ord";
+import { contramap, reverse } from "fp-ts/lib/Ord";
 import * as t from "io-ts";
 import type {
+  EnrichedTxDecoder,
   GetTxDecoder,
   PostTxDecoder,
-  PostTxsUploadDecoder,
+  PostTxsUploadDecoder
 } from "../decoders/tx";
+import { fuzzyIndexSearch, nonEmpty } from "../utils/array";
 import { DateOrd } from "../utils/date";
+import type { Optional } from "../utils/utils";
+import type { UnixDate } from "./yahoo";
+
+export const EARLIEST_DATE = new Date(0);
 
 export type PostTx = t.TypeOf<typeof PostTxDecoder>;
 export type GetTx = t.TypeOf<typeof GetTxDecoder>;
@@ -14,27 +21,68 @@ export type TxType = GetTx["type"];
 export type TxId = GetTx["id"];
 
 export type PostTxsUpload = t.TypeOf<typeof PostTxsUploadDecoder>;
+export type EnrichedTx = t.TypeOf<typeof EnrichedTxDecoder>;
 
-export const defaultTx = (type: PostTx["type"] = "buy"): PostTx => ({
-  date: new Date(),
+export const defaultTx = (type: PostTx["type"], date: Date): PostTx => ({
+  date,
   quantity: 0,
   price: 0,
   comments: "",
-  type,
+  type
 });
 
-export const byDate = pipe(
+export const byDateAsc = pipe(
   DateOrd,
   contramap<Date, PostTx>((tx) => tx.date)
 );
 
-export const defaultBuyTx = (): PostTx => defaultTx("buy");
-export const defaultSellTx = (): PostTx => defaultTx("sell");
+export const byBuy = (tx: PostTx) => tx.type == "buy";
+export const bySell = (tx: PostTx) => !byBuy(tx);
+
+export const cloneTx = ({
+  type,
+  quantity,
+  price,
+  comments
+}: PostTx): PostTx => ({ type, date: new Date(), quantity, price, comments });
+
+export const byDateDesc = pipe(byDateAsc, reverse);
+
+export const defaultBuyTx = (date = new Date()): PostTx =>
+  defaultTx("buy", date);
+export const defaultSellTx = (date = new Date()): PostTx =>
+  defaultTx("sell", date);
 
 export const defaultTxsUpload = (
   txs: PostTx[] = [],
   replace = false
 ): PostTxsUpload => ({
   txs,
-  replace,
+  replace
 });
+
+export const earliestTxBeforeTimestamp =
+  (ts: UnixDate) =>
+  <T extends GetTx>(txs: T[]): Optional<T> => {
+    if (nonEmpty(txs)) {
+      const fuzzyFindTxBeforeTimestamp = fuzzyIndexSearch<GetTx>(
+        (tx) => getUnixTime(tx.date),
+        "left-unsafe"
+      );
+      const idx = pipe(txs, fuzzyFindTxBeforeTimestamp(ts));
+      return txs[idx];
+    }
+  };
+
+export const txsAfterTimestamp =
+  (ts: UnixDate) =>
+  <T extends GetTx>(txs: T[]): T[] => {
+    if (nonEmpty(txs)) {
+      const fuzzyFindTxByTimestamp = fuzzyIndexSearch<GetTx>(
+        (tx) => getUnixTime(tx.date),
+        "right-unsafe"
+      );
+      return pipe(txs, fuzzyFindTxByTimestamp(ts), txs.slice.bind(txs));
+    }
+    return [];
+  };

@@ -1,13 +1,15 @@
 import * as t from "io-ts";
-import { dateDecoder, nonEmptyArray, nullableDecoder } from "./util";
+import { dateDecoder, nullableDecoder } from "./util";
 
+import { nonEmptyArray } from "io-ts-types";
+import { CcyDecoder } from "./prefs";
 import { ChartDataPointDecoder } from "./yahoo/chart";
 import { ChartMetaDecoder } from "./yahoo/meta";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
 const baseAssetTypes = {
   ticker: t.string,
-  name: t.string,
+  name: t.string
 };
 
 const extAssetTypes = {
@@ -20,7 +22,7 @@ const extAssetTypes = {
   invested: t.number,
   num_txs: t.number,
   avg_price: nullableDecoder(t.number),
-  portfolio_contribution: t.number,
+  base_ccy: CcyDecoder
 };
 
 export const PostAssetDecoder = t.type(baseAssetTypes);
@@ -30,21 +32,27 @@ export const GetAssetsDecoder = t.array(GetAssetDecoder);
 export const EnrichedAssetDecoder = t.type({
   ...extAssetTypes,
   meta: ChartMetaDecoder,
-  chart: t.type({
-    ccy: nonEmptyArray(ChartDataPointDecoder),
-    base: nonEmptyArray(ChartDataPointDecoder),
+  mktFxRate: t.number,
+  weight: nullableDecoder(t.number),
+  domestic: t.boolean, // if denominated in non base ccy
+  ccy: t.type({
+    chart: nonEmptyArray(ChartDataPointDecoder),
+    changes: PeriodChangesDecoder,
+    totals: TotalsDecoder,
+    realizedGain: t.number,
+    realizedGainPct: t.number
   }),
-  investedBase: t.number,
-  value: t.type({
-    ccy: PeriodChangesDecoder,
-    base: PeriodChangesDecoder,
-    weight: t.number,
-    baseRate: t.number,
-  }),
-  totals: t.type({
-    ccy: TotalsDecoder,
-    base: TotalsDecoder,
-  }),
+  base: t.type({
+    invested: t.number,
+    fxImpact: t.number,
+    chart: nonEmptyArray(ChartDataPointDecoder),
+    changes: PeriodChangesDecoder,
+    totals: TotalsDecoder,
+    avgBuyRate: t.number,
+    avgPrice: nullableDecoder(t.number),
+    realizedGain: t.number,
+    realizedGainPct: t.number
+  })
 });
 
 export const EnrichedAssetsDecoder = t.array(EnrichedAssetDecoder);

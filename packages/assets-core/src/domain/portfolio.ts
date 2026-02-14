@@ -6,7 +6,7 @@ import type {
   EnrichedPortfolioDecoder,
   GetPortfolioDecoder,
   PortfolioMetaDecoder,
-  PostPortfolioDecoder,
+  PostPortfolioDecoder
 } from "../decoders/portfolio";
 
 export type PostPortfolio = t.TypeOf<typeof PostPortfolioDecoder>;
@@ -18,13 +18,13 @@ export type EnrichedPortfolio = t.TypeOf<typeof EnrichedPortfolioDecoder>;
 
 export const defaultPortfolio = (): PostPortfolio => ({
   name: "",
-  description: "",
+  description: ""
 });
 
 export const byPortfolioChangePct: Ord<EnrichedPortfolio> = pipe(
   ordNumber,
   reverse,
-  contramap<number, EnrichedPortfolio>((p) => p.value.changePct)
+  contramap<number, EnrichedPortfolio>((p) => p.base.changes.returnPct)
 );
 
 export type PortfolioId = GetPortfolio["id"];

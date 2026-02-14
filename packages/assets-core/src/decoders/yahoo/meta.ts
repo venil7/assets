@@ -9,13 +9,13 @@ const TradingPeriodDecoder = t.type({
   timezone: t.string,
   end: t.number,
   start: t.number,
-  gmtoffset: t.number,
+  gmtoffset: t.number
 });
 
 const CurrentTradingPeriodDecoder = t.type({
   pre: nullableDecoder(TradingPeriodDecoder),
   regular: nullableDecoder(TradingPeriodDecoder),
-  post: nullableDecoder(TradingPeriodDecoder),
+  post: nullableDecoder(TradingPeriodDecoder)
 });
 
 const tradingPeriods = t.array(t.array(TradingPeriodDecoder));
@@ -34,7 +34,7 @@ const intervals = [
   "5d",
   "1wk",
   "1mo",
-  "3mo",
+  "3mo"
 ] as const;
 export type ChartInterval = (typeof intervals)[number];
 
@@ -44,23 +44,22 @@ const ranges = [
   "1mo",
   "3mo",
   "6mo",
+  "ytd",
   "1y",
   "2y",
   "5y",
   "10y",
-  "ytd",
-  "max",
+  "max"
 ] as const;
 export type ChartRange = (typeof ranges)[number];
 
 export const DEFAULT_CHART_RANGE: ChartRange = "1d";
 
-export const ChartRangeOrd: Ord<ChartRange> = fromCompare((a, b) =>
-  NumOrd.compare(
-    ranges.findIndex((r) => r === a),
-    ranges.findIndex((r) => r === b)
-  )
-);
+export const byDuration: Ord<ChartRange> = fromCompare((a, b) => {
+  const first = ranges.findIndex((r) => r === a);
+  const second = ranges.findIndex((r) => r === b);
+  return NumOrd.compare(first, second);
+});
 
 export const RangeDecoder = pipe(
   ranges as unknown as string[],
@@ -70,7 +69,7 @@ export const RangeDecoder = pipe(
       codecs as [
         t.LiteralC<string>,
         t.LiteralC<string>,
-        ...t.LiteralC<string>[],
+        ...t.LiteralC<string>[]
       ]
     )
 ) as t.Type<ChartRange>;
@@ -94,5 +93,5 @@ export const ChartMetaDecoder = t.type({
   tradingPeriods: nullableDecoder(tradingPeriods),
   dataGranularity: t.string,
   validRanges: t.array(RangeDecoder),
-  range: RangeDecoder,
+  range: RangeDecoder
 });

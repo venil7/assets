@@ -1,28 +1,28 @@
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
+import { nonEmptyArray } from "io-ts-types";
 import { PostTxDecoder, PostTxsUploadDecoder } from "../decoders";
-import {
-  boolean,
-  mapDecoder,
-  nonEmptyArray,
-  nonNegative,
-} from "../decoders/util";
+import { nonFuture } from "../decoders/date";
+import { boolean, chainDecoder, nonNegative } from "../decoders/util";
 import type { PostTxsUpload } from "../domain";
 import { createValidator } from "./util";
 
 export const txValidator = pipe(
-  mapDecoder(PostTxDecoder, ({ price, quantity }) =>
+  PostTxDecoder,
+  chainDecoder(({ price, quantity, date }) =>
     pipe(
       E.Do,
       E.apS("price", nonNegative.decode(price)),
-      E.apS("quantity", nonNegative.decode(quantity))
+      E.apS("quantity", nonNegative.decode(quantity)),
+      E.apS("date", nonFuture.decode(date))
     )
   ),
   createValidator
 );
 
 export const txsUploadValidator = pipe(
-  mapDecoder(PostTxsUploadDecoder, ({ txs, replace }) =>
+  PostTxsUploadDecoder,
+  chainDecoder(({ txs, replace }) =>
     pipe(
       E.Do,
       E.apS(

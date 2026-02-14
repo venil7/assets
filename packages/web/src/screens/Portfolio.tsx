@@ -4,24 +4,21 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { useEffect } from "react";
-import { PortfolioDetails } from "../components/Portfolio/PortfolioDetails";
+import { Portfolio } from "../components/Portfolio/Portfolio";
 import { usePortfolioParams } from "../hooks/params";
 import { useStore } from "../hooks/store";
 
-const RawPortfolioDetails: React.FC = () => {
+const RawPortfolio: React.FC = () => {
   useSignals();
   const { portfolio, assets, asset, txs } = useStore();
-  const error =
-    portfolio.error.value ||
-    assets.error.value ||
-    asset.error.value ||
-    txs.error.value;
+  const error = portfolio.error.value || assets.error.value;
 
   const fetching =
     portfolio.fetching.value ||
     assets.fetching.value ||
     asset.fetching.value ||
     txs.fetching.value;
+
   const load = () => {
     asset.reset();
 
@@ -41,7 +38,7 @@ const RawPortfolioDetails: React.FC = () => {
     assets.update(portfolioId, aid, a);
   const handleAddTx = (aid: number, t: PostTx) =>
     pipe(
-      () => txs.create(aid, t),
+      () => txs.create(portfolioId, aid, t),
       TE.chain(() => () => portfolio.load(portfolioId))
     )();
   const handleRange = (range: ChartRange) => {
@@ -50,7 +47,7 @@ const RawPortfolioDetails: React.FC = () => {
   };
 
   return (
-    <PortfolioDetails
+    <Portfolio
       error={error}
       fetching={fetching}
       onAddTx={handleAddTx}
@@ -66,4 +63,4 @@ const RawPortfolioDetails: React.FC = () => {
   );
 };
 
-export { RawPortfolioDetails as PortfolioDetailsScreen };
+export { RawPortfolio as PortfolioScreen };

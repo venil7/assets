@@ -1,14 +1,16 @@
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
 import { NumberDecoder } from "./number";
-import { dateDecoder } from "./util";
+import { dateDecoder, nullableDecoder } from "./util";
+
+export const TxTypeDecoder = t.union([t.literal("buy"), t.literal("sell")]);
 
 const baseTxTypes = {
-  type: t.union([t.literal("buy"), t.literal("sell")]),
+  type: TxTypeDecoder,
   quantity: NumberDecoder,
   price: NumberDecoder,
   date: dateDecoder,
-  comments: withFallback(t.string, ""),
+  comments: withFallback(t.string, "")
 };
 
 const extTxTypes = {
@@ -17,6 +19,11 @@ const extTxTypes = {
   asset_id: t.number,
   created: dateDecoder,
   modified: dateDecoder,
+  quantity_ext: t.number, // positive for buys, negative for sells
+  holdings: t.number, // total holdings at the time of this transaction
+  total_invested: t.number, // total invested at the time of this transaction
+  contribution: t.number, //contribution to asset ownership in % (buy only)
+  avg_price: nullableDecoder(t.number)
 };
 
 export const PostTxDecoder = t.type(baseTxTypes);
@@ -25,5 +32,25 @@ export const GetTxsDecoder = t.array(GetTxDecoder);
 
 export const PostTxsUploadDecoder = t.type({
   replace: t.boolean,
-  txs: t.array(PostTxDecoder),
+  txs: t.array(PostTxDecoder)
 });
+
+export const EnrichedTxDecoder = t.type({
+  ...extTxTypes,
+  ccy: t.type({
+    cost: t.number,
+    value: t.number,
+    returnValue: t.number,
+    returnPct: t.number
+  }),
+  base: t.type({
+    cost: t.number,
+    value: t.number,
+    fxRate: t.number,
+    returnValue: t.number,
+    returnPct: t.number,
+    fxImpact: nullableDecoder(t.number)
+  })
+});
+
+export const EnrichedTxsDecoder = t.array(EnrichedTxDecoder);

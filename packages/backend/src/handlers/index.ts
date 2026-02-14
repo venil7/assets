@@ -8,7 +8,7 @@ import * as portfolio from "./portfolio";
 import * as prefs from "./prefs";
 import * as profile from "./profile";
 import * as summary from "./summary";
-import * as tx from "./transaction";
+import * as tx from "./tx";
 import * as user from "./user";
 import * as yahoo from "./yahoo";
 
@@ -21,14 +21,14 @@ export const createHandlers = (
     getMany: pipe(portfolio.getPortfolios, expressify),
     create: pipe(portfolio.createPortfolio, expressify),
     update: pipe(portfolio.updatePortfolio, expressify),
-    delete: pipe(portfolio.deletePortfolio, expressify),
+    delete: pipe(portfolio.deletePortfolio, expressify)
   },
   assets: {
     get: pipe(assets.getAsset, expressify),
     getMany: pipe(assets.getAssets, expressify),
     create: pipe(assets.createAsset, expressify),
     update: pipe(assets.updateAsset, expressify),
-    delete: pipe(assets.deleteAsset, expressify),
+    delete: pipe(assets.deleteAsset, expressify)
   },
   tx: {
     get: pipe(tx.getTx, expressify),
@@ -37,36 +37,37 @@ export const createHandlers = (
     update: pipe(tx.updateTx, expressify),
     delete: pipe(tx.deleteTx, expressify),
     deleteAllAsset: pipe(tx.deleteAllAsset, expressify),
-    uploadAssetTxs: pipe(tx.uploadAssetTxs, expressify),
+    uploadAssetTxs: pipe(tx.uploadAssetTxs, expressify)
   },
   user: {
     get: pipe(user.getUser, expressify),
     getMany: pipe(user.getUsers, expressify),
     create: pipe(user.createUser, expressify),
     update: pipe(user.updateUser, expressify),
-    delete: pipe(user.deleteUser, expressify),
+    delete: pipe(user.deleteUser, expressify)
   },
   prefs: {
     get: pipe(prefs.getPrefs, expressify),
-    update: pipe(prefs.updatePrefs, expressify),
+    update: pipe(prefs.updatePrefs, expressify)
   },
   summary: {
-    get: pipe(summary.getSummary, expressify),
+    get: pipe(summary.getSummary, expressify)
   },
   profile: {
     get: pipe(profile.getProfile, expressify),
     update: pipe(profile.updateProfile, expressify),
     delete: pipe(profile.deleteProfile, expressify),
-    updatePassword: pipe(profile.updatePassword, expressify),
+    updatePassword: pipe(profile.updatePassword, expressify)
   },
   auth: {
     login: pipe(auth.login, expressify),
-    refreshToken: pipe(auth.refreshToken, expressify),
+    refreshToken: pipe(auth.refreshToken, expressify)
   },
   yahoo: {
-    search: pipe(yahoo.yahooSearch, expressify),
+    search: pipe(yahoo.search, expressify),
+    fxRate: pipe(yahoo.fxRate, expressify)
   },
   middleware: {
-    authenticate: pipe(auth.verifyToken, expressify),
-  },
+    authenticate: pipe(auth.verifyToken, expressify)
+  }
 });

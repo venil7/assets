@@ -1,74 +1,84 @@
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
-import { ChartRangeOrd, DEFAULT_CHART_RANGE } from "../decoders/yahoo/meta";
+import { byDuration, DEFAULT_CHART_RANGE } from "../decoders/yahoo/meta";
 import type {
   EnrichedPortfolio,
   PeriodChanges,
   Summary,
   Totals,
-  UnixDate,
+  UnixDate
 } from "../domain";
-import { nonEmpty } from "../utils/array";
-import { changeInValue, changeInValuePct, sum } from "../utils/finance";
+import { onEmpty } from "../utils/array";
+import { unixNow } from "../utils/date";
+import { sum } from "../utils/finance";
 import { combinePortfolioCharts, commonPortfolioRanges } from "./chart";
 
-export const summarize = (portfolios: EnrichedPortfolio[]): Summary => {
+export const enrichSummary = (portfolios: EnrichedPortfolio[]): Summary => {
   const chart = combinePortfolioCharts(portfolios);
   const meta = (() => {
     const range = pipe(
       portfolios,
       A.map((a) => a.meta.range),
-      A.reduce(DEFAULT_CHART_RANGE, Ord.max(ChartRangeOrd))
+      A.reduce(DEFAULT_CHART_RANGE, Ord.max(byDuration))
     );
     const validRanges = commonPortfolioRanges(portfolios);
     return { range, validRanges };
   })();
 
-  const investedBase = pipe(
-    portfolios,
-    sum(({ investedBase }) => investedBase)
-  );
-
   const value: PeriodChanges = (() => {
     const beginning = pipe(
       portfolios,
-      sum(({ value }) => value.beginning)
+      sum(({ base }) => base.changes.beginning)
     );
     const current = pipe(
       portfolios,
-      sum(({ value }) => value.current)
+      sum(({ base }) => base.changes.current)
+    );
+    const returnValue = pipe(
+      portfolios,
+      sum((p) => p.base.changes.returnValue)
+    );
+    const returnPct = pipe(
+      portfolios,
+      sum((p) => p.base.changes.returnPct * p.weight)
     );
 
-    const change = changeInValue(beginning)(current);
-    const changePct = changeInValuePct(beginning)(current);
     const start = pipe(
       portfolios,
-      A.map(({ value }) => value.start),
-      nonEmpty(() => Math.floor(new Date().getTime() / 1000)),
+      A.map(({ base }) => base.changes.start),
+      onEmpty(unixNow),
       (s) => Math.min(...s)
     ) as UnixDate;
+
     const end = pipe(
       portfolios,
-      A.map(({ value }) => value.end),
-      nonEmpty(() => Math.floor(new Date().getTime() / 1000)),
+      A.map(({ base }) => base.changes.end),
+      onEmpty(unixNow),
       (s) => Math.max(...s)
     ) as UnixDate;
 
     return {
       beginning,
       current,
-      change,
-      changePct,
+      returnValue,
+      returnPct,
       start,
-      end,
+      end
     };
   })();
 
   const totals = ((): Totals => {
-    const change = changeInValue(investedBase)(value.current);
-    const changePct = changeInValuePct(investedBase)(value.current);
-    return { change, changePct };
+    const returnValue = pipe(
+      portfolios,
+      sum((p) => p.base.totals.returnValue)
+    );
+    const returnPct = pipe(
+      portfolios,
+      sum((p) => p.base.totals.returnPct * p.weight)
+    );
+
+    return { returnValue, returnPct };
   })();
 
   return { chart, meta, value, totals };

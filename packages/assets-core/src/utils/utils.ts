@@ -9,6 +9,9 @@ export type Replace<T, K extends keyof T, R> = Identity<
   Omit<T, K> & { [key in K]: R }
 >;
 
+export const defined = <T>(t: Optional<T>): t is T =>
+  t !== null && t !== undefined;
+
 export type Result<T> = E.Either<AppError, T>;
 export type ActionResult<T> = Promise<E.Either<AppError, T>>;
 export type Action<T> = TE.TaskEither<AppError, T>;

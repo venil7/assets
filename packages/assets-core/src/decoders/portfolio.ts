@@ -1,12 +1,13 @@
 import * as t from "io-ts";
-import { dateDecoder, nonEmptyArray } from "./util";
+import { nonEmptyArray } from "io-ts-types";
+import { dateDecoder } from "./util";
 import { ChartDataPointDecoder } from "./yahoo/chart";
 import { RangeDecoder } from "./yahoo/meta";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
 const basePortfolioTypes = {
   name: t.string,
-  description: t.string,
+  description: t.string
 };
 
 const extPortfolioTypes = {
@@ -17,7 +18,7 @@ const extPortfolioTypes = {
   modified: dateDecoder,
   total_invested: t.number,
   num_assets: t.number,
-  contribution: t.number,
+  contribution: t.number
 };
 
 export const PostPortfolioDecoder = t.type(basePortfolioTypes);
@@ -26,17 +27,24 @@ export const GetPortfoliosDecoder = t.array(GetPortfolioDecoder);
 
 export const PortfolioMetaDecoder = t.type({
   range: RangeDecoder,
-  validRanges: t.array(RangeDecoder),
+  validRanges: t.array(RangeDecoder)
 });
 
 export const EnrichedPortfolioDecoder = t.type({
   ...extPortfolioTypes,
-  chart: nonEmptyArray(ChartDataPointDecoder),
-  value: PeriodChangesDecoder,
-  weight: t.number,
-  investedBase: t.number,
-  totals: TotalsDecoder,
   meta: PortfolioMetaDecoder,
+  currencies: t.array(t.string),
+  weight: t.number,
+  domestic: t.boolean,
+  base: t.type({
+    chart: nonEmptyArray(ChartDataPointDecoder),
+    changes: PeriodChangesDecoder,
+    invested: t.number,
+    totals: TotalsDecoder,
+    realizedGain: t.number,
+    realizedGainPct: t.number,
+    fxImpact: t.number
+  })
 });
 
 export const EnrichedPortfoliosDecoder = t.array(EnrichedPortfolioDecoder);

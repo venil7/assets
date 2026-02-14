@@ -1,12 +1,40 @@
-import { UserIdDecoder } from "@darkruby/assets-core";
-import { liftTE } from "@darkruby/assets-core/src/decoders/util";
+import {
+  CcyDecoder,
+  UserIdDecoder,
+  type Action,
+  type AssetId,
+  type PortfolioId,
+  type TxId,
+  type UserId
+} from "@darkruby/assets-core";
+import {
+  dateDecoder,
+  liftTE,
+  nullableDecoder
+} from "@darkruby/assets-core/src/decoders/util";
 import { RangeDecoder } from "@darkruby/assets-core/src/decoders/yahoo/meta";
+import type { RequestHandler } from "express";
 import { pipe } from "fp-ts/lib/function";
+import * as TE from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
 import { NumberFromString, withFallback } from "io-ts-types";
 
-export const numberFromUrl = pipe(NumberFromString, liftTE);
+const numberFromUrl = pipe(NumberFromString, liftTE);
 export const stringFromUrl = pipe(t.string, liftTE);
 export const rangeFromUrl = pipe(withFallback(RangeDecoder, "1d"), liftTE);
+export const ccyFromUrl = pipe(CcyDecoder, liftTE);
+export const dateFromUrl = pipe(dateDecoder, liftTE);
+export const optDateFromUrl = pipe(
+  withFallback(nullableDecoder(dateDecoder), undefined),
+  liftTE
+);
 
-export const userIdFromUrl = pipe(NumberFromString.pipe(UserIdDecoder), liftTE);
+type Req = Parameters<RequestHandler>[0];
+export const urlPortfolioId = (req: Req): Action<PortfolioId> =>
+  numberFromUrl(req.params.portfolio_id);
+export const urlAssetId = (req: Req): Action<AssetId> =>
+  numberFromUrl(req.params.asset_id);
+export const urlTxId = (req: Req): Action<TxId> =>
+  numberFromUrl(req.params.tx_id);
+export const urlUserId = (req: Req): Action<UserId> =>
+  pipe(numberFromUrl(req.params.user_id), TE.chain(liftTE(UserIdDecoder)));

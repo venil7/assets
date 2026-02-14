@@ -44,10 +44,3 @@ VALUES
   (NEW.id, 'USD');
 
 END;
-
--- drop trigger if exists delete_user_prefs;
--- create trigger delete_user_prefs after delete on users for each row BEGIN
--- delete from prefs p
--- where
---   p.id = OLD.id;
--- END;

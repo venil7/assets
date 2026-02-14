@@ -1,0 +1,23 @@
+.table {
+  .capitalize {
+    text-transform: uppercase;
+  }
+  .ellipsis {
+    text-overflow: ellipsis;
+  }
+  .pre {
+    white-space: pre;
+  }
+  .profit {
+    color: MediumSeaGreen;
+  }
+  .loss {
+    color: salmon;
+  }
+  .unrealized.profit {
+    color: SeaGreen;
+  }
+  .unrealized.loss {
+    color: indianred;
+  }
+}

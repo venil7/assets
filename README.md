@@ -6,14 +6,26 @@
 
 A self-hosted net worth and portfolio manager.
 Track multiple portfolios (ISA, General, Pension, Crypto, etc.) and monitor individual or total performance.
-Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.com/), automatically converts to your base major currency.
+Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.com/).
+
+## Features
+ - Multi user
+ - Multi portfolio, total net worth
+ - CSV import from your broker
+ - All major currencies as base 
+ - Foreign exchange return impact 
+ - capital gains and unrealized return and 
+ - Per transaction impact
 
 ---
 
-<img width="235" height="500" alt="screenshot#3" src="https://github.com/user-attachments/assets/e535c660-9e40-4eae-a54b-821075ac8264" />
-<img width="235" height="500" alt="screenshot#0" src="https://github.com/user-attachments/assets/6bb7314c-e858-4ff1-8a4a-29107e88cda8" />
-<img width="235" height="500" alt="screenshot#2" src="https://github.com/user-attachments/assets/246dcc01-5d05-4740-9dbc-af818c9479f0" />
-<img width="235" height="500" alt="screenshot#1" src="https://github.com/user-attachments/assets/caa7c233-2a21-4479-bb15-732fcfcb1fc4" />
+<img width="235" height="500" alt="screenshot#1" src="https://github.com/user-attachments/assets/e535c660-9e40-4eae-a54b-821075ac8264" />
+<img width="235" height="500" alt="screenshot#2" src="https://github.com/user-attachments/assets/6bb7314c-e858-4ff1-8a4a-29107e88cda8" />
+<img width="235" height="500" alt="screenshot#3" src="https://github.com/user-attachments/assets/246dcc01-5d05-4740-9dbc-af818c9479f0" />
+
+<img width="235" height="500" alt="screenshot#5" src="https://github.com/user-attachments/assets/994a0654-b4b3-4f7c-8935-662c38b63d5c" />
+<img width="235" height="500" alt="screenshot#6" src="https://github.com/user-attachments/assets/e1268503-0adb-479a-bdb4-a46ac4714dc3" />
+<img width="235" height="500" alt="screenshot#7" src="https://github.com/user-attachments/assets/90a98424-7851-4948-8e6f-98807d61a113" />
 
 ---
 

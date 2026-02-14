@@ -1,4 +1,4 @@
-import { run, yahooApi, type Action } from "@darkruby/assets-core";
+import { run, type Action } from "@darkruby/assets-core";
 import { createRequestHandler } from "@darkruby/fp-express";
 import { Database } from "bun:sqlite";
 import cors from "cors";
@@ -16,7 +16,7 @@ import { createWebService } from "./services";
 import {
   createCache,
   type AppCache,
-  type Stringifiable,
+  type Stringifiable
 } from "./services/cache";
 import { env, envDurationMsec, envNumber } from "./services/env";
 import { initializeApp } from "./services/init";
@@ -52,7 +52,7 @@ const cache = ({ cacheSize, cacheTtl }: Config): Action<AppCache> =>
     TE.of(
       new LRUCache<Stringifiable, any>({
         max: cacheSize,
-        ttl: cacheTtl,
+        ttl: cacheTtl
       })
     ),
     TE.map(createCache)
@@ -104,44 +104,61 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       const user = express();
       user.post("/", handlers.user.create);
       user.get("/", handlers.user.getMany);
-      user.get("/:id", handlers.user.get);
-      user.put("/:id", handlers.user.update);
-      user.delete("/:id", handlers.user.delete);
+      user.get("/:user_id", handlers.user.get);
+      user.put("/:user_id", handlers.user.update);
+      user.delete("/:user_id", handlers.user.delete);
       api.use("/users", user);
 
       const portfolios = express();
       portfolios.post("/", handlers.portfolio.create);
       portfolios.get("/", handlers.portfolio.getMany);
-      portfolios.get("/:id", handlers.portfolio.get);
-      portfolios.delete("/:id", handlers.portfolio.delete);
-      portfolios.put("/:id", handlers.portfolio.update);
+      portfolios.get("/:portfolio_id", handlers.portfolio.get);
+      portfolios.delete("/:portfolio_id", handlers.portfolio.delete);
+      portfolios.put("/:portfolio_id", handlers.portfolio.update);
       api.use("/portfolios", portfolios);
 
       const assets = express();
       assets.post("/:portfolio_id/assets", handlers.assets.create);
       assets.get("/:portfolio_id/assets", handlers.assets.getMany);
-      assets.get("/:portfolio_id/assets/:id", handlers.assets.get);
-      assets.delete("/:portfolio_id/assets/:id", handlers.assets.delete);
-      assets.put("/:portfolio_id/assets/:id", handlers.assets.update);
+      assets.get("/:portfolio_id/assets/:asset_id", handlers.assets.get);
+      assets.delete("/:portfolio_id/assets/:asset_id", handlers.assets.delete);
+      assets.put("/:portfolio_id/assets/:asset_id", handlers.assets.update);
       portfolios.use("/", assets);
 
-      const transactions = express();
-      transactions.post("/:asset_id/tx", handlers.tx.create);
-      transactions.get("/:asset_id/tx", handlers.tx.getMany);
-      transactions.get("/:asset_id/tx/:id", handlers.tx.get);
-      transactions.delete("/:asset_id/tx/:id", handlers.tx.delete);
-      transactions.put("/:asset_id/tx/:id", handlers.tx.update);
-      transactions.delete("/:asset_id/txs", handlers.tx.deleteAllAsset);
-      transactions.post("/:asset_id/txs", handlers.tx.uploadAssetTxs);
-      api.use("/assets", transactions);
+      const txs = express();
+      txs.get("/:portfolio_id/assets/:asset_id/tx", handlers.tx.getMany);
+      txs.post("/:portfolio_id/assets/:asset_id/tx", handlers.tx.create);
+      txs.get("/:portfolio_id/assets/:asset_id/tx/:tx_id", handlers.tx.get);
+      txs.delete(
+        "/:portfolio_id/assets/:asset_id/tx/:tx_id",
+        handlers.tx.delete
+      );
+      txs.put("/:portfolio_id/assets/:asset_id/tx/:tx_id", handlers.tx.update);
+      txs.delete(
+        "/:portfolio_id/assets/:asset_id/txs",
+        handlers.tx.deleteAllAsset
+      );
+      txs.post(
+        "/:portfolio_id/assets/:asset_id/txs",
+        handlers.tx.uploadAssetTxs
+      );
+      api.use("/portfolios", txs);
 
       const lookup = express();
       lookup.get("/ticker", handlers.yahoo.search);
+      lookup.get("/fx/:base/:ccy/:date", handlers.yahoo.fxRate);
       api.use("/lookup", lookup);
 
       exp.use("/api/v1", api);
+      exp.use((req, res) => {
+        res.status(404).send(`route ${req.url} does not exist`);
+      });
     }),
-    TE.map((exp) => exp.listen(port, () => console.log(`Listening on ${port}`)))
+    TE.map((exp) => {
+      return exp.listen(port, () => {
+        console.log(`Listening on ${port}`);
+      });
+    })
   );
 };
 
@@ -155,7 +172,7 @@ const app = () =>
         TE.bind("repo", () => repository(config)),
         TE.bind("cache", () => cache(config)),
         TE.bind("yahooApi", ({ cache }) => TE.of(cachedYahooApi(cache))),
-        TE.bind("service", ({ repo }) =>
+        TE.bind("service", ({ repo, yahooApi }) =>
           TE.of(createWebService(repo, yahooApi))
         )
       )

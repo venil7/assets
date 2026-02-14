@@ -11,7 +11,15 @@ import { portfolioModal } from "../components/Portfolio/PortfolioFields";
 import { HelpTip } from "../components/Tooltip/HelpTip";
 import { TickerLookup } from "../components/Tx/TickerLookup";
 import { txsUploadModal } from "../components/Tx/TxsFields";
-import { decimal, money, percent } from "../util/number";
+import {
+  decimalFormatter,
+  moneyFormatter,
+  percentFormatter
+} from "../util/number";
+
+const money = moneyFormatter("AUD", "fr-FR");
+const decimal = decimalFormatter("de-DE");
+const percent = percentFormatter("de-DE");
 
 const Tab4: React.FC = () => {
   const [tx, setTx] = useState<PostTx[]>([]);
@@ -21,7 +29,6 @@ const Tab4: React.FC = () => {
       setTx(zzz.right.txs);
     }
   };
-  console.log(tx);
   return (
     <>
       <button onClick={handleUpload}>x</button>
@@ -67,9 +74,9 @@ const RawTestScreen: React.FC = () => {
         </TabContent>
         <TabContent tab={2}>
           <ul>
-            <li>{money(40123, "AUD", "fr-FR")}</li>
-            <li>{decimal(0.012, 2, "de-DE")}</li>
-            <li>{percent(0.012, 2, "de-DE")}</li>
+            <li>{money(40123)}</li>
+            <li>{decimal(0.012)}</li>
+            <li>{percent(0.012, 2)}</li>
           </ul>
         </TabContent>
         <TabContent tab={3}>

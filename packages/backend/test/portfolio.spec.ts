@@ -52,7 +52,7 @@ test("Get single portfolio", async () => {
 
 test("Delete portfolio", async () => {
   const { id } = await run(api.portfolio.create(fakePortfolio()));
-  const { id: deletedId } = await run(api.portfolio.delete(id!));
+  const { id: deletedId } = await run(api.portfolio.delete(id));
   expect(id).toBe(deletedId);
 });
 
@@ -66,17 +66,19 @@ test("Total invested/num assets is zero in new portfolio", async () => {
 });
 
 test("correct amount of invested/assets in portfolio", async () => {
-  const { id } = await run(api.portfolio.create(fakePortfolio()));
+  const { id: portfolioId } = await run(api.portfolio.create(fakePortfolio()));
 
-  const a1 = await run(api.asset.create(id!, fakeAsset("msft")));
-  const a2 = await run(api.asset.create(id!, fakeAsset("mcd")));
-  const a3 = await run(api.asset.create(id!, fakeAsset("aapl")));
+  const a1 = await run(api.asset.create(portfolioId, fakeAsset("msft")));
+  const a2 = await run(api.asset.create(portfolioId, fakeAsset("mcd")));
+  const a3 = await run(api.asset.create(portfolioId, fakeAsset("aapl")));
 
-  await run(api.tx.create(a1.id!, fakeBuy(10, 1)));
-  await run(api.tx.create(a2.id!, fakeBuy(10, 2)));
-  await run(api.tx.create(a3.id!, fakeBuy(10, 3)));
+  await run(api.tx.create(portfolioId, a1.id, fakeBuy(10, 1)));
+  await run(api.tx.create(portfolioId, a2.id, fakeBuy(10, 2)));
+  await run(api.tx.create(portfolioId, a3.id, fakeBuy(10, 3)));
 
-  const { total_invested, num_assets } = await run(api.portfolio.get(id!));
+  const { total_invested, num_assets } = await run(
+    api.portfolio.get(portfolioId)
+  );
 
   expect(num_assets).toBe(3);
   expect(total_invested).toBe(60);
@@ -90,7 +92,7 @@ test("Update portfolio", async () => {
     id: newId,
     name,
     description,
-  } = await run(api.portfolio.update(id!, updatePortfolio));
+  } = await run(api.portfolio.update(id, updatePortfolio));
 
   expect(newId).toBe(id);
   expect(name).toBe(updatePortfolio.name);
@@ -98,8 +100,8 @@ test("Update portfolio", async () => {
 });
 
 test("CSV roundtrip", async () => {
-  const txs = [fakePortfolio(), fakePortfolio()];
-  const csv = CsvPostPortfolioDecoder.encode(txs);
-  const txs2 = await pipe(csv, liftTE(CsvPostPortfolioDecoder), run);
-  expect(txs2).toEqual(txs);
+  const portfolios = [fakePortfolio(), fakePortfolio()];
+  const csv = CsvPostPortfolioDecoder.encode(portfolios);
+  const portfolios2 = await pipe(csv, liftTE(CsvPostPortfolioDecoder), run);
+  expect(portfolios2).toEqual(portfolios);
 });

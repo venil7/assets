@@ -1,5 +1,6 @@
-import { tfForRange, type ChartData } from "@darkruby/assets-core";
+import { byDuration, tfForRange, type ChartData } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
+import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
 import { useMemo } from "react";
@@ -19,9 +20,10 @@ const RawRangeChart: React.FC<RangeChartProps> = ({
   data,
   range,
   ranges,
-  onChange,
+  onChange
 }) => {
   const timeFormatter = useMemo(() => tfForRange(range), [range]);
+
   return (
     <div className="range-chart">
       <Chart data={data} timeFormatter={timeFormatter} />
@@ -45,11 +47,15 @@ const RangeButtons: React.FC<RangeButtonsProps> = ({
   ranges,
   range,
   className,
-  onChange,
+  onChange
 }) => {
+  const sortedRanges = useMemo(
+    () => pipe(ranges, A.sort(byDuration)),
+    [ranges]
+  );
   return (
     <ButtonGroup className={className}>
-      {ranges.map((rng) => {
+      {sortedRanges.map((rng) => {
         const variant = rng == range ? "primary" : "secondary";
         return (
           <Button key={rng} variant={variant} onClick={() => onChange(rng)}>

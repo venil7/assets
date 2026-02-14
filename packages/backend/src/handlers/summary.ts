@@ -1,7 +1,7 @@
 import {
-  summarize,
+  enrichSummary,
   type EnrichedPortfolio,
-  type Summary,
+  type Summary
 } from "@darkruby/assets-core";
 import type { HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -12,5 +12,5 @@ import { getPortfolios } from "./portfolio";
 export const getSummary: HandlerTask<Summary, Context> = (ctx) =>
   pipe(
     getPortfolios(ctx),
-    TE.map((p) => summarize(p as EnrichedPortfolio[]))
+    TE.map((ps) => enrichSummary(ps as EnrichedPortfolio[]))
   );

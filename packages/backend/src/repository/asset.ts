@@ -6,15 +6,15 @@ import {
   type Optional,
   type PortfolioId,
   type PostAsset,
-  type UserId,
+  type UserId
 } from "@darkruby/assets-core";
 import {
   GetAssetDecoder,
-  GetAssetsDecoder,
+  GetAssetsDecoder
 } from "@darkruby/assets-core/src/decoders/asset";
 import {
   liftTE,
-  nullableDecoder,
+  nullableDecoder
 } from "@darkruby/assets-core/src/decoders/util";
 import type Database from "bun:sqlite";
 import { pipe } from "fp-ts/lib/function";
@@ -27,7 +27,7 @@ import {
   getAssetSql,
   getAssetsSql,
   insertAssetSql,
-  updateAssetSql,
+  updateAssetSql
 } from "./sql" with { type: "macro" };
 
 const sql = {
@@ -36,8 +36,8 @@ const sql = {
     getMany: TE.of(getAssetsSql()),
     insert: TE.of(insertAssetSql()),
     update: TE.of(updateAssetSql()),
-    delete: TE.of(deleteAssetSql()),
-  },
+    delete: TE.of(deleteAssetSql())
+  }
 };
 
 export const getAssets =

@@ -9,11 +9,7 @@ const RawPortfoliosScreen: React.FC = () => {
   useSignals();
   const { portfolios, portfolio, asset, summary } = useStore();
 
-  const error =
-    portfolios.error.value ||
-    portfolio.error.value ||
-    asset.error.value ||
-    summary.error.value;
+  const error = portfolios.error.value || summary.error.value;
 
   const fetching = portfolios.fetching.value || summary.fetching.value;
 

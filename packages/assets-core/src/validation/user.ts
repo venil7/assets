@@ -5,7 +5,7 @@ import {
   PasswordChangeDecoder,
   PostUserDecoder,
 } from "../decoders/user";
-import { mapDecoder } from "../decoders/util";
+import { chainDecoder } from "../decoders/util";
 import {
   alphaNumOnly,
   createValidator,
@@ -23,7 +23,8 @@ export const shortUsername = (pwd: string) =>
   flow(length5(pwd), alphaNumOnly(pwd), noWhiteSpace(pwd));
 
 export const postUserValidator = pipe(
-  mapDecoder(PostUserDecoder, (user) =>
+  PostUserDecoder,
+  chainDecoder((user) =>
     pipe(
       E.Do,
       shortUsername(user.username),
@@ -34,7 +35,8 @@ export const postUserValidator = pipe(
 );
 
 export const newUserValidator = pipe(
-  mapDecoder(NewUserDecoder, (newUser) =>
+  NewUserDecoder,
+  chainDecoder((newUser) =>
     pipe(
       E.Do,
       shortUsername(newUser.username),
@@ -46,7 +48,8 @@ export const newUserValidator = pipe(
 );
 
 export const passwordChangeValidator = pipe(
-  mapDecoder(PasswordChangeDecoder, ({ oldPassword, newPassword, repeat }) =>
+  PasswordChangeDecoder,
+  chainDecoder(({ oldPassword, newPassword, repeat }) =>
     pipe(
       E.Do,
       match(newPassword, repeat),

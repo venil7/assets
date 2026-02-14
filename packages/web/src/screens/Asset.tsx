@@ -18,13 +18,15 @@ const RawAssetScreen: React.FC = () => {
   useSignals();
   const { asset, txs, portfolio } = use(StoreContext);
   const { assetId, portfolioId } = useAssetParams();
-  const error = asset.error.value || portfolio.error.value || txs.error.value;
+
+  const error = portfolio.error.value || asset.error.value || txs.error.value;
   const fetching =
-    asset.fetching.value || portfolio.fetching.value || txs.fetching.value;
+    portfolio.fetching.value || asset.fetching.value || txs.fetching.value;
+
   const load = () => {
     portfolio.load(portfolioId);
     asset.load(portfolioId, assetId);
-    txs.load(assetId);
+    txs.load(portfolioId, assetId);
   };
 
   useEffect(() => {
@@ -42,19 +44,19 @@ const RawAssetScreen: React.FC = () => {
     reloadAsset(() => asset.update(portfolioId, assetId, a));
 
   const handleAddTx = (tx: PostTx) =>
-    reloadAsset(() => txs.create(assetId, tx));
+    reloadAsset(() => txs.create(portfolioId, assetId, tx));
 
   const handleEditTx = (txid: TxId, tx: PostTx) =>
-    reloadAsset(() => txs.update(assetId, txid, tx));
+    reloadAsset(() => txs.update(portfolioId, assetId, txid, tx));
 
   const handleDeleteTx = (txid: TxId) =>
-    reloadAsset(() => txs.delete(assetId, txid));
+    reloadAsset(() => txs.delete(portfolioId, assetId, txid));
 
   const handleDeleteAllTxs = () =>
-    reloadAsset(() => txs.deleteAllAsset(assetId));
+    reloadAsset(() => txs.deleteAllAsset(portfolioId, assetId));
 
   const handleUploadAssetTxs = async (upload: PostTxsUpload) =>
-    reloadAsset(() => txs.upload(assetId, upload));
+    reloadAsset(() => txs.upload(portfolioId, assetId, upload));
 
   const handleRange = (rng: ChartRange) =>
     asset.load(portfolioId, assetId, rng);

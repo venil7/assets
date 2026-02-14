@@ -1,4 +1,7 @@
-import type { Validator } from "@darkruby/assets-core/src/validation/util";
+import {
+  defaultValidator,
+  type Validator
+} from "@darkruby/assets-core/src/validation/util";
 import { useState } from "react";
 import { Modal, ModalBody, ModalHeader } from "react-bootstrap";
 import type { DialogDrivenComponentProps } from "../../util/modal";
@@ -8,7 +11,7 @@ import { ConfirmationModalFooter } from "./Footer";
 
 export function createModal<T, FP extends FieldsProps<T> = FieldsProps<T>>(
   Fields: React.FC<FP>,
-  validator: Validator,
+  validator: Validator = defaultValidator,
   title = "Edit"
 ): React.FC<DialogDrivenComponentProps<T>> {
   return ({

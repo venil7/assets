@@ -1,13 +1,28 @@
-import { type YahooTickerSearchResult } from "@darkruby/assets-core";
+import { type Fx, type YahooTickerSearchResult } from "@darkruby/assets-core";
 import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { stringFromUrl } from "../decoders/params";
+import { ccyFromUrl, optDateFromUrl, stringFromUrl } from "../decoders/params";
 import { mapWebError } from "../domain/error";
 import type { Context } from "./context";
 
-export const yahooSearch: HandlerTask<YahooTickerSearchResult, Context> = ({
+export const search: HandlerTask<YahooTickerSearchResult, Context> = ({
   params: [req],
-  context: { yahooApi },
+  context: { yahooApi }
 }) =>
   pipe(stringFromUrl(req.query.term), TE.chain(yahooApi.search), mapWebError);
+
+export const fxRate: HandlerTask<Fx, Context> = ({
+  params: [req],
+  context: { yahooApi }
+}) =>
+  pipe(
+    TE.Do,
+    TE.bind("ccy", () => stringFromUrl(req.params.ccy)),
+    TE.bind("base", () => ccyFromUrl(req.params.base)),
+    TE.bind("date", () => optDateFromUrl(req.params.date)),
+    TE.chain(({ ccy, base, date }) =>
+      yahooApi.baseCcyConversionRate(ccy, base, date)
+    ),
+    mapWebError
+  );

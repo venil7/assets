@@ -10,16 +10,17 @@ import { withVisibility } from "../../decorators/nodata";
 
 export type TabsProps = PropsWithChildren<{
   tabs: readonly string[];
+  hidden?: boolean
 }>;
 
 const TabContext = createContext({ tab: 0 });
 
-export const Tabs: React.FC<TabsProps> = ({ tabs, children }) => {
+export const Tabs: React.FC<TabsProps> = ({ tabs, hidden, children }) => {
   const [tab, setTab] = useState(0);
   const handleTabClick = (idx: number) => () => setTab(idx);
   return (
     <>
-      <Nav variant="tabs" activeKey={tab} defaultActiveKey={tab}>
+      <Nav variant="tabs" activeKey={tab} defaultActiveKey={tab} hidden={hidden}>
         {tabs.map((name, idx) => (
           <Nav.Item key={`${name}-${idx}`}>
             <Nav.Link eventKey={idx} onClick={handleTabClick(idx)}>

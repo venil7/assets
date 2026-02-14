@@ -1,11 +1,13 @@
+import { formatISO } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
 import {
   EnrichedAssetDecoder,
   EnrichedAssetsDecoder,
   EnrichedPortfolioDecoder,
   EnrichedPortfoliosDecoder,
-  GetTxDecoder,
-  GetTxsDecoder,
+  EnrichedTxDecoder,
+  EnrichedTxsDecoder,
+  FxDecoder,
   GetUserDecoder,
   GetUsersDecoder,
   IdDecoder,
@@ -13,18 +15,21 @@ import {
   SummaryDecoder,
   TokenDecoder,
   YahooTickerSearchResultDecoder,
-  type ChartRange,
+  type Ccy,
+  type ChartRange
 } from "../decoders";
 import type {
   AssetId,
   Credentials,
   EnrichedAsset,
   EnrichedPortfolio,
-  GetTx,
+  EnrichedTx,
+  Fx,
   GetUser,
   Id,
   NewUser,
   PasswordChange,
+  PortfolioId,
   PostAsset,
   PostPortfolio,
   PostTx,
@@ -34,9 +39,11 @@ import type {
   Summary,
   TickerSearchResult,
   Token,
-  UserId,
+  TxId,
+  UnixDate,
+  UserId
 } from "../domain";
-import type { Action } from "../utils/utils";
+import type { Action, Optional } from "../utils/utils";
 import * as rest from "./rest";
 
 const getApi = (baseUrl: string) => (methods: rest.Methods) => {
@@ -71,11 +78,20 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   };
   const AUTH_URL = `${API_URL}/auth`;
   const REFRESH_TOKEN_URL = `${AUTH_URL}/refresh_token`;
-  const TICKER_URL = `${API_URL}/lookup/ticker`;
-  const TXS_URL = (assetId: number) => `${API_URL}/assets/${assetId}/tx`;
-  const TX_URL = (assetId: number, txId: number) =>
-    `${TXS_URL(assetId)}/${txId}`;
-  const BULK_TX_URL = (assetId: number) => `${API_URL}/assets/${assetId}/txs`;
+  const TICKER_URL = (ticker: string) => {
+    const url = `${API_URL}/lookup/ticker`;
+    return `${url}?term=${ticker}`;
+  };
+  const FX_URL = (base: Ccy, ccy: string, date: Optional<Date | UnixDate>) => {
+    const url = `${API_URL}/lookup/fx/${base}/${ccy}`;
+    return date ? `${url}/${formatISO(date)}` : url;
+  };
+  const TXS_URL = (portfolioId: PortfolioId, assetId: AssetId) =>
+    `${API_URL}/portfolios/${portfolioId}/assets/${assetId}/tx`;
+  const TX_URL = (portfolioId: PortfolioId, assetId: AssetId, txId: TxId) =>
+    `${TXS_URL(portfolioId, assetId)}/${txId}`;
+  const BULK_TX_URL = (portfolioId: PortfolioId, assetId: number) =>
+    `${API_URL}/portfolios/${portfolioId}/assets/${assetId}/txs`;
 
   const getRefreshToken = () =>
     methods.get<Token>(REFRESH_TOKEN_URL, TokenDecoder);
@@ -137,20 +153,41 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   const deleteAsset = (portfolioId: number, id: number) =>
     methods.delete<Id>(ASSET_URL(portfolioId, id), IdDecoder);
 
-  const createTx = (assetId: AssetId, tx: PostTx) =>
-    methods.post<GetTx, PostTx>(TXS_URL(assetId), tx, GetTxDecoder);
-  const updateTx = (txId: number, assetId: number, tx: PostTx) =>
-    methods.put<GetTx, PostTx>(TX_URL(assetId, txId), tx, GetTxDecoder);
-  const getTx = (assetId: AssetId, id: number) =>
-    methods.get<GetTx>(TX_URL(assetId, id), GetTxDecoder);
-  const getTxs = (assetId: AssetId) =>
-    methods.get<GetTx[]>(TXS_URL(assetId), GetTxsDecoder);
-  const deleteTx = (assetId: AssetId, id: number) =>
-    methods.delete<Id>(TX_URL(assetId, id), IdDecoder);
-  const deleteAllAsset = (assetId: AssetId) =>
-    methods.delete<Id>(BULK_TX_URL(assetId), IdDecoder);
-  const uploadAsset = (assetId: AssetId, payload: PostTxsUpload) =>
-    methods.post<GetTx[]>(BULK_TX_URL(assetId), payload, GetTxsDecoder);
+  const createTx = (pId: PortfolioId, assetId: AssetId, tx: PostTx) =>
+    methods.post<EnrichedTx, PostTx>(
+      TXS_URL(pId, assetId),
+      tx,
+      EnrichedTxDecoder
+    );
+  const updateTx = (
+    pId: PortfolioId,
+    assetId: AssetId,
+    txId: TxId,
+    tx: PostTx
+  ) =>
+    methods.put<EnrichedTx, PostTx>(
+      TX_URL(pId, assetId, txId),
+      tx,
+      EnrichedTxDecoder
+    );
+  const getTx = (pId: PortfolioId, assetId: AssetId, txId: TxId) =>
+    methods.get<EnrichedTx>(TX_URL(pId, assetId, txId), EnrichedTxDecoder);
+  const getTxs = (pId: PortfolioId, assetId: AssetId) =>
+    methods.get<EnrichedTx[]>(TXS_URL(pId, assetId), EnrichedTxsDecoder);
+  const deleteTx = (pId: PortfolioId, assetId: AssetId, txId: number) =>
+    methods.delete<Id>(TX_URL(pId, assetId, txId), IdDecoder);
+  const deleteAllAsset = (pId: PortfolioId, assetId: AssetId) =>
+    methods.delete<Id>(BULK_TX_URL(pId, assetId), IdDecoder);
+  const uploadAsset = (
+    pId: PortfolioId,
+    assetId: AssetId,
+    payload: PostTxsUpload
+  ) =>
+    methods.post<EnrichedTx[]>(
+      BULK_TX_URL(pId, assetId),
+      payload,
+      EnrichedTxsDecoder
+    );
 
   const getProfile = () => methods.get<GetUser>(PROFILE_URL, GetUserDecoder);
   const updateProfile = (body: PostUser) =>
@@ -175,9 +212,12 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
 
   const lookupTicker = (ticker: string) =>
     methods.get<TickerSearchResult>(
-      `${TICKER_URL}?term=${ticker}`,
+      TICKER_URL(ticker),
       YahooTickerSearchResultDecoder
     );
+
+  const fxRate = (base: Ccy, ccy: string, date: Optional<Date | UnixDate>) =>
+    methods.get<Fx>(FX_URL(base, ccy, date), FxDecoder);
 
   return {
     user: {
@@ -185,34 +225,34 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       getMany: getUsers,
       update: updateUser,
       create: createUser,
-      delete: deleteUser,
+      delete: deleteUser
     },
     profile: {
       get: getProfile,
       update: updateProfile,
       password: updatePassword,
-      delete: deleteProfile,
+      delete: deleteProfile
     },
     prefs: {
       get: getPrefs,
-      update: updatePrefs,
+      update: updatePrefs
     },
     summary: {
-      get: getSummary,
+      get: getSummary
     },
     portfolio: {
       get: getPortfolio,
       getMany: getPortfolios,
       create: createPortfolio,
       update: updatePortfolio,
-      delete: deletePortfolio,
+      delete: deletePortfolio
     },
     asset: {
       get: getAsset,
       getMany: getAssets,
       create: createAsset,
       update: updateAsset,
-      delete: deleteAsset,
+      delete: deleteAsset
     },
     tx: {
       get: getTx,
@@ -221,14 +261,15 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       update: updateTx,
       delete: deleteTx,
       deleteAllAsset: deleteAllAsset,
-      uploadAsset: uploadAsset,
+      uploadAsset: uploadAsset
     },
     auth: {
-      refreshToken: getRefreshToken,
+      refreshToken: getRefreshToken
     },
     yahoo: {
       lookupTicker,
-    },
+      fxRate
+    }
   };
 };
 

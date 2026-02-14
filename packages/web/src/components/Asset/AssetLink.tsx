@@ -2,7 +2,7 @@ import {
   defaultBuyTx,
   type EnrichedAsset,
   type PostAsset,
-  type PostTx,
+  type PostTx
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -27,7 +27,7 @@ export const AssetLink = ({
   asset,
   onUpdate,
   onDelete,
-  onAddTx,
+  onAddTx
 }: AssetLinkProps) => {
   const handleUpdate = pipe(() => assetModal(asset), TE.map(onUpdate));
   const handleDelete = pipe(
@@ -35,7 +35,7 @@ export const AssetLink = ({
     TE.map(onDelete)
   );
   const handleAddTx = pipe(
-    () => txModal(defaultBuyTx(), asset),
+    () => txModal(defaultBuyTx(), { asset }),
     TE.map(onAddTx)
   );
 
@@ -48,8 +48,8 @@ export const AssetLink = ({
               <div>{asset.name}</div>
               <div className="ms-auto">
                 <Totals
-                  totals={asset.totals.base}
-                  change={asset.value.base}
+                  totals={asset.base.totals}
+                  change={asset.base.changes}
                   range={asset.meta.range}
                 />
               </div>
@@ -60,16 +60,15 @@ export const AssetLink = ({
       </Card.Body>
       <Card.Footer className="spread-container">
         <div className="stick-left">
-          <WeightIndicator value={asset.value.weight} />
+          <WeightIndicator value={asset.weight} />
           <HoldingsIndicator value={asset} />
           <TxCount value={asset} />
         </div>
         <div className="stick-right">
-          {/* <AssetPeriodChange value={asset} /> */}
           <AssetMenu
-            onDelete={handleDelete}
             onEdit={handleUpdate}
             onAddTx={handleAddTx}
+            onDelete={handleDelete}
           />
         </div>
       </Card.Footer>

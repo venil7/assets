@@ -1,102 +1,51 @@
-import {
-  defaultAsset,
-  type EnrichedAsset,
-  type EnrichedPortfolio,
-  type PostAsset,
-  type PostPortfolio,
-  type PostTx,
-} from "@darkruby/assets-core";
-import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
-import { pipe } from "fp-ts/lib/function";
-import * as TE from "fp-ts/lib/TaskEither";
-import { Stack } from "react-bootstrap";
-import { withError } from "../../decorators/errors";
-import { withFetching } from "../../decorators/fetching";
-import { withNoData } from "../../decorators/nodata";
-import { assetModal } from "../Asset/AssetFields";
-import { AssetLink } from "../Asset/AssetLink";
-import { RangeChart } from "../Charts/RangesChart";
-import { Info } from "../Form/Alert";
-import { AddBtn } from "../Form/Button";
+import type { EnrichedPortfolio } from "@darkruby/assets-core";
+import * as React from "react";
+import { ListGroup } from "react-bootstrap";
+import { useFormatters } from "../../hooks/prefs";
 import { HorizontalStack } from "../Layout/Stack";
-import { Totals } from "../Totals/Totals";
-import { portfolioModal } from "./PortfolioFields";
 
 type PortfolioDetailsProps = {
   portfolio: EnrichedPortfolio;
-  assets: EnrichedAsset[];
-  onUpdate: (p: PostPortfolio) => void;
-  onAddAsset: (a: PostAsset) => void;
-  onAddTx: (aid: number, a: PostTx) => void;
-  onUpdateAsset: (aid: number, a: PostAsset) => void;
-  onDeleteAsset: (aid: number) => void;
-  onRange: (r: ChartRange) => void;
 };
 
-const RawPortfolioDetails: React.FC<PortfolioDetailsProps> = ({
-  portfolio,
-  assets,
-  onUpdate,
-  onAddAsset,
-  onDeleteAsset,
-  onUpdateAsset,
-  onRange,
-  onAddTx,
-}: PortfolioDetailsProps) => {
-  const handleAddAsset = () =>
-    pipe(() => assetModal(defaultAsset()), TE.map(onAddAsset))();
-  const handleUpdateAsset = (aid: number) => (a: PostAsset) =>
-    onUpdateAsset(aid, a);
-  const handleAddTx = (aid: number) => (t: PostTx) => onAddTx(aid, t);
-  const handleDeleteAsset = (aid: number) => () => onDeleteAsset(aid);
-
-  const handleUpdate = () =>
-    pipe(() => portfolioModal(portfolio), TE.map(onUpdate));
-
+export const PortfolioDetails: React.FC<PortfolioDetailsProps> = ({
+  portfolio
+}) => {
+  const { money, decimal, percent } = useFormatters();
   return (
-    <>
-      <div className="portfolio-details">
-        <HorizontalStack className="top-toolbar">
-          <AddBtn onClick={handleAddAsset} label="Asset" />
-          <Totals
-            change={portfolio.value}
-            totals={portfolio.totals}
-            range={portfolio.meta.range}
-          />
-        </HorizontalStack>
-        <Info hidden={!!assets.length}>
-          This portfolio doesn have any assets yet
-        </Info>
-
-        <RangeChart
-          onChange={onRange}
-          data={portfolio.chart}
-          range={portfolio.meta.range}
-          ranges={portfolio.meta.validRanges}
-          hidden={!portfolio.num_assets}
-        />
-
-        <Stack gap={3}>
-          {assets.map((asset) => (
-            <AssetLink
-              key={asset.id}
-              asset={asset}
-              onAddTx={handleAddTx(asset.id)}
-              onUpdate={handleUpdateAsset(asset.id)}
-              onDelete={handleDeleteAsset(asset.id)}
-            />
-          ))}
-        </Stack>
-      </div>
-    </>
+    <div className="portfolio-details-tab">
+      <HorizontalStack>
+        <ListGroup variant="flush">
+          <ListGroup.Item>
+            <strong>{portfolio.description}</strong>
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Num assets</strong>
+            <span>{decimal(portfolio.num_assets)}</span>
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Total cost (base)</strong>
+            <span>{money(portfolio.base.invested)}</span>
+          </ListGroup.Item>
+        </ListGroup>
+        <ListGroup variant="flush">
+          <ListGroup.Item>
+            <strong>Currencies</strong>
+            <span>{portfolio.currencies.join(", ")}</span>
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Realized gain (base)</strong>
+            <span>
+              {money(portfolio.base.realizedGain)} (
+              {percent(portfolio.base.realizedGainPct)})
+            </span>
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Unrealized FX impact</strong>
+            <span>{money(portfolio.base.fxImpact)}</span>
+          </ListGroup.Item>
+        </ListGroup>
+      </HorizontalStack>
+    </div>
   );
 };
-
-const DecoratedPortfolioDetails = pipe(
-  RawPortfolioDetails,
-  withNoData<PortfolioDetailsProps, "portfolio">((p) => p.portfolio),
-  withError,
-  withFetching
-);
-
-export { DecoratedPortfolioDetails as PortfolioDetails };

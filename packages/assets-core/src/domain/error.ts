@@ -10,25 +10,29 @@ export type AppError = t.TypeOf<typeof AppErrorDecoder>;
 
 export const authError = (message: string): AppError => ({
   message,
-  type: AppErrorType.Auth,
+  type: AppErrorType.Auth
 });
 
 export const generalError = (message: string): AppError => ({
   message,
-  type: AppErrorType.General,
+  type: AppErrorType.General
 });
 
 export const validationError = (message: string): AppError => ({
   message,
-  type: AppErrorType.Validation,
+  type: AppErrorType.Validation
 });
 
 export const handleError =
   (msg: string = "", type: AppErrorType = AppErrorType.General) =>
-  (e: unknown): AppError => ({
-    message: `${msg}: ${JSON.stringify(e)}`,
-    type,
-  });
+  (e: any): AppError => {
+    const debug = false;
+    const message = `${msg}: ${debug ? JSON.stringify(e.stack) : JSON.stringify(e.message)}`;
+    return {
+      message,
+      type
+    };
+  };
 
 export const fromValidationError = (
   val: ValidationError,
@@ -40,7 +44,7 @@ export const fromValidationError = (
       formatValidationErrors([val]),
       A.head,
       O.getOrElse(() => fallbackMessage)
-    ),
+    )
   };
 };
 

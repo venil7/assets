@@ -1,8 +1,9 @@
 import type {
   ActionResult,
   AssetId,
-  GetTx,
+  EnrichedTx,
   Identity,
+  PortfolioId,
   PostTx,
   PostTxsUpload,
   TxId,
@@ -21,52 +22,72 @@ import {
 import { type StoreBase, createStoreBase } from "./base";
 
 export type TxsStore = Identity<
-  StoreBase<GetTx[]> & {
-    load: (aid: AssetId) => ActionResult<GetTx[]>;
-    create: (aid: AssetId, p: PostTx) => ActionResult<GetTx[]>;
-    update: (aid: AssetId, tid: TxId, p: PostTx) => ActionResult<GetTx[]>;
-    delete: (aid: AssetId, tid: TxId) => ActionResult<GetTx[]>;
-    deleteAllAsset: (aid: AssetId) => ActionResult<GetTx[]>;
-    upload: (aid: AssetId, data: PostTxsUpload) => ActionResult<GetTx[]>;
+  StoreBase<EnrichedTx[]> & {
+    load: (pid: PortfolioId, aid: AssetId) => ActionResult<EnrichedTx[]>;
+    create: (
+      pid: PortfolioId,
+      aid: AssetId,
+      p: PostTx
+    ) => ActionResult<EnrichedTx[]>;
+    update: (
+      pid: PortfolioId,
+      aid: AssetId,
+      tid: TxId,
+      p: PostTx
+    ) => ActionResult<EnrichedTx[]>;
+    delete: (
+      pid: PortfolioId,
+      aid: AssetId,
+      tid: TxId
+    ) => ActionResult<EnrichedTx[]>;
+    deleteAllAsset: (
+      pid: PortfolioId,
+      aid: AssetId
+    ) => ActionResult<EnrichedTx[]>;
+    upload: (
+      pid: PortfolioId,
+      aid: AssetId,
+      data: PostTxsUpload
+    ) => ActionResult<EnrichedTx[]>;
   }
 >;
 
 export const createTxsStore = (): TxsStore => {
-  const data = signal<GetTx[]>([]);
+  const data = signal<EnrichedTx[]>([]);
   const storeBase = createStoreBase(data, () => []);
 
   return {
     ...storeBase,
-    load: (aid: number) => storeBase.run(getTxs(aid)),
-    create: (aid: number, p: PostTx) =>
+    load: (pid: PortfolioId, aid: AssetId) => storeBase.run(getTxs(pid, aid)),
+    create: (pid: PortfolioId, aid: AssetId, p: PostTx) =>
       storeBase.run(
         pipe(
-          createTx(aid, p),
-          TE.chain(() => getTxs(aid))
+          createTx(pid, aid, p),
+          TE.chain(() => getTxs(pid, aid))
         )
       ),
-    update: (aid: number, tid: number, p: PostTx) =>
+    update: (pid: PortfolioId, aid: AssetId, tid: number, p: PostTx) =>
       storeBase.run(
         pipe(
-          updateTx(aid, tid, p),
-          TE.chain(() => getTxs(aid))
+          updateTx(pid, aid, tid, p),
+          TE.chain(() => getTxs(pid, aid))
         )
       ),
-    delete: (aid: number, tid: number) =>
+    delete: (pid: PortfolioId, aid: AssetId, tid: number) =>
       storeBase.run(
         pipe(
-          deleteTx(aid, tid),
-          TE.chain(() => getTxs(aid))
+          deleteTx(pid, aid, tid),
+          TE.chain(() => getTxs(pid, aid))
         )
       ),
-    deleteAllAsset: (aid: AssetId) =>
+    deleteAllAsset: (pid: PortfolioId, aid: AssetId) =>
       storeBase.run(
         pipe(
-          deleteAllAssetTx(aid),
-          TE.chain(() => getTxs(aid))
+          deleteAllAssetTx(pid, aid),
+          TE.chain(() => getTxs(pid, aid))
         )
       ),
-    upload: (aid: AssetId, data: PostTxsUpload) =>
-      storeBase.run(uploadTxs(aid, data)),
+    upload: (pid: PortfolioId, aid: AssetId, data: PostTxsUpload) =>
+      storeBase.run(uploadTxs(pid, aid, data)),
   };
 };

@@ -3,7 +3,7 @@ import {
   type Ccy,
   type Identity,
   type PostTx,
-  type PostTxsUpload,
+  type PostTxsUpload
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -31,7 +31,7 @@ export const TxList: React.FC<TxListProps> = ({
   ...props
 }: TxListProps) => {
   const handleAdd = pipe(
-    () => txModal(defaultBuyTx(), props.asset),
+    () => txModal(defaultBuyTx(), { asset: props.asset }),
     TE.map(onAdd)
   );
 
@@ -39,10 +39,11 @@ export const TxList: React.FC<TxListProps> = ({
     const currency = props.asset.meta.currency as Ccy;
     return pipe(() => txsUploadModal(currency), TE.map(onUploadTxs))();
   };
+
   const handleDeleteAll = () => {
     return pipe(
       () =>
-        confirmationModal(`Delete all transaction for ${props.asset.ticker}`),
+        confirmationModal(`Delete all transaction for ${props.asset.ticker}?`),
       TE.map(onDeleteAll)
     )();
   };

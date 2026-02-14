@@ -4,14 +4,14 @@ import type { Id } from "@darkruby/assets-core/src/domain/id";
 import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { numberFromUrl, rangeFromUrl } from "../decoders/params";
+import { rangeFromUrl, urlPortfolioId } from "../decoders/params";
 import { mapWebError } from "../domain/error";
 import type { Context } from "./context";
 
 export const getPortfolios: HandlerTask<
   readonly EnrichedPortfolio[],
   Context
-> = ({ params: [req, res], context: { repo, service } }) => {
+> = ({ params: [req, res], context: { service } }) => {
   return pipe(
     TE.Do,
     TE.bind("userId", () => service.auth.requireUserId(res)),
@@ -24,11 +24,11 @@ export const getPortfolios: HandlerTask<
 export const getPortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req, res], context: { repo, service } }) => {
+> = ({ params: [req, res], context: { service } }) => {
   return pipe(
     TE.Do,
     TE.bind("userId", () => service.auth.requireUserId(res)),
-    TE.bind("portfolioId", () => numberFromUrl(req.params.id)),
+    TE.bind("portfolioId", () => urlPortfolioId(req)),
     TE.bind("range", () => rangeFromUrl(req.query.range)),
     mapWebError,
     TE.chain(({ userId, portfolioId, range }) =>
@@ -40,7 +40,7 @@ export const getPortfolio: HandlerTask<
 export const createPortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req, res], context: { repo, service } }) => {
+> = ({ params: [req, res], context: { service } }) => {
   return pipe(
     service.auth.requireUserId(res),
     mapWebError,
@@ -50,11 +50,11 @@ export const createPortfolio: HandlerTask<
 
 export const deletePortfolio: HandlerTask<Optional<Id>, Context> = ({
   params: [req, res],
-  context: { repo, service },
+  context: { service },
 }) =>
   pipe(
     TE.Do,
-    TE.bind("portfolioId", () => numberFromUrl(req.params.id)),
+    TE.bind("portfolioId", () => urlPortfolioId(req)),
     TE.bind("userId", () => service.auth.requireUserId(res)),
     mapWebError,
     TE.chain(({ portfolioId, userId }) =>
@@ -65,11 +65,11 @@ export const deletePortfolio: HandlerTask<Optional<Id>, Context> = ({
 export const updatePortfolio: HandlerTask<
   Optional<EnrichedPortfolio>,
   Context
-> = ({ params: [req, res], context: { repo, service } }) => {
+> = ({ params: [req, res], context: { service } }) => {
   return pipe(
     TE.Do,
     TE.bind("userId", () => service.auth.requireUserId(res)),
-    TE.bind("portfolioId", () => numberFromUrl(req.params.id)),
+    TE.bind("portfolioId", () => urlPortfolioId(req)),
     mapWebError,
     TE.chain(({ userId, portfolioId }) =>
       service.portfolio.update(portfolioId, userId, req.body)
