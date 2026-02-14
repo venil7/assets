@@ -1,6 +1,7 @@
 import type { PostPortfolio } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useHead } from "@unhead/react";
 import { useEffect } from "react";
 import { Portfolios } from "../components/Portfolio/Portfolios";
 import { useStore } from "../hooks/store";
@@ -34,18 +35,23 @@ const RawPortfoliosScreen: React.FC = () => {
     portfolios.load(range);
     summary.load(range);
   };
+
+  useHead({ title: "Assets - Home" });
+
   return (
-    <Portfolios
-      error={error}
-      onAdd={handleAdd}
-      fetching={fetching}
-      onRange={handleRange}
-      onUpdate={handleUpdate}
-      onDelete={handleDelete}
-      summary={summary.data.value}
-      portfolios={portfolios.data.value}
-      onErrorDismiss={load}
-    />
+    <>
+      <Portfolios
+        error={error}
+        onAdd={handleAdd}
+        fetching={fetching}
+        onRange={handleRange}
+        onUpdate={handleUpdate}
+        onDelete={handleDelete}
+        summary={summary.data.value}
+        portfolios={portfolios.data.value}
+        onErrorDismiss={load}
+      />
+    </>
   );
 };
 

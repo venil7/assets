@@ -13,9 +13,9 @@
 [x] show rate in add tx window
 [x] show tx details
 [x] asset_holding -> assets_ext, asset_transactions to be replaced by transactions_ext
---
+1.7.1
 [ ] move asset to another portfolio
-[ ] window titles
+[x] window titles - @unhead/react
 [x] possibly remove node_modules, replace with bun Native encryption
 [ ] chore: move fp-express to backed
 [ ] chore: move assets-core to core

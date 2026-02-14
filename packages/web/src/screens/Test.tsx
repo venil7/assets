@@ -1,4 +1,5 @@
 import { defaultPortfolio, type PostTx } from "@darkruby/assets-core";
+import { useHead } from "@unhead/react";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -60,6 +61,8 @@ const RawTestScreen: React.FC = () => {
       TE.tapIO((p) => () => console.log(p))
     )();
   };
+
+  useHead({ title: "Assets - Test" });
 
   return (
     <>

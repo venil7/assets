@@ -1,4 +1,5 @@
 import { useSignals } from "@preact/signals-react/runtime";
+import { useHead } from "@unhead/react";
 import { useEffect } from "react";
 import { Users } from "../components/Users/Users";
 import { useStore } from "../hooks/store";
@@ -10,6 +11,8 @@ const RawUsersScreen: React.FC = () => {
   useEffect(() => {
     users.load();
   }, [users]);
+
+  useHead({ title: `Assets - Users` });
 
   return (
     <Users

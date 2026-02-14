@@ -1,15 +1,19 @@
 import type { PostAsset, PostPortfolio, PostTx } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useHead } from "@unhead/react";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { Portfolio } from "../components/Portfolio/Portfolio";
 import { usePortfolioParams } from "../hooks/params";
 import { useStore } from "../hooks/store";
 
 const RawPortfolio: React.FC = () => {
   useSignals();
+  const [title, setTitle] = useState("Loading..");
+
   const { portfolio, assets, asset, txs } = useStore();
   const error = portfolio.error.value || assets.error.value;
 
@@ -46,20 +50,24 @@ const RawPortfolio: React.FC = () => {
     assets.load(portfolioId, range);
   };
 
+  useHead({ title: `Assets - ${portfolio.data.value?.name || "Portfolio"}` });
+
   return (
-    <Portfolio
-      error={error}
-      fetching={fetching}
-      onAddTx={handleAddTx}
-      onRange={handleRange}
-      onUpdate={handleUpdate}
-      assets={assets.data.value}
-      onAddAsset={handleAddAsset}
-      portfolio={portfolio.data.value}
-      onDeleteAsset={handleDeleteAsset}
-      onUpdateAsset={handleUpdateAsset}
-      onErrorDismiss={load}
-    />
+    <>
+      <Portfolio
+        error={error}
+        fetching={fetching}
+        onAddTx={handleAddTx}
+        onRange={handleRange}
+        onUpdate={handleUpdate}
+        assets={assets.data.value}
+        onAddAsset={handleAddAsset}
+        portfolio={portfolio.data.value}
+        onDeleteAsset={handleDeleteAsset}
+        onUpdateAsset={handleUpdateAsset}
+        onErrorDismiss={load}
+      />
+    </>
   );
 };
 

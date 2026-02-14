@@ -1,5 +1,6 @@
 import type { Action, Credentials } from "@darkruby/assets-core";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useHead } from "@unhead/react";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Col, Row } from "react-bootstrap";
 import { useNavigate } from "react-router";
@@ -22,6 +23,8 @@ const RawLoginScreen: React.FC = () => {
     });
     auth.login(creds, onSuccess);
   };
+
+  useHead({ title: `Assets - Login` });
 
   return (
     <>

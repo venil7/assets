@@ -3,10 +3,11 @@ import type {
   PostAsset,
   PostTx,
   PostTxsUpload,
-  TxId,
+  TxId
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useHead } from "@unhead/react";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { use, useEffect } from "react";
@@ -60,6 +61,10 @@ const RawAssetScreen: React.FC = () => {
 
   const handleRange = (rng: ChartRange) =>
     asset.load(portfolioId, assetId, rng);
+
+  useHead({
+    title: `Assets - ${portfolio.data.value?.name ?? "Portfolio"} - ${asset.data.value?.name ?? "Asset"}`
+  });
 
   return (
     <>

@@ -1,4 +1,5 @@
 import { useSignals } from "@preact/signals-react/runtime";
+import { useHead } from "@unhead/react";
 import { use, useEffect } from "react";
 import { UserProfile } from "../components/Profile/Profile";
 import { StoreContext } from "../hooks/store";
@@ -18,6 +19,8 @@ const RawProfileScreen: React.FC = () => {
     profile.load();
     prefs.load();
   }, [profile, prefs]);
+
+  useHead({ title: `Assets - ${profile.data.value?.username}` });
 
   return (
     <UserProfile
