@@ -19,7 +19,10 @@
 [x] possibly remove node_modules, replace with bun Native encryption
 [ ] chore: move fp-express to backed
 [ ] chore: move assets-core to core
-[ ] research chart merges to Polars
 [ ] empty portfolio bug
 [x] delete non empty portfolio bug
 [x] preferences should reset breadcrumb
+1.8
+[ ] research chart merges to Polars
+[ ] time-weighted return calc
+[ ] money-weighted return calc ??

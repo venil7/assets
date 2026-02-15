@@ -60,22 +60,27 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   };
   const PROFILE_URL = `${API_URL}/profile`;
   const PREFS_URL = `${API_URL}/prefs`;
-  const PORTFOLIO_URL = (portfolioId: number, range?: ChartRange) => {
+  const PORTFOLIO_URL = (portfolioId: PortfolioId, range?: ChartRange) => {
     const base = `${PORTFOLIOS_URL()}/${portfolioId}`;
     return range ? `${base}?range=${range}` : base;
   };
-  const ASSETS_URL = (portfolioId: number, range?: ChartRange) => {
+  const ASSETS_URL = (portfolioId: PortfolioId, range?: ChartRange) => {
     const base = `${PORTFOLIOS_URL()}/${portfolioId}/assets`;
     return range ? `${base}?range=${range}` : base;
   };
   const ASSET_URL = (
-    portfolioId: number,
-    assetId: number,
+    portfolioId: PortfolioId,
+    assetId: AssetId,
     range?: ChartRange
   ) => {
     const base = `${ASSETS_URL(portfolioId)}/${assetId}`;
     return range ? `${base}?range=${range}` : base;
   };
+  const ASSET_MOVE_URL = (
+    portfolioId: PortfolioId,
+    assetId: AssetId,
+    newPortfolioId: PortfolioId
+  ) => `${ASSET_URL(portfolioId, assetId)}/move/${newPortfolioId}`;
   const AUTH_URL = `${API_URL}/auth`;
   const REFRESH_TOKEN_URL = `${AUTH_URL}/refresh_token`;
   const TICKER_URL = (ticker: string) => {
@@ -90,7 +95,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     `${API_URL}/portfolios/${portfolioId}/assets/${assetId}/tx`;
   const TX_URL = (portfolioId: PortfolioId, assetId: AssetId, txId: TxId) =>
     `${TXS_URL(portfolioId, assetId)}/${txId}`;
-  const BULK_TX_URL = (portfolioId: PortfolioId, assetId: number) =>
+  const BULK_TX_URL = (portfolioId: PortfolioId, assetId: AssetId) =>
     `${API_URL}/portfolios/${portfolioId}/assets/${assetId}/txs`;
 
   const getRefreshToken = () =>
@@ -111,7 +116,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       portfolio,
       EnrichedPortfolioDecoder
     );
-  const getPortfolio = (portfolioId: number, range?: ChartRange) =>
+  const getPortfolio = (portfolioId: PortfolioId, range?: ChartRange) =>
     methods.get<EnrichedPortfolio>(
       PORTFOLIO_URL(portfolioId, range),
       EnrichedPortfolioDecoder
@@ -124,15 +129,15 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       EnrichedPortfoliosDecoder
     );
 
-  const createAsset = (portfolioId: number, asset: PostAsset) =>
+  const createAsset = (portfolioId: PortfolioId, asset: PostAsset) =>
     methods.post<EnrichedAsset, PostAsset>(
       ASSETS_URL(portfolioId),
       asset,
       EnrichedAssetDecoder
     );
   const updateAsset = (
-    assetId: number,
-    portfolioId: number,
+    assetId: AssetId,
+    portfolioId: PortfolioId,
     asset: PostAsset
   ) =>
     methods.put<EnrichedAsset, PostAsset>(
@@ -140,18 +145,32 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       asset,
       EnrichedAssetDecoder
     );
-  const getAsset = (portfolioId: number, assetId: number, range?: ChartRange) =>
+  const getAsset = (
+    portfolioId: PortfolioId,
+    assetId: AssetId,
+    range?: ChartRange
+  ) =>
     methods.get<EnrichedAsset>(
       ASSET_URL(portfolioId, assetId, range),
       EnrichedAssetDecoder
     );
-  const getAssets = (portfolioId: number, range?: ChartRange) =>
+  const getAssets = (portfolioId: PortfolioId, range?: ChartRange) =>
     methods.get<EnrichedAsset[]>(
       `${ASSETS_URL(portfolioId, range)}`,
       EnrichedAssetsDecoder
     );
-  const deleteAsset = (portfolioId: number, id: number) =>
-    methods.delete<Id>(ASSET_URL(portfolioId, id), IdDecoder);
+  const deleteAsset = (portfolioId: PortfolioId, assetId: AssetId) =>
+    methods.delete<Id>(ASSET_URL(portfolioId, assetId), IdDecoder);
+  const moveAsset = (
+    portfolioId: PortfolioId,
+    assetId: AssetId,
+    newPortfolioId: PortfolioId
+  ) =>
+    methods.patch<Id>(
+      ASSET_MOVE_URL(portfolioId, assetId, newPortfolioId),
+      {},
+      IdDecoder
+    );
 
   const createTx = (pId: PortfolioId, assetId: AssetId, tx: PostTx) =>
     methods.post<EnrichedTx, PostTx>(
@@ -252,7 +271,8 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       getMany: getAssets,
       create: createAsset,
       update: updateAsset,
-      delete: deleteAsset
+      delete: deleteAsset,
+      move: moveAsset
     },
     tx: {
       get: getTx,

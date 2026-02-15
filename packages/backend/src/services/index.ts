@@ -17,7 +17,7 @@ export const createWebService = (repo: Repository, yahooApi: YahooApi) => {
       requireUserId: auth.requireUserId,
       verifyPassword: auth.verifyPassword,
       requireProfile: auth.requireProfile,
-      requireAdminProfile: auth.requireAdminProfile,
+      requireAdminProfile: auth.requireAdminProfile
     },
     user: {
       get: user.getUser(repo),
@@ -26,7 +26,7 @@ export const createWebService = (repo: Repository, yahooApi: YahooApi) => {
       delete: user.deleteUser(repo),
       updateProfileOnly: user.updateProfileOnly(repo),
       updateOwnProfileOnly: user.updateOwnProfileOnly(repo),
-      updateOwnPasswordOnly: user.updateOwnPasswordOnly(repo),
+      updateOwnPasswordOnly: user.updateOwnPasswordOnly(repo)
     },
     assets: {
       get: asset.getAsset(repo, yahooApi),
@@ -34,13 +34,14 @@ export const createWebService = (repo: Repository, yahooApi: YahooApi) => {
       delete: asset.deleteAsset(repo),
       create: asset.createAsset(repo, yahooApi),
       update: asset.updateAsset(repo, yahooApi),
+      move: asset.moveAsset(repo)
     },
     portfolio: {
       get: portfolio.getPortfolio(repo, yahooApi),
       getMany: portfolio.getPortfolios(repo, yahooApi),
       delete: portfolio.deletePortfolio(repo),
       create: portfolio.createPortfolio(repo, yahooApi),
-      update: portfolio.updatePortfolio(repo, yahooApi),
+      update: portfolio.updatePortfolio(repo, yahooApi)
     },
     tx: {
       get: tx.getTx(repo, yahooApi),
@@ -49,10 +50,10 @@ export const createWebService = (repo: Repository, yahooApi: YahooApi) => {
       create: tx.createTx(repo, yahooApi),
       update: tx.updateTx(repo, yahooApi),
       uploadAssetTxs: tx.uploadAssetTxs(repo),
-      deleteAllAsset: tx.deleteAllAssetTxs(repo),
+      deleteAllAsset: tx.deleteAllAssetTxs(repo)
     },
     prefs: {
-      update: prefs.updatePrefs(repo),
-    },
+      update: prefs.updatePrefs(repo)
+    }
   };
 };

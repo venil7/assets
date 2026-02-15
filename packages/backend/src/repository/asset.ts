@@ -27,6 +27,7 @@ import {
   getAssetSql,
   getAssetsSql,
   insertAssetSql,
+  moveAssetSql,
   updateAssetSql
 } from "./sql" with { type: "macro" };
 
@@ -36,7 +37,8 @@ const sql = {
     getMany: TE.of(getAssetsSql()),
     insert: TE.of(insertAssetSql()),
     update: TE.of(updateAssetSql()),
-    delete: TE.of(deleteAssetSql())
+    delete: TE.of(deleteAssetSql()),
+    move: TE.of(moveAssetSql())
   }
 };
 
@@ -116,5 +118,19 @@ export const deleteAsset =
     pipe(
       execute<unknown>({ assetId, portfolioId, userId }),
       ID.ap(sql.asset.delete),
+      ID.ap(db)
+    );
+
+export const moveAsset =
+  (db: Database) =>
+  (
+    assetId: AssetId,
+    portfolioId: PortfolioId,
+    userId: UserId,
+    newPortfolioId: PortfolioId
+  ): Action<ExecutionResult> =>
+    pipe(
+      execute<unknown>({ assetId, portfolioId, userId, newPortfolioId }),
+      ID.ap(sql.asset.move),
       ID.ap(db)
     );

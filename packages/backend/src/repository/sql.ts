@@ -13,6 +13,7 @@ export const getAssetsSql = getSql("asset/get-many");
 export const insertAssetSql = getSql("asset/insert");
 export const updateAssetSql = getSql("asset/update");
 export const deleteAssetSql = getSql("asset/delete");
+export const moveAssetSql = getSql("asset/move");
 
 export const getPortfolioSql = getSql("portfolio/get");
 export const getPortfoliosSql = getSql("portfolio/get-many");

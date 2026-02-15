@@ -129,3 +129,18 @@ export const updateAsset =
       mapWebError
     );
   };
+
+export const moveAsset =
+  (repo: Repository) =>
+  (
+    assetId: AssetId,
+    portfolioId: PortfolioId,
+    userId: UserId,
+    newPortfolioId: PortfolioId
+  ): WebAction<Optional<Id>> => {
+    return pipe(
+      repo.asset.move(assetId, portfolioId, userId, newPortfolioId),
+      TE.map(([_, rowsDeleted]) => (rowsDeleted ? { id: assetId } : null)),
+      mapWebError
+    );
+  };

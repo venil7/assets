@@ -2,6 +2,7 @@ import { run, type PostTx } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import { sum } from "@darkruby/assets-core/src/utils/finance";
 import { afterAll, beforeAll, expect, test } from "bun:test";
+import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import { CsvPostAssetDecoder } from "../src/decoders/asset";
 import {
@@ -103,6 +104,37 @@ test("Update asset", async () => {
   expect(newId).toBe(asset.id);
   expect(name).toBe(updateAsset.name);
   expect(ticker).toBe(updateAsset.ticker);
+});
+
+test("Move asset from one portfolio to another", async () => {
+  const { portfolio: portfolio1, asset } = await run(
+    api.createPortfolioAsset()
+  );
+  const portfolio2 = await run(
+    api.portfolio.create({ name: "test2", description: "test2" })
+  );
+
+  const { id } = await run(
+    api.asset.move(portfolio1.id, asset.id, portfolio2.id)
+  );
+  const updatedAsset = await run(api.asset.get(portfolio2.id, id));
+
+  expect(id).toBe(asset.id);
+  expect(updatedAsset.id).toBe(asset.id);
+});
+
+test("Fails to move asset to invalid portfolio", async () => {
+  const { portfolio: portfolio1, asset } = await run(
+    api.createPortfolioAsset()
+  );
+
+  const result = await api.asset.move(
+    portfolio1.id,
+    asset.id,
+    Math.floor(Math.random() * 1_00_000) // <-- random non existing portfolio id
+  )();
+
+  expect(E.isLeft(result)).toBeTrue();
 });
 
 test("CSV roundtrip", async () => {

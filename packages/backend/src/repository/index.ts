@@ -15,6 +15,7 @@ export const createRepository = (db: Database) => {
       create: asset.createAsset(db),
       delete: asset.deleteAsset(db),
       update: asset.updateAsset(db),
+      move: asset.moveAsset(db)
     },
     tx: {
       get: tx.getTx(db),
@@ -23,14 +24,14 @@ export const createRepository = (db: Database) => {
       delete: tx.deleteTx(db),
       update: tx.updateTx(db),
       deleteAllAsset: tx.deleteAssetTxs(db),
-      uploadTxs: tx.uploadAssetTxs(db),
+      uploadTxs: tx.uploadAssetTxs(db)
     },
     portfolio: {
       get: portfolio.getPortfolio(db),
       getAll: portfolio.getPortfolios(db),
       create: portfolio.createPortfolio(db),
       delete: portfolio.deletePortfolio(db),
-      update: portfolio.updatePortfolio(db),
+      update: portfolio.updatePortfolio(db)
     },
     user: {
       get: user.getUser(db),
@@ -40,11 +41,11 @@ export const createRepository = (db: Database) => {
       delete: user.deleteUser(db),
       updateProfileOnly: user.updateProfileOnly(db),
       loginAttempt: user.loginAttempt(db),
-      resetAttempts: user.resetAttempts(db),
+      resetAttempts: user.resetAttempts(db)
     },
     prefs: {
       get: prefs.getPrefs(db),
-      update: prefs.updatePrefs(db),
-    },
+      update: prefs.updatePrefs(db)
+    }
   };
 };

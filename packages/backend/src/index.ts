@@ -123,6 +123,10 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       assets.get("/:portfolio_id/assets/:asset_id", handlers.assets.get);
       assets.delete("/:portfolio_id/assets/:asset_id", handlers.assets.delete);
       assets.put("/:portfolio_id/assets/:asset_id", handlers.assets.update);
+      assets.patch(
+        "/:portfolio_id/assets/:asset_id/move/:new_portfolio_id",
+        handlers.assets.move
+      );
       portfolios.use("/", assets);
 
       const txs = express();

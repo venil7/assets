@@ -28,7 +28,8 @@ export const createHandlers = (
     getMany: pipe(assets.getAssets, expressify),
     create: pipe(assets.createAsset, expressify),
     update: pipe(assets.updateAsset, expressify),
-    delete: pipe(assets.deleteAsset, expressify)
+    delete: pipe(assets.deleteAsset, expressify),
+    move: pipe(assets.moveToPortfolio, expressify)
   },
   tx: {
     get: pipe(tx.getTx, expressify),

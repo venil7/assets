@@ -19,7 +19,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
 import { NumberFromString, withFallback } from "io-ts-types";
 
-const numberFromUrl = pipe(NumberFromString, liftTE);
+export const numberFromUrl = pipe(NumberFromString, liftTE);
 export const stringFromUrl = pipe(t.string, liftTE);
 export const rangeFromUrl = pipe(withFallback(RangeDecoder, "1d"), liftTE);
 export const ccyFromUrl = pipe(CcyDecoder, liftTE);

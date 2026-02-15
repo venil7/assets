@@ -8,7 +8,7 @@ import {
   generalError,
   handleError,
   validationError,
-  type AppError,
+  type AppError
 } from "../domain";
 import type { Action } from "../utils/utils";
 
@@ -71,38 +71,33 @@ const rest = <JSON>(
 export const methods = (token: string = "") => {
   const headers = [
     ["content-type", "application/json"],
-    ...(token ? [["authorization", `Bearer ${token}`]] : []),
+    ...(token ? [["authorization", `Bearer ${token}`]] : [])
   ] as [string, string][];
 
-  const get = <TResult>(url: string, decoder: Decoder<any, TResult>) =>
-    rest<TResult>(url, { method: "GET", headers }, decoder);
-  const post = <TResult, TBody = {}>(
-    url: string,
-    body: TBody,
-    decoder: Decoder<any, TResult>
-  ) => {
-    const jsonBody = JSON.stringify(body);
-    return rest<TResult>(
-      url,
-      { method: "POST", body: jsonBody, headers },
-      decoder
-    );
-  };
-  const put = <TResult, TBody = {}>(
-    url: string,
-    body: TBody,
-    decoder: Decoder<any, TResult>
-  ) => {
-    const jsonBody = JSON.stringify(body);
-    return rest<TResult>(
-      url,
-      { method: "PUT", body: jsonBody, headers },
-      decoder
-    );
-  };
-  const delete1 = <TResult>(url: string, decoder: Decoder<any, TResult>) =>
-    rest<TResult>(url, { method: "DELETE", headers }, decoder);
-  return { get, post, delete: delete1, put };
+  const bodyLessMethod =
+    (method: "GET" | "DELETE") =>
+    <TResult>(url: string, decoder: Decoder<any, TResult>) =>
+      rest<TResult>(url, { method, headers }, decoder);
+
+  const get = bodyLessMethod("GET");
+  const delete1 = bodyLessMethod("DELETE");
+
+  const bodyMethod =
+    (method: "POST" | "PUT" | "PATCH") =>
+    <TResult, TBody = {}>(
+      url: string,
+      body: TBody,
+      decoder: Decoder<any, TResult>
+    ) => {
+      const jsonBody = JSON.stringify(body);
+      return rest<TResult>(url, { method, body: jsonBody, headers }, decoder);
+    };
+
+  const put = bodyMethod("PUT");
+  const post = bodyMethod("POST");
+  const patch = bodyMethod("PATCH");
+
+  return { get, post, delete: delete1, put, patch };
 };
 
 export type Methods = ReturnType<typeof methods>;
