@@ -1,13 +1,13 @@
 import { type GetUser, type Id, type Optional } from "@darkruby/assets-core";
-import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { mapWebError } from "../domain/error";
+import { type HandlerTask } from "../fp-express";
 import type { Context } from "./context";
 
 export const getProfile: HandlerTask<GetUser, Context> = ({
   params: [, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     service.auth.requireUserId(res),
@@ -17,7 +17,7 @@ export const getProfile: HandlerTask<GetUser, Context> = ({
 
 export const updateProfile: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -30,7 +30,7 @@ export const updateProfile: HandlerTask<GetUser, Context> = ({
 
 export const updatePassword: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -43,7 +43,7 @@ export const updatePassword: HandlerTask<GetUser, Context> = ({
 
 export const deleteProfile: HandlerTask<Optional<Id>, Context> = ({
   params: [, res],
-  context: { repo, service },
+  context: { repo, service }
 }) =>
   pipe(
     TE.Do,

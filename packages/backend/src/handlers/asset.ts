@@ -1,6 +1,5 @@
 import { type EnrichedAsset, type Optional } from "@darkruby/assets-core";
 import type { Id } from "@darkruby/assets-core/src/domain/id";
-import { type HandlerTask } from "@darkruby/fp-express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import {
@@ -10,6 +9,7 @@ import {
   urlPortfolioId
 } from "../decoders/params";
 import { mapWebError } from "../domain/error";
+import { type HandlerTask } from "../fp-express";
 import type { Context } from "./context";
 
 export const getAssets: HandlerTask<readonly EnrichedAsset[], Context> = ({

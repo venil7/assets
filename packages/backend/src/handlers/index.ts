@@ -1,6 +1,6 @@
-import type { HandlerTask } from "@darkruby/fp-express";
 import { default as express } from "express";
 import { pipe } from "fp-ts/lib/function";
+import type { HandlerTask } from "../fp-express";
 import * as assets from "./asset";
 import * as auth from "./auth";
 import type { Context } from "./context";

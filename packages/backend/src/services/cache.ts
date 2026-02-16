@@ -1,10 +1,10 @@
 import { type Action } from "@darkruby/assets-core";
-import { createLogger } from "@darkruby/fp-express";
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { type LRUCache } from "lru-cache";
 import { createHash } from "node:crypto";
+import { createLogger } from "../fp-express";
 
 export type Stringifiable = string | number | Buffer | boolean;
 export type Cache = LRUCache<Stringifiable, any>;

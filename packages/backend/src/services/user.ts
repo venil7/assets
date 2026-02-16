@@ -18,11 +18,11 @@ import {
   type UserId
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
-import { notFound, type WebAction } from "@darkruby/fp-express";
 import { password as Pwd } from "bun";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { mapWebError } from "../domain/error";
+import { notFound, type WebAction } from "../fp-express";
 import type { Repository } from "../repository";
 import { verifyPassword } from "./auth";
 

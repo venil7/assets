@@ -1,14 +1,14 @@
 import { type GetUser, type Id, type Optional } from "@darkruby/assets-core";
-import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { urlUserId } from "../decoders/params";
 import { mapWebError } from "../domain/error";
+import { type HandlerTask } from "../fp-express";
 import type { Context } from "./context";
 
 export const deleteUser: HandlerTask<Optional<Id>, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     service.auth.requireAdminProfile(res),
@@ -19,7 +19,7 @@ export const deleteUser: HandlerTask<Optional<Id>, Context> = ({
 
 export const getUsers: HandlerTask<readonly GetUser[], Context> = ({
   params: [, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     service.auth.requireAdminProfile(res),
@@ -29,7 +29,7 @@ export const getUsers: HandlerTask<readonly GetUser[], Context> = ({
 
 export const getUser: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     service.auth.requireAdminProfile(res),
@@ -40,7 +40,7 @@ export const getUser: HandlerTask<GetUser, Context> = ({
 
 export const createUser: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     service.auth.requireAdminProfile(res),
@@ -50,7 +50,7 @@ export const createUser: HandlerTask<GetUser, Context> = ({
 
 export const updateUser: HandlerTask<GetUser, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     service.auth.requireAdminProfile(res),

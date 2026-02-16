@@ -1,11 +1,11 @@
 import type { Optional } from "@darkruby/assets-core";
 import { type EnrichedPortfolio } from "@darkruby/assets-core";
 import type { Id } from "@darkruby/assets-core/src/domain/id";
-import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { rangeFromUrl, urlPortfolioId } from "../decoders/params";
 import { mapWebError } from "../domain/error";
+import { type HandlerTask } from "../fp-express";
 import type { Context } from "./context";
 
 export const getPortfolios: HandlerTask<
@@ -50,7 +50,7 @@ export const createPortfolio: HandlerTask<
 
 export const deletePortfolio: HandlerTask<Optional<Id>, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
