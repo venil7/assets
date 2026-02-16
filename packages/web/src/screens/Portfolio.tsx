@@ -40,6 +40,8 @@ const RawPortfolio: React.FC = () => {
   const handleDeleteAsset = (aid: number) => assets.delete(portfolioId, aid);
   const handleUpdateAsset = (aid: number, a: PostAsset) =>
     assets.update(portfolioId, aid, a);
+  const handleMoveAsset = (aid: number, npid: number) =>
+    assets.move(portfolioId, aid, npid);
   const handleAddTx = (aid: number, t: PostTx) =>
     pipe(
       () => txs.create(portfolioId, aid, t),
@@ -65,6 +67,7 @@ const RawPortfolio: React.FC = () => {
         portfolio={portfolio.data.value}
         onDeleteAsset={handleDeleteAsset}
         onUpdateAsset={handleUpdateAsset}
+        onMoveAsset={handleMoveAsset}
         onErrorDismiss={load}
       />
     </>
