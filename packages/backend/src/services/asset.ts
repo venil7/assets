@@ -17,10 +17,10 @@ import {
   type YahooApi
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
-import type { WebAction } from "@darkruby/fp-express";
 import { flow, pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
 import { mapWebError } from "../domain/error";
+import type { WebAction } from "../fp-express";
 import type { Repository } from "../repository";
 import { getTxs as enrichedTxsGetter } from "./tx";
 
@@ -126,6 +126,21 @@ export const updateAsset =
         repo.asset.update(assetId, portfolioId, userId, asset)
       ),
       TE.chain(({ updated }) => enrichAsset(updated, getTxs)),
+      mapWebError
+    );
+  };
+
+export const moveAsset =
+  (repo: Repository) =>
+  (
+    assetId: AssetId,
+    portfolioId: PortfolioId,
+    userId: UserId,
+    newPortfolioId: PortfolioId
+  ): WebAction<Optional<Id>> => {
+    return pipe(
+      repo.asset.move(assetId, portfolioId, userId, newPortfolioId),
+      TE.map(([_, rowsDeleted]) => (rowsDeleted ? { id: assetId } : null)),
       mapWebError
     );
   };

@@ -1,5 +1,5 @@
 {
-  "name": "@darkruby/assets-ui",
+  "name": "@darkruby/assets-web",
   "private": true,
   "version": "1.6.2",
   "type": "module",
@@ -15,6 +15,7 @@
     "@fortawesome/free-regular-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.0",
     "@preact/signals-react": "^3.0.1",
+    "@unhead/react": "^2.1.4",
     "bootstrap": "^5.3.3",
     "classnames": "^2.5.1",
     "csv-parse": "^6.1.0",

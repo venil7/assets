@@ -1,15 +1,15 @@
 import type { EnrichedTx, GetTx, Optional } from "@darkruby/assets-core";
 import type { Id } from "@darkruby/assets-core/src/domain/id";
-import { type HandlerTask } from "@darkruby/fp-express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { urlAssetId, urlPortfolioId, urlTxId } from "../decoders/params";
 import { mapWebError } from "../domain/error";
+import { type HandlerTask } from "../fp-express";
 import type { Context } from "./context";
 
 export const getTxs: HandlerTask<readonly EnrichedTx[], Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -24,7 +24,7 @@ export const getTxs: HandlerTask<readonly EnrichedTx[], Context> = ({
 
 export const getTx: HandlerTask<Optional<EnrichedTx>, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -40,7 +40,7 @@ export const getTx: HandlerTask<Optional<EnrichedTx>, Context> = ({
 
 export const createTx: HandlerTask<Optional<EnrichedTx>, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -55,7 +55,7 @@ export const createTx: HandlerTask<Optional<EnrichedTx>, Context> = ({
 
 export const deleteTx: HandlerTask<Optional<Id>, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -67,7 +67,7 @@ export const deleteTx: HandlerTask<Optional<Id>, Context> = ({
 
 export const updateTx: HandlerTask<Optional<EnrichedTx>, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -83,7 +83,7 @@ export const updateTx: HandlerTask<Optional<EnrichedTx>, Context> = ({
 
 export const deleteAllAsset: HandlerTask<Optional<Id>, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -97,7 +97,7 @@ export const deleteAllAsset: HandlerTask<Optional<Id>, Context> = ({
 
 export const uploadAssetTxs: HandlerTask<readonly GetTx[], Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,

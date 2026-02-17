@@ -1,9 +1,10 @@
 import {
   BASE_CCYS,
   type Ccy,
-  type Prefs as PrefsData,
+  type Prefs as PrefsData
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
+import { Eq as stringEq } from "fp-ts/lib/string";
 import * as React from "react";
 import { Form } from "react-bootstrap";
 import { withFetching } from "../../decorators/fetching";
@@ -12,7 +13,10 @@ import { usePartialState } from "../../hooks/formData";
 import { PrimaryButton } from "../Form/FormControl";
 import { Select } from "../Form/Select";
 
-const CcySelect = pipe(Select<Ccy>, withProps({ options: BASE_CCYS }));
+export const CcySelect = pipe(
+  Select<Ccy>,
+  withProps({ options: BASE_CCYS, onIdentify: stringEq.equals })
+);
 
 type PrefsProps = {
   prefs: PrefsData;

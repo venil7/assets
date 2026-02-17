@@ -1,8 +1,10 @@
 import type {
   ActionResult,
+  AssetId,
   EnrichedAsset,
   Identity,
-  PostAsset,
+  PortfolioId,
+  PostAsset
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { signal } from "@preact/signals-react";
@@ -12,20 +14,29 @@ import {
   createAsset,
   deleteAsset,
   getAssets,
-  updateAsset,
+  moveAsset,
+  updateAsset
 } from "../services/assets";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type AssetsStore = Identity<
   StoreBase<EnrichedAsset[]> & {
-    load: (pid: number, range?: ChartRange) => ActionResult<EnrichedAsset[]>;
-    create: (pid: number, a: PostAsset) => ActionResult<EnrichedAsset[]>;
+    load: (
+      pid: PortfolioId,
+      range?: ChartRange
+    ) => ActionResult<EnrichedAsset[]>;
+    create: (pid: PortfolioId, a: PostAsset) => ActionResult<EnrichedAsset[]>;
     update: (
-      pid: number,
-      aid: number,
+      pid: PortfolioId,
+      aid: AssetId,
       a: PostAsset
     ) => ActionResult<EnrichedAsset[]>;
-    delete: (pid: number, aid: number) => ActionResult<EnrichedAsset[]>;
+    move: (
+      pid: PortfolioId,
+      aid: AssetId,
+      npid: PortfolioId
+    ) => ActionResult<EnrichedAsset[]>;
+    delete: (pid: PortfolioId, aid: AssetId) => ActionResult<EnrichedAsset[]>;
   }
 >;
 
@@ -35,28 +46,35 @@ export const createAssetsStore = (): AssetsStore => {
 
   return {
     ...storeBase,
-    load: (pid: number, range?: ChartRange) =>
+    load: (pid: PortfolioId, range?: ChartRange) =>
       storeBase.run(getAssets(pid, range)),
-    create: (pid: number, a: PostAsset) =>
+    create: (pid: PortfolioId, a: PostAsset) =>
       storeBase.run(
         pipe(
           createAsset(pid, a),
           TE.chain(() => getAssets(pid))
         )
       ),
-    update: (pid: number, aid: number, a: PostAsset) =>
+    update: (pid: PortfolioId, aid: AssetId, a: PostAsset) =>
       storeBase.run(
         pipe(
           updateAsset(pid, aid, a),
           TE.chain(() => getAssets(pid))
         )
       ),
-    delete: (pid: number, aid: number) =>
+    move: (pid: PortfolioId, aid: AssetId, npid: PortfolioId) =>
+      storeBase.run(
+        pipe(
+          moveAsset(pid, aid, npid),
+          TE.chain(() => getAssets(pid))
+        )
+      ),
+    delete: (pid: PortfolioId, aid: AssetId) =>
       storeBase.run(
         pipe(
           deleteAsset(pid, aid),
           TE.chain(() => getAssets(pid))
         )
-      ),
+      )
   };
 };

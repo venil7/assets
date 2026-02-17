@@ -1,6 +1,6 @@
 {
   "name": "@darkruby/assets-backend",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
@@ -11,11 +11,9 @@
   },
   "dependencies": {
     "@darkruby/assets-core": "workspace:*",
-    "@darkruby/fp-express": "workspace:*",
     "@types/ms": "^2.1.0",
     "csv-parse": "^6.1.0",
     "csv-stringify": "^6.6.0",
-    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "express": "~4.21.2",
     "io-ts": "~2.2.21",
@@ -27,11 +25,8 @@
     "@types/faker": "5",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/lru-cache": "^7.10.10",
-    "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.3",
-    "aws-sdk": "^2.1692.0",
     "faker": "5",
-    "mock-aws-s3": "^4.0.2",
     "nock": "^14.0.1"
   }
 }

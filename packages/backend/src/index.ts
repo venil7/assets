@@ -1,5 +1,4 @@
 import { run, type Action } from "@darkruby/assets-core";
-import { createRequestHandler } from "@darkruby/fp-express";
 import { Database } from "bun:sqlite";
 import cors from "cors";
 import { default as express } from "express";
@@ -8,6 +7,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { LRUCache } from "lru-cache";
 import { Server } from "node:http";
 import path from "node:path";
+import { createRequestHandler } from "./fp-express";
 import { createHandlers } from "./handlers";
 import type { Context } from "./handlers/context";
 import { createRepository, type Repository } from "./repository";
@@ -123,6 +123,10 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       assets.get("/:portfolio_id/assets/:asset_id", handlers.assets.get);
       assets.delete("/:portfolio_id/assets/:asset_id", handlers.assets.delete);
       assets.put("/:portfolio_id/assets/:asset_id", handlers.assets.update);
+      assets.patch(
+        "/:portfolio_id/assets/:asset_id/move/:new_portfolio_id",
+        handlers.assets.move
+      );
       portfolios.use("/", assets);
 
       const txs = express();

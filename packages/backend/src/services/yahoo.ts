@@ -8,7 +8,7 @@ import {
   DEFAULT_CHART_RANGE,
   type ChartRange
 } from "@darkruby/assets-core/src/decoders/yahoo/meta";
-import { createLogger } from "@darkruby/fp-express";
+import { createLogger } from "../fp-express";
 
 import type { AppCache } from "./cache";
 

@@ -13,13 +13,16 @@
 [x] show rate in add tx window
 [x] show tx details
 [x] asset_holding -> assets_ext, asset_transactions to be replaced by transactions_ext
---
-[ ] move asset to another portfolio
-[ ] window titles
-[-] possibly remove node_modules, replace with bun Native encryption
-[ ] chore: move fp-express to backed
+1.7.1
+[x] move asset to another portfolio
+[x] window titles - @unhead/react
+[x] possibly remove node_modules, replace with bun Native encryption
+[x] chore: move fp-express to backed
 [ ] chore: move assets-core to core
-[ ] research chart merges to Polars
 [ ] empty portfolio bug
-[ ] delete non empty portfolio bug
-[ ] preferences should reste breadcrumb
+[x] delete non empty portfolio bug
+[x] preferences should reset breadcrumb
+1.8
+[ ] research chart merges to Polars
+[ ] time-weighted return calc
+[ ] money-weighted return calc ??

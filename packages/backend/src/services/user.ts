@@ -15,14 +15,14 @@ import {
   type Optional,
   type Profile,
   type RawInUser,
-  type UserId,
+  type UserId
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
-import { notFound, type WebAction } from "@darkruby/fp-express";
-import { genSaltSync, hashSync } from "bcrypt";
+import { password as Pwd } from "bun";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { mapWebError } from "../domain/error";
+import { notFound, type WebAction } from "../fp-express";
 import type { Repository } from "../repository";
 import { verifyPassword } from "./auth";
 
@@ -32,20 +32,22 @@ export const toRawInUser = ({
   username,
   password,
   locked,
-  admin,
+  admin
 }: NewUser): Action<RawInUser> => {
   return pipe(
     TE.Do,
-    TE.bind("psalt", () => TE.of(genSaltSync())),
-    TE.bind("phash", ({ psalt }) => TE.of(hashSync(password, psalt))),
-    TE.map(({ phash, psalt }) => ({
-      phash,
-      psalt,
-      username,
-      admin,
-      locked: !!locked,
-      login_attempts: 0,
-    })),
+    TE.bind("phash", () => TE.fromTask(() => Pwd.hash(password, "bcrypt"))),
+    TE.map(
+      ({ phash }) =>
+        <RawInUser>{
+          phash,
+          admin,
+          username,
+          locked: !!locked,
+          login_attempts: 0,
+          psalt: "not-in-use"
+        }
+    ),
     TE.chain(liftTE(RawInUserDecoder))
   );
 };
@@ -122,7 +124,7 @@ export const updateOwnProfileOnly =
       TE.chain(({ profile, ownProfile }) =>
         updateProfileOnly(repo)(userId, {
           ...ownProfile,
-          username: profile.username,
+          username: profile.username
         })
       )
     );
@@ -148,7 +150,7 @@ export const updateOwnPasswordOnly =
           username: user.username,
           password: passwordChange.newPassword,
           admin: user.admin,
-          locked: user.locked,
+          locked: user.locked
         })
       ),
       TE.chain((user) => repo.user.update(profile.id, user)),

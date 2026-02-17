@@ -1,11 +1,20 @@
 import { useSignals } from "@preact/signals-react/runtime";
+import { useHead } from "@unhead/react";
 import { use, useEffect } from "react";
 import { UserProfile } from "../components/Profile/Profile";
 import { StoreContext } from "../hooks/store";
 
 const RawProfileScreen: React.FC = () => {
   useSignals();
-  const { profile, prefs, auth } = use(StoreContext);
+  const { asset, portfolio, profile, prefs, auth } = use(StoreContext);
+
+  const load = () => {
+    asset.reset();
+    portfolio.reset();
+
+    profile.load();
+    prefs.load();
+  };
 
   const handlePasswordUpdate = profile.password;
   const handlePrefsUpdate = prefs.update;
@@ -15,9 +24,10 @@ const RawProfileScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    profile.load();
-    prefs.load();
+    load();
   }, [profile, prefs]);
+
+  useHead({ title: `Assets - ${profile.data.value?.username}` });
 
   return (
     <UserProfile

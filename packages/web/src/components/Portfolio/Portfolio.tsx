@@ -1,7 +1,9 @@
 import {
   defaultAsset,
+  type AssetId,
   type EnrichedAsset,
   type EnrichedPortfolio,
+  type PortfolioId,
   type PostAsset,
   type PostPortfolio,
   type PostTx
@@ -22,16 +24,16 @@ import { TabContent, Tabs } from "../Form/Tabs";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
 import { PortfolioDetails } from "./PortfolioDetails";
-import { portfolioModal } from "./PortfolioFields";
 
 type PortfolioProps = {
   portfolio: EnrichedPortfolio;
   assets: EnrichedAsset[];
   onUpdate: (p: PostPortfolio) => void;
   onAddAsset: (a: PostAsset) => void;
-  onAddTx: (aid: number, a: PostTx) => void;
-  onUpdateAsset: (aid: number, a: PostAsset) => void;
-  onDeleteAsset: (aid: number) => void;
+  onAddTx: (aid: AssetId, a: PostTx) => void;
+  onUpdateAsset: (aid: AssetId, a: PostAsset) => void;
+  onDeleteAsset: (aid: AssetId) => void;
+  onMoveAsset: (aid: AssetId, npid: PortfolioId) => void;
   onRange: (r: ChartRange) => void;
 };
 
@@ -43,17 +45,21 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
   onDeleteAsset,
   onUpdateAsset,
   onRange,
-  onAddTx
+  onAddTx,
+  onMoveAsset
 }: PortfolioProps) => {
   const handleAddAsset = () =>
     pipe(() => assetModal(defaultAsset()), TE.map(onAddAsset))();
-  const handleUpdateAsset = (aid: number) => (a: PostAsset) =>
-    onUpdateAsset(aid, a);
-  const handleAddTx = (aid: number) => (t: PostTx) => onAddTx(aid, t);
-  const handleDeleteAsset = (aid: number) => () => onDeleteAsset(aid);
+  const handleUpdateAsset = (assetId: AssetId) => (asset: PostAsset) =>
+    onUpdateAsset(assetId, asset);
+  const handleAddTx = (assetId: AssetId) => (t: PostTx) => onAddTx(assetId, t);
+  const handleDeleteAsset = (assetId: AssetId) => () => onDeleteAsset(assetId);
 
-  const handleUpdate = () =>
-    pipe(() => portfolioModal(portfolio), TE.map(onUpdate));
+  const handleMoveAsset = (assetId: AssetId) => (npid: PortfolioId) =>
+    onMoveAsset(assetId, npid);
+
+  // const handleUpdate = () =>
+  //   pipe(() => portfolioModal(portfolio), TE.map(onUpdate));
 
   return (
     <>
@@ -91,6 +97,7 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
               key={asset.id}
               asset={asset}
               onAddTx={handleAddTx(asset.id)}
+              onMove={handleMoveAsset(asset.id)}
               onUpdate={handleUpdateAsset(asset.id)}
               onDelete={handleDeleteAsset(asset.id)}
             />

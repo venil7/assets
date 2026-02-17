@@ -1,15 +1,20 @@
 import { type EnrichedAsset, type Optional } from "@darkruby/assets-core";
 import type { Id } from "@darkruby/assets-core/src/domain/id";
-import { type HandlerTask } from "@darkruby/fp-express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
-import { rangeFromUrl, urlAssetId, urlPortfolioId } from "../decoders/params";
+import {
+  numberFromUrl,
+  rangeFromUrl,
+  urlAssetId,
+  urlPortfolioId
+} from "../decoders/params";
 import { mapWebError } from "../domain/error";
+import { type HandlerTask } from "../fp-express";
 import type { Context } from "./context";
 
 export const getAssets: HandlerTask<readonly EnrichedAsset[], Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -24,7 +29,7 @@ export const getAssets: HandlerTask<readonly EnrichedAsset[], Context> = ({
 
 export const getAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -40,7 +45,7 @@ export const getAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
 
 export const createAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
   params: [req, res],
-  context: { repo, yahooApi, service },
+  context: { repo, yahooApi, service }
 }) =>
   pipe(
     TE.Do,
@@ -54,7 +59,7 @@ export const createAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
 
 export const deleteAsset: HandlerTask<Optional<Id>, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -69,7 +74,7 @@ export const deleteAsset: HandlerTask<Optional<Id>, Context> = ({
 
 export const updateAsset: HandlerTask<EnrichedAsset, Context> = ({
   params: [req, res],
-  context: { service },
+  context: { service }
 }) =>
   pipe(
     TE.Do,
@@ -79,5 +84,21 @@ export const updateAsset: HandlerTask<EnrichedAsset, Context> = ({
     mapWebError,
     TE.chain(({ assetId, portfolioId, userId }) =>
       service.assets.update(assetId, portfolioId, userId, req.body)
+    )
+  );
+
+export const moveToPortfolio: HandlerTask<Optional<Id>, Context> = ({
+  params: [req, res],
+  context: { service }
+}) =>
+  pipe(
+    TE.Do,
+    TE.bind("assetId", () => urlAssetId(req)),
+    TE.bind("portfolioId", () => urlPortfolioId(req)),
+    TE.bind("newPortfolioId", () => numberFromUrl(req.params.new_portfolio_id)),
+    TE.bind("userId", () => service.auth.requireUserId(res)),
+    mapWebError,
+    TE.chain(({ assetId, portfolioId, userId, newPortfolioId }) =>
+      service.assets.move(assetId, portfolioId, userId, newPortfolioId)
     )
   );

@@ -1,6 +1,6 @@
-import type { HandlerTask } from "@darkruby/fp-express";
 import { default as express } from "express";
 import { pipe } from "fp-ts/lib/function";
+import type { HandlerTask } from "../fp-express";
 import * as assets from "./asset";
 import * as auth from "./auth";
 import type { Context } from "./context";
@@ -28,7 +28,8 @@ export const createHandlers = (
     getMany: pipe(assets.getAssets, expressify),
     create: pipe(assets.createAsset, expressify),
     update: pipe(assets.updateAsset, expressify),
-    delete: pipe(assets.deleteAsset, expressify)
+    delete: pipe(assets.deleteAsset, expressify),
+    move: pipe(assets.moveToPortfolio, expressify)
   },
   tx: {
     get: pipe(tx.getTx, expressify),

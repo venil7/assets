@@ -1,14 +1,16 @@
-import { defaultPortfolio, type PostTx } from "@darkruby/assets-core";
-import * as E from "fp-ts/lib/Either";
+import { defaultPortfolio, type GetPortfolio } from "@darkruby/assets-core";
+import { useHead } from "@unhead/react";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { useState } from "react";
+import { Col, Row } from "react-bootstrap";
 import { PrimaryButton, SecondaryButton } from "../components/Form/FormControl";
 import { TabContent, Tabs } from "../components/Form/Tabs";
 import { confirmationModal } from "../components/Modals/Confirmation";
 import { PortfolioMenu } from "../components/Portfolio/Menu";
 import { portfolioModal } from "../components/Portfolio/PortfolioFields";
-import { HelpTip } from "../components/Tooltip/HelpTip";
+import { portfoliosSelectModal } from "../components/Portfolio/PortfoliosSelect";
+import { CcySelect } from "../components/Profile/Prefs";
 import { TickerLookup } from "../components/Tx/TickerLookup";
 import { txsUploadModal } from "../components/Tx/TxsFields";
 import {
@@ -17,70 +19,106 @@ import {
   percentFormatter
 } from "../util/number";
 
-const money = moneyFormatter("AUD", "fr-FR");
-const decimal = decimalFormatter("de-DE");
-const percent = percentFormatter("de-DE");
+const TabModals: React.FC = () => {
+  const [res, setRes] = useState<any>(null);
+  const portfDetailsHandler = () => {
+    return pipe(
+      () => portfolioModal(defaultPortfolio()),
+      TE.tapIO((p) => () => setRes(p))
+    )();
+  };
 
-const Tab4: React.FC = () => {
-  const [tx, setTx] = useState<PostTx[]>([]);
-  const handleUpload = async () => {
-    const zzz = await txsUploadModal("EUR");
-    if (E.isRight(zzz)) {
-      setTx(zzz.right.txs);
-    }
+  const confirmationHandler = () => {
+    return pipe(
+      () => confirmationModal("yes or maybe not"),
+      TE.tapIO((p) => () => setRes(p))
+    )();
+  };
+
+  const portfolioSelectorHandler = () => {
+    return pipe(
+      () => portfoliosSelectModal({ id: 123, name: "test" } as GetPortfolio),
+      TE.tapIO((p) => () => setRes(p))
+    )();
+  };
+
+  const txsUploadHandler = () => {
+    return pipe(
+      () => txsUploadModal("EUR"),
+      TE.tapIO((p) => () => setRes(p))
+    )();
   };
   return (
     <>
-      <button onClick={handleUpload}>x</button>
-      <HelpTip
-        label="help"
-        text={
-          <>
-            text
-            <br />
-            more text
-          </>
-        }
-      />
+      <SecondaryButton onClick={confirmationHandler}>
+        confirmation
+      </SecondaryButton>
+      <PrimaryButton onClick={portfDetailsHandler}>
+        portfolio details
+      </PrimaryButton>
+      <SecondaryButton onClick={portfolioSelectorHandler}>
+        portfolio select
+      </SecondaryButton>
+      <PrimaryButton onClick={txsUploadHandler}>txs upload</PrimaryButton>
+      <br />
+      <pre>{JSON.stringify(res, null, 2)}</pre>
     </>
   );
 };
 
-const RawTestScreen: React.FC = () => {
-  const handler1 = () => {
-    return pipe(
-      () => portfolioModal(defaultPortfolio()),
-      TE.tapIO((p) => () => console.log(p))
-    )();
-  };
-
-  const handler2 = () => {
-    return pipe(
-      () => confirmationModal("yes or maybe not"),
-      TE.tapIO((p) => () => console.log(p))
-    )();
-  };
+const TabSelectors: React.FC = () => {
+  const [res, setRes] = useState<any>(null);
 
   return (
     <>
-      <Tabs tabs={["Buttons", "Menus", "Formatting", "Upload"]}>
+      <Row>
+        <Col>
+          Menu &nbsp;
+          <PortfolioMenu
+            onDelete={() => setRes("delete")}
+            onEdit={() => setRes("edit")}
+          />
+        </Col>
+        <Col>
+          <CcySelect value={res} onSelect={setRes} />
+        </Col>
+        <Col>
+          <TickerLookup onSelect={setRes} />
+        </Col>
+      </Row>
+      <br />
+      <pre>{JSON.stringify(res, null, 2)}</pre>
+    </>
+  );
+};
+
+const TabFormatting: React.FC = () => {
+  const money = moneyFormatter("AUD", "fr-FR");
+  const decimal = decimalFormatter("de-DE");
+  const percent = percentFormatter("de-DE");
+  return (
+    <ul>
+      <li>{money(40123)}</li>
+      <li>{decimal(0.012)}</li>
+      <li>{percent(0.012, 2)}</li>
+    </ul>
+  );
+};
+
+const RawTestScreen: React.FC = () => {
+  useHead({ title: "Assets - Test" });
+
+  return (
+    <>
+      <Tabs tabs={["Modals", "Menus", "Formatting"]}>
         <TabContent tab={0}>
-          <PrimaryButton onClick={handler1}>click</PrimaryButton>
-          <SecondaryButton onClick={handler2}>click</SecondaryButton>
+          <TabModals />
         </TabContent>
         <TabContent tab={1}>
-          <PortfolioMenu onDelete={handler1} onEdit={handler1} />
-          <TickerLookup onSelect={console.log} />
+          <TabSelectors />
         </TabContent>
         <TabContent tab={2}>
-          <ul>
-            <li>{money(40123)}</li>
-            <li>{decimal(0.012)}</li>
-            <li>{percent(0.012, 2)}</li>
-          </ul>
-        </TabContent>
-        <TabContent tab={3}>
-          <Tab4 />
+          <TabFormatting />
         </TabContent>
       </Tabs>
     </>

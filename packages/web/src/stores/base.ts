@@ -1,8 +1,7 @@
-import type { Action, Nullable, Result } from "@darkruby/assets-core";
+import type { Action, AppError, Nullable, Result } from "@darkruby/assets-core";
 import { Signal, signal } from "@preact/signals-react";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { type AppError } from "../../../assets-core/src/domain/error";
 
 export type StoreBase<T> = {
   error: Signal<Nullable<AppError>>;

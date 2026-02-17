@@ -1,12 +1,12 @@
 import { AppErrorType, type AppError } from "@darkruby/assets-core";
+import * as TE from "fp-ts/lib/TaskEither";
 import {
   authError,
   badRequest,
   generalError,
   WebErrorType,
-  type WebAppError,
-} from "@darkruby/fp-express";
-import * as TE from "fp-ts/lib/TaskEither";
+  type WebAppError
+} from "../fp-express";
 
 export const toWebError = (err: AppError): WebAppError => {
   switch (err.type) {
@@ -26,5 +26,5 @@ export const handleWebError =
   (msg: string = "", type: WebErrorType = WebErrorType.General) =>
   (e: unknown): WebAppError => ({
     message: `${msg}: ${e}`,
-    type,
+    type
   });

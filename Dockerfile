@@ -11,7 +11,6 @@ RUN bun run build
 FROM debian:bookworm-slim AS runner
 WORKDIR /app
 COPY --from=migrate /go/bin/migrate /usr/sbin/
-COPY --from=builder /app/node_modules /app/node_modules
 COPY --from=builder /app/dist/public /app/public
 COPY --from=builder /app/dist/backend /app/backend
 COPY --from=builder /app/.migrations /app/.migrations

@@ -1,9 +1,11 @@
 import {
   byAssetChangePct,
   type Action,
+  type AssetId,
   type EnrichedAsset,
   type Id,
-  type PostAsset,
+  type PortfolioId,
+  type PostAsset
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import * as A from "fp-ts/lib/Array";
@@ -12,7 +14,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
 
 export const getAssets = (
-  pid: number,
+  pid: PortfolioId,
   range?: ChartRange
 ): Action<EnrichedAsset[]> => {
   return pipe(
@@ -23,8 +25,8 @@ export const getAssets = (
 };
 
 export const getAsset = (
-  pid: number,
-  aid: number,
+  pid: PortfolioId,
+  aid: AssetId,
   range?: ChartRange
 ): Action<EnrichedAsset> => {
   return pipe(
@@ -33,7 +35,7 @@ export const getAsset = (
   );
 };
 
-export const deleteAsset = (pid: number, aid: number): Action<Id> => {
+export const deleteAsset = (pid: PortfolioId, aid: AssetId): Action<Id> => {
   return pipe(
     apiFromToken,
     TE.chain(({ asset }) => asset.delete(pid, aid))
@@ -41,7 +43,7 @@ export const deleteAsset = (pid: number, aid: number): Action<Id> => {
 };
 
 export const createAsset = (
-  pid: number,
+  pid: PortfolioId,
   a: PostAsset
 ): Action<EnrichedAsset> => {
   return pipe(
@@ -51,12 +53,23 @@ export const createAsset = (
 };
 
 export const updateAsset = (
-  pid: number,
-  aid: number,
+  pid: PortfolioId,
+  aid: AssetId,
   a: PostAsset
 ): Action<EnrichedAsset> => {
   return pipe(
     apiFromToken,
     TE.chain(({ asset }) => asset.update(aid, pid, a))
+  );
+};
+
+export const moveAsset = (
+  pid: PortfolioId,
+  aid: AssetId,
+  npid: PortfolioId
+): Action<Id> => {
+  return pipe(
+    apiFromToken,
+    TE.chain(({ asset }) => asset.move(pid, aid, npid))
   );
 };

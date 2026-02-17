@@ -18,10 +18,10 @@ import {
   type YahooApi
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
-import type { WebAction } from "@darkruby/fp-express";
 import { flow, pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
 import { mapWebError } from "../domain/error";
+import type { WebAction } from "../fp-express";
 import type { Repository } from "../repository";
 import { getTxs as enrichedTxsGetter } from "./tx";
 

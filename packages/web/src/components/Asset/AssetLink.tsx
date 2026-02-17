@@ -1,6 +1,8 @@
 import {
   defaultBuyTx,
   type EnrichedAsset,
+  type GetPortfolio,
+  type PortfolioId,
   type PostAsset,
   type PostTx
 } from "@darkruby/assets-core";
@@ -10,6 +12,7 @@ import { Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
 import { HoldingsIndicator, TxCount, WeightIndicator } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
+import { portfoliosSelectModal } from "../Portfolio/PortfoliosSelect";
 import { routes } from "../Router";
 import { Totals } from "../Totals/Totals";
 import { txModal } from "../Tx/TxFields";
@@ -21,13 +24,15 @@ export type AssetLinkProps = {
   onAddTx: (t: PostTx) => void;
   onUpdate: (a: PostAsset) => void;
   onDelete: () => void;
+  onMove: (pid: PortfolioId) => void;
 };
 
 export const AssetLink = ({
   asset,
   onUpdate,
   onDelete,
-  onAddTx
+  onAddTx,
+  onMove
 }: AssetLinkProps) => {
   const handleUpdate = pipe(() => assetModal(asset), TE.map(onUpdate));
   const handleDelete = pipe(
@@ -37,6 +42,13 @@ export const AssetLink = ({
   const handleAddTx = pipe(
     () => txModal(defaultBuyTx(), { asset }),
     TE.map(onAddTx)
+  );
+  const handleMove = pipe(
+    () =>
+      portfoliosSelectModal({
+        id: asset.portfolio_id
+      } as GetPortfolio),
+    TE.map((p) => onMove(p.id))
   );
 
   return (
@@ -69,6 +81,7 @@ export const AssetLink = ({
             onEdit={handleUpdate}
             onAddTx={handleAddTx}
             onDelete={handleDelete}
+            onMove={handleMove}
           />
         </div>
       </Card.Footer>
