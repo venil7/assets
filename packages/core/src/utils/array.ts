@@ -1,13 +1,13 @@
 import * as NA from "fp-ts/lib/NonEmptyArray";
 
+export const nonEmpty = <T>(a: T[]): a is NA.NonEmptyArray<T> => a.length > 0;
+
 export const onEmpty =
   <T>(fallback: () => T) =>
   (a: Array<T>): NA.NonEmptyArray<T> => {
-    if (a.length > 0) return a as NA.NonEmptyArray<T>;
+    if (nonEmpty(a)) return a;
     return [fallback()];
   };
-
-export const nonEmpty = <T>(a: T[]): a is NA.NonEmptyArray<T> => a.length > 0;
 
 export type FuzzySearchStrategy =
   | "closest"

@@ -23,17 +23,12 @@ export const commonPortfolioRanges = commonRanges<EnrichedPortfolio>(
 );
 
 const combineCharts =
-  <Item>(
-    getter: FunctionN<
-      [Item],
-      { ticker: string; chart: ChartData; price: number }
-    >
-  ) =>
+  <Item>(getter: (itm: Item) => { id: string; chart: ChartData }) =>
   (items: Item[]): ChartData => {
-    const getIdentifier = (i: Item) => getter(i).ticker;
+    const getId = (i: Item) => getter(i).id;
     const getChart = (i: Item) => getter(i).chart;
 
-    type HeapItem = { identifier: string; point: ChartDataPoint };
+    type HeapItem = { id: string; point: ChartDataPoint };
 
     const heap = new Heap<HeapItem>(
       (a, b) => a.point.timestamp - b.point.timestamp
@@ -44,15 +39,15 @@ const combineCharts =
         pipe(
           item,
           getChart,
-          A.map((point) => ({ identifier: getIdentifier(item), point }))
+          A.map((point) => ({ id: getId(item), point }))
         )
       )
     );
     heap.init(heapInit);
 
-    const allIdentifiers = new Set<string>(pipe(items, A.map(getIdentifier)));
+    const allIds = new Set<string>(pipe(items, A.map(getId)));
     const lastSeenPoint = new Map<string, ChartDataPoint>(
-      items.map((item) => [getIdentifier(item), getChart(item)[0]])
+      items.map((item) => [getId(item), getChart(item)[0]])
     );
 
     const points = [] as unknown as ChartData;
@@ -60,18 +55,18 @@ const combineCharts =
     while (heap.length) {
       const { timestamp } = heap.peek()!.point;
       const point: ChartDataPoint = { timestamp, price: 0, volume: 0 };
-      const timeSlotIdentifiers = new Set<string>();
+      const timeSlotIds = new Set<string>();
       while (heap.length && heap.peek()!.point.timestamp == timestamp) {
         const heapItem = heap.pop()!;
-        lastSeenPoint.set(heapItem.identifier, heapItem.point);
+        lastSeenPoint.set(heapItem.id, heapItem.point);
         point.price += heapItem.point.price;
         point.volume += heapItem.point.volume;
-        timeSlotIdentifiers.add(heapItem.identifier);
+        timeSlotIds.add(heapItem.id);
       }
-      const missingIdentifiers = allIdentifiers.difference(timeSlotIdentifiers);
+      const missingIds = allIds.difference(timeSlotIds);
 
-      missingIdentifiers.forEach((identifier) => {
-        const lastSeenItem = lastSeenPoint.get(identifier)!;
+      missingIds.forEach((id) => {
+        const lastSeenItem = lastSeenPoint.get(id)!;
         point.price += lastSeenItem.price;
         point.volume += lastSeenItem.volume;
       });
@@ -84,14 +79,14 @@ const combineCharts =
     );
   };
 
-export const combineAssetCharts = combineCharts<EnrichedAsset>((a) => ({
-  ticker: a.ticker,
-  chart: a.base.chart,
-  price: a.base.changes.current
-}));
+export const combineAssetCharts = combineCharts<EnrichedAsset>(
+  ({ ticker, base }) => ({
+    id: ticker,
+    chart: base.chart
+  })
+);
 
 export const combinePortfolioCharts = combineCharts<EnrichedPortfolio>((p) => ({
-  ticker: `${p.id}${p.name}`,
-  chart: p.base.chart,
-  price: p.base.changes.current
+  id: `${p.id}${p.name}`,
+  chart: p.base.chart
 }));
