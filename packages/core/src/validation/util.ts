@@ -1,6 +1,11 @@
 import * as E from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import { validationErr } from "../decoders/util";
+import {
+  nonEmptyString,
+  validationErr,
+  withErrorMessage
+} from "../decoders/util";
 
 export type Validator = ReturnType<typeof createValidator>;
 
@@ -11,7 +16,9 @@ export const createValidator =
     return {
       get errors() {
         if (E.isLeft(v)) {
-          const errors = v.left.map((e) => e.message ?? "Validation error");
+          const errors = v.left.map((e) => {
+            return e.message ?? "Validation error";
+          });
           return errors;
         }
         return [];
@@ -43,3 +50,6 @@ export const noWhiteSpace = (pwd: string) =>
   filter(() => !/\s/.test(pwd), `No whitespace`);
 export const alphaNumOnly = (str: string) =>
   filter(() => /^[a-zA-Z0-9]*$/.test(str), `Alpa numeric only`);
+
+export const nonEmptyField = (fieldName: string) =>
+  pipe(nonEmptyString, withErrorMessage(`${fieldName} can't be empty`));
