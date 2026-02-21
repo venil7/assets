@@ -6,23 +6,7 @@ import type { YahooChartData } from "../src/domain";
 import type { GetTx } from "../src/domain/tx";
 import { timeWeightedReturns } from "../src/services/returns";
 
-// test.only("dataframe", () => {
-//   type A = { a: number; b: string; c: Date };
-//   const as = [
-//     { a: 1, b: "1", c: fromUnixTime(1) },
-//     { a: 2, b: "2", c: fromUnixTime(2) },
-//     { a: 3, b: "3", c: fromUnixTime(3) },
-//     { a: 4, b: "4", c: fromUnixTime(4) }
-//   ];
-//   const df = readRecords(as, { schema: { a: Int16, b: Str, c: Datetime() } });
-//   const agg = df.select(
-//     col("a").cumProd().last().alias("a_prod"),
-//     col("a").sum().alias("a_sum")
-//   );
-//   console.log(agg.toRecords()[0]);
-// });
-
-test.only("TWR calculation", () => {
+test("TWR calculation", () => {
   const txs = [
     { id: 1, quantity_ext: 1, price: 100, date: fromUnixTime(3) },
     { id: 2, quantity_ext: 2, price: 110, date: fromUnixTime(5) },
