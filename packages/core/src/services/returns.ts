@@ -1,9 +1,16 @@
-import { fromUnixTime } from "date-fns";
-import * as A from "fp-ts/lib/Array";
-import { pipe } from "fp-ts/lib/function";
 import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
-import { col, Datetime, Float64, Int32, readRecords } from "nodejs-polars";
-import type { ChartDataItem, GetTx, YahooChartData } from "../domain";
+import {
+  col,
+  DataFrame,
+  Datetime,
+  Float64,
+  Int32,
+  Int64,
+  lit,
+  readRecords
+} from "nodejs-polars";
+import type { GetTx, UnixDate } from "../domain";
+import { unixNow } from "../utils/date";
 
 const TxSchema = {
   id: Int32,
@@ -16,65 +23,64 @@ const QuoteSchema = {
   date: Datetime()
 };
 
-const toQuote = ({ price, timestamp }: ChartDataItem) => ({
-  price,
-  date: fromUnixTime(timestamp)
-});
-
-export const timeWeightedReturns = <TX extends GetTx>(
-  txs: NonEmptyArray<TX>,
-  chart: YahooChartData
-) => {
-  const lastTx = txs[txs.length - 1];
-  const lastSubperiodEnd: TX = {
-    ...lastTx,
-    id: lastTx.id + 1,
-    quantity: 0,
-    quantity_ext: 0,
-    date: fromUnixTime(chart.meta.regularMarketTime),
-    price: chart.meta.regularMarketPrice
-  };
-  const quotes = pipe(chart.chart, A.map(toQuote));
-  const TXs = readRecords([...txs, lastSubperiodEnd], { schema: TxSchema });
-  const Qs = readRecords(quotes, { schema: QuoteSchema });
-
-  (() => {
-    const twr = Qs.joinAsof(TXs, {
-      on: "date",
-      strategy: "backward",
-      suffix: ".tx"
-    }).sort("id");
-    console.log(twr);
-  })();
-
-  const twr = Qs.joinAsof(TXs, {
-    on: "date",
-    strategy: "backward",
-    suffix: ".tx"
-  })
-    .sort("id")
-    .groupBy("id")
-    .agg(
-      col("date").first().alias("date_start"),
-      col("date").last().alias("date_end"),
-      col("price").first().alias("price_start"),
-      col("price").last().alias("price_end"),
-      col("quantity_ext").mode().first().fillNan(0).alias("qty")
-    )
-    .withColumns(
-      col("price_end").minus(col("price_start")).alias("price_diff"),
-      col("qty")
-        .rollingSum({ windowSize: Number.MAX_SAFE_INTEGER, minPeriods: 1 })
-        .alias("acc_qty")
-    )
-    .withColumns(
-      col("price_diff").divideBy(col("price_start")).alias("returnPct"),
-      col("price_diff").multiplyBy(col("acc_qty")).alias("returnValue")
-    )
-    .filter(col("id").isNotNull())
+const consolidateTxs = <TX extends GetTx>(
+  txs: TX[],
+  periodStartTimestamp: UnixDate,
+  periodStartPrice: number
+): DataFrame<{ ts: Int64; price: Float64; qty: Float64 }> => {
+  const TXs = readRecords(txs, { schema: TxSchema }).select(
+    col("date").cast(Int64).alias("ts"),
+    col("price").cast(Float64),
+    col("quantity_ext").cast(Float64).alias("qty")
+  );
+  const before = TXs.filter(col("ts").lessThanEquals(periodStartTimestamp))
     .select(
-      col("returnPct").plus(1).cumProd().last().minus(1), // TWR
-      col("returnValue").sum()
-    );
-  return twr.toRecords()[0];
+      lit(periodStartTimestamp).alias("ts").cast(Int64),
+      lit(periodStartPrice).alias("price").cast(Float64),
+      col("qty").sum()
+    )
+    .tail(1);
+  const after = TXs.filter(col("ts").greaterThan(periodStartTimestamp));
+  return before.vstack(after);
+};
+
+export const calculateReturns = <TX extends GetTx>(
+  txs: NonEmptyArray<TX>,
+  periodStartTimestamp: UnixDate,
+  periodStartPrice: number,
+  marketPrice: number
+) => {
+  let TXs = consolidateTxs(txs, periodStartTimestamp, periodStartPrice);
+  TXs = TXs.withColumns(
+    col("ts").alias("ts_start"),
+    col("ts").shift(-1).alias("ts_end").fillNull(unixNow()),
+    col("price").alias("price_start"),
+    col("price").shift(-1).fillNull(marketPrice).alias("price_end"),
+    col("qty").cumSum().alias("running_holding"),
+    col("qty").multiplyBy(col("price")).alias("cost")
+  ).withColumns(
+    col("running_holding").shift(1).fillNull(0).alias("holding_before"),
+    col("price_end").divideBy(col("price_start")).alias("growth_factor"),
+    col("running_holding").multiplyBy(col("price_end")).alias("running_value"),
+    col("cost").cumSum().alias("running_cost")
+  );
+
+  const returns = TXs.select(
+    col("growth_factor").cumProd().last().minus(1).alias("twr"),
+    col("running_value").last().alias("final_value"),
+    col("cost").sum().alias("final_cost"),
+    col("holding_before")
+      .first()
+      .multiplyBy(col("price_start").first())
+      .alias("start_value")
+  )
+    .withColumns(
+      col("final_value")
+        .minus(col("start_value"))
+        .minus(col("final_cost"))
+        .alias("dollar_return")
+    )
+    .withColumns(col("dollar_return").divideBy(col("final_cost")).alias("mwr"));
+
+  return returns.toRecords()[0];
 };
