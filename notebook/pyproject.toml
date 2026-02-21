@@ -1,0 +1,11 @@
+[project]
+name = "assets-notebook"
+version = "0.1.0"
+description = "Research and development notebook for the assets project."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "altair>=6.0.0",
+    "jupyterlab>=4.5.4",
+    "polars>=1.38.1",
+]

@@ -26,3 +26,5 @@
 [ ] research chart merges to Polars
 [ ] time-weighted return calc
 [ ] money-weighted return calc ??
+[ ] chart shows transactions
+[ ] break even line
