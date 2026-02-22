@@ -23,8 +23,9 @@
 [x] delete non empty portfolio bug
 [x] preferences should reset breadcrumb
 1.8
-[ ] research chart merges to Polars
-[ ] time-weighted return calc
-[ ] money-weighted return calc ??
+[-] research chart merges to Polars
+[ ] time-weighted return calc (via polars)
+[ ] money-weighted return calc (via polars)
+[ ] realized PnL calc (via polars)
 [ ] chart shows transactions
 [ ] break even line

@@ -7,7 +7,8 @@ import {
   Int32,
   Int64,
   lit,
-  readRecords
+  readRecords,
+  when
 } from "nodejs-polars";
 import type { GetTx, UnixDate } from "../domain";
 import { unixNow } from "../utils/date";
@@ -83,4 +84,70 @@ export const calculateReturns = <TX extends GetTx>(
     .withColumns(col("dollar_return").divideBy(col("final_cost")).alias("mwr"));
 
   return returns.toRecords()[0];
+};
+
+const selfEnrichTxs = <TX extends GetTx>(txs: NonEmptyArray<TX>) => {
+  const TXs = readRecords(txs, { schema: TxSchema }).select(
+    col("date").cast(Int64).alias("ts"),
+    col("price").cast(Float64),
+    col("quantity_ext").cast(Float64).alias("qty")
+  );
+
+  const runningBuyOnlyCost = when(col("qty").greaterThan(0))
+    .then(col("qty").multiplyBy(col("price")))
+    .otherwise(lit(0))
+    .cumSum()
+    .over(col("stretch"));
+
+  const runningBuyOnlyQty = when(col("qty").greaterThan(0))
+    .then(col("qty"))
+    .otherwise(lit(0))
+    .cumSum()
+    .over(col("stretch"));
+
+  const pnl = TXs.withColumns(col("qty").cumSum().alias("running_qty"))
+    .withColumns(
+      col("running_qty")
+        .lessThanEquals(0)
+        .shift(1)
+        .cast(Int32)
+        .cumSum()
+        .fillNull(0)
+        .alias("stretch")
+    )
+    .withColumns(
+      when(col("running_qty").lessThanEquals(0))
+        .then(lit(0))
+        .otherwise(col("qty").multiplyBy(col("price")).cumSum().over("stretch"))
+        .alias("running_cost")
+    )
+    .withColumns(
+      runningBuyOnlyCost
+        .divideBy(runningBuyOnlyQty)
+        .fillNull(0)
+        .alias("running_avg_price")
+    )
+    .withColumns(
+      when(col("qty").lessThan(0))
+        .then(
+          col("price")
+            .minus(col("running_avg_price"))
+            .multiplyBy(col("qty").mul(-1))
+        )
+        .otherwise(lit(null))
+        .alias("realized_pnl"),
+      col("qty").multiplyBy(col("running_avg_price")).alias("cost")
+    );
+
+  return pnl;
+};
+
+export const txsRealizedPnl = <TX extends GetTx>(txs: NonEmptyArray<TX>) => {
+  const enriched = selfEnrichTxs(txs);
+  return enriched
+    .select(
+      col("running_cost").last().alias("runningCost"),
+      col("realized_pnl").fillNull(0).sum().alias("realizedPnl")
+    )
+    .toRecords()[0];
 };

@@ -3,7 +3,7 @@ import { fromUnixTime } from "date-fns";
 import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import type { UnixDate } from "../src/domain";
 import type { GetTx } from "../src/domain/tx";
-import { calculateReturns } from "../src/services/returns";
+import { calculateReturns, txsRealizedPnl } from "../src/services/returns";
 
 // test.only("df extend test", () => {
 //   console.log("---------->>>test");
@@ -17,6 +17,7 @@ import { calculateReturns } from "../src/services/returns";
 // });
 
 test("TWR calculation (as per twr.ipynb)", () => {
+  // /notebook/TWR.ipynb for reference
   const txs = [
     { date: fromUnixTime(1), price: 102, quantity_ext: 2 },
     { date: fromUnixTime(3), price: 105, quantity_ext: 5 },
@@ -38,4 +39,24 @@ test("TWR calculation (as per twr.ipynb)", () => {
   expect(final_value).toBe(550);
   expect(final_cost).toBe(523.5);
   expect(dollar_return).toBe(26.5);
+});
+
+test("PNL calculation (as per twr.ipynb)", () => {
+  // /notebook/PNL.ipynb for reference
+  const txs = [
+    { date: fromUnixTime(1), price: 100, quantity_ext: 10 },
+    { date: fromUnixTime(2), price: 101, quantity_ext: -2 },
+    { date: fromUnixTime(3), price: 102, quantity_ext: 2 },
+    { date: fromUnixTime(4), price: 103, quantity_ext: -10 },
+    { date: fromUnixTime(5), price: 104, quantity_ext: 5 },
+    { date: fromUnixTime(6), price: 105, quantity_ext: 5 },
+    { date: fromUnixTime(7), price: 106, quantity_ext: -10 },
+    { date: fromUnixTime(8), price: 107, quantity_ext: 3 },
+    { date: fromUnixTime(9), price: 108, quantity_ext: 3 }
+  ] as unknown as NonEmptyArray<GetTx>;
+
+  const { runningCost, realizedPnl } = txsRealizedPnl(txs);
+
+  expect(runningCost).toBe(645);
+  expect(realizedPnl).toBeWithin(43.66666, 43.66667);
 });
