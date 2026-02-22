@@ -16,9 +16,9 @@ const totalsTypes = {
 };
 
 const periodChangesTypes = {
+  ...totalsTypes,
   beginning: t.number,
   current: t.number,
-  ...totalsTypes,
   start: UnixDateDecoder,
   end: UnixDateDecoder
 };
