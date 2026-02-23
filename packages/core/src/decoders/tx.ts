@@ -17,13 +17,19 @@ const extTxTypes = {
   ...baseTxTypes,
   id: t.number,
   asset_id: t.number,
+  timestamp: t.number,
+  quantity_ext: t.number, //signed, +buy, -sell
+  cost: t.number,
+  contribution: t.number,
+  stretch: t.number, // a series of txs all belonging to the same stretch untill sell all event
+  running_holding: t.number, // quantity owned after transaction
+  running_cost: t.number, // total asset cost after this transaction
+  running_average_price: t.number, //averga unit price, after this transaction
+  cost_basis: t.number, // amount expressed in average  unit price
+  running_break_even: t.number,
+  realized_pnl: t.number, //only for sell transactions
   created: dateDecoder,
-  modified: dateDecoder,
-  quantity_ext: t.number, // positive for buys, negative for sells
-  holdings: t.number, // total holdings at the time of this transaction
-  total_invested: t.number, // total invested at the time of this transaction
-  contribution: t.number, //contribution to asset ownership in % (buy only)
-  avg_price: nullableDecoder(t.number)
+  modified: dateDecoder
 };
 
 export const PostTxDecoder = t.type(baseTxTypes);

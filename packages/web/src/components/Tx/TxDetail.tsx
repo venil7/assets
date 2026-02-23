@@ -25,19 +25,19 @@ export const TxDetails: React.FC<TxDetailsProps> = ({ data: tx, asset }) => {
             <strong>
               Holdings <em>(post-transaction)</em>
             </strong>
-            <span>{decimal(tx.holdings)}</span>
+            <span>{decimal(tx.running_holding)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>
               Avg unit cost <em>(post-transaction)</em>
             </strong>
-            <span>{money(tx.avg_price, ccy)}</span>
+            <span>{money(tx.running_average_price, ccy)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>
               Asset cost <em>(post-transaction)</em>
             </strong>
-            <span>{money(tx.total_invested, ccy)}</span>
+            <span>{money(tx.running_cost, ccy)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Asset contribution</strong>

@@ -77,7 +77,7 @@ export const getAssetEnricher =
               const beginning =
                 periodChanges.beginning *
                 // if no holdings, we assume that holding is 1,
-                (asset.holdings ? (beforePeriodTx?.holdings ?? 0) : 1);
+                (asset.holdings ? (beforePeriodTx?.running_holding ?? 0) : 1);
               const current = periodChanges.current * (asset.holdings || 1);
               const periodTxsCost = sum<EnrichedTx>((tx) => tx.ccy.cost)(
                 periodTxs
@@ -259,7 +259,7 @@ const enrichChart = (chart: ChartData, txs: GetTx[]): ChartData => {
       {
         ...defaultBuyTx(EARLIEST_DATE),
         quantity: 1,
-        holdings: 1
+        running_holding: 1
       } as GetTx
     ];
   }
@@ -280,7 +280,7 @@ const enrichChart = (chart: ChartData, txs: GetTx[]): ChartData => {
       {
         ...defaultBuyTx(EARLIEST_DATE),
         // quantity: 0,
-        holdings: 0
+        running_holding: 0
       } as GetTx,
       ...txs
     ];
@@ -291,7 +291,7 @@ const enrichChart = (chart: ChartData, txs: GetTx[]): ChartData => {
     let currentTx = txs[txi];
     const isLastTx = txi == txs.length - 1;
     if (isLastTx) {
-      res.push({ ...dp, price: dp.price * currentTx.holdings });
+      res.push({ ...dp, price: dp.price * currentTx.running_holding });
       continue;
     }
     const nextTx = txs[txi + 1];
@@ -299,7 +299,7 @@ const enrichChart = (chart: ChartData, txs: GetTx[]): ChartData => {
       txi += 1;
       currentTx = nextTx;
     }
-    res.push({ ...dp, price: dp.price * currentTx.holdings });
+    res.push({ ...dp, price: dp.price * currentTx.running_holding });
   }
   return res as ChartData;
 };
