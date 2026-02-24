@@ -1,18 +1,12 @@
-import { pipe, type LazyArg } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import {
-  getToBase,
-  type EnrichedTx,
-  type GetAsset,
-  type GetTx
-} from "../domain";
+import { getToBase, type EnrichedTx, type GetTx } from "../domain";
 import type { YahooApi } from "../http";
 import { change } from "../utils/finance";
 import type { Action } from "../utils/utils";
 
 export const getTxEnricher =
   (yahooApi: YahooApi) =>
-  (getAsset: LazyArg<Action<GetAsset>>) =>
   (tx: GetTx): Action<EnrichedTx> => {
     return pipe(
       TE.Do,
@@ -106,15 +100,7 @@ export const getTxEnricher =
 
 export const getTxsEnricher =
   (yahooApi: YahooApi) =>
-  (getAsset: LazyArg<Action<GetAsset>>) =>
   (txs: GetTx[]): Action<readonly EnrichedTx[]> => {
-    const txEnricher = getTxEnricher(yahooApi);
-    return pipe(
-      TE.Do,
-      TE.bind("asset", getAsset),
-      TE.chain(({ asset }) => {
-        const enrichTx = pipe(() => TE.of(asset), txEnricher);
-        return pipe(txs, TE.traverseArray(enrichTx));
-      })
-    );
+    const enrichTx = getTxEnricher(yahooApi);
+    return pipe(txs, TE.traverseArray(enrichTx));
   };
