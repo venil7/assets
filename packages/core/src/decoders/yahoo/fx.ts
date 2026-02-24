@@ -1,6 +1,6 @@
 import * as t from "io-ts";
+import { UnixDateDecoder } from "../date";
 import { CcyDecoder } from "../prefs";
-import { UnixDateDecoder } from "./period";
 
 const fxTypes = {
   ccy: t.string,

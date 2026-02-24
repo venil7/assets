@@ -22,22 +22,20 @@ export const TxDetails: React.FC<TxDetailsProps> = ({ data: tx, asset }) => {
       <HorizontalStack>
         <ListGroup variant="flush">
           <ListGroup.Item>
-            <strong>
-              Holdings <em>(post-transaction)</em>
-            </strong>
+            <strong>Running asset holding</strong>
             <span>{decimal(tx.running_holding)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>
-              Avg unit cost <em>(post-transaction)</em>
-            </strong>
+            <strong>Running unit cost</strong>
             <span>{money(tx.running_average_price, ccy)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>
-              Asset cost <em>(post-transaction)</em>
-            </strong>
+            <strong>Running asset cost</strong>
             <span>{money(tx.running_cost, ccy)}</span>
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Running break even</strong>
+            <span>{money(tx.running_break_even, ccy)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Asset contribution</strong>
@@ -54,6 +52,10 @@ export const TxDetails: React.FC<TxDetailsProps> = ({ data: tx, asset }) => {
           <ListGroup.Item>
             <strong>Fx impact</strong>
             <span>{money(tx.base.fxImpact)}</span>
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Comments</strong>
+            <pre>{tx.comments}</pre>
           </ListGroup.Item>
         </ListGroup>
       </HorizontalStack>

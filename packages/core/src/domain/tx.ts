@@ -11,7 +11,7 @@ import type {
 import { fuzzyIndexSearch, nonEmpty } from "../utils/array";
 import { DateOrd } from "../utils/date";
 import type { Optional } from "../utils/utils";
-import type { UnixDate } from "./yahoo";
+import type { UnixDate } from "./date";
 
 export const EARLIEST_DATE = new Date(0);
 

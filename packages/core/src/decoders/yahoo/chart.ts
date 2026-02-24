@@ -7,9 +7,10 @@ import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
 import { unixNow } from "../../utils/date";
 import { change } from "../../utils/finance";
+import { UnixDateDecoder } from "../date";
 import { chainDecoder, nullableDecoder, validationErr } from "../util";
 import { ChartMetaDecoder } from "./meta";
-import { UnixDateDecoder, type PeriodChangesDecoder } from "./period";
+import { type PeriodChangesDecoder } from "./period";
 
 const QuoteDecoder = t.type({
   open: t.array(nullableDecoder(t.number)),

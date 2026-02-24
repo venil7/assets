@@ -18,8 +18,7 @@ import type { YahooChartDataDecoder } from "../decoders/yahoo/chart";
 import type { ChartInterval, ChartRange } from "../decoders/yahoo/meta";
 import type {
   PeriodChangesDecoder,
-  TotalsDecoder,
-  UnixDateDecoder
+  TotalsDecoder
 } from "../decoders/yahoo/period";
 import type {
   YahooTickerDecoder,
@@ -42,7 +41,6 @@ export type YahooChartData = t.TypeOf<typeof YahooChartDataDecoder>;
 export type ChartMeta = YahooChartData["meta"];
 export type ChartData = YahooChartData["chart"];
 export type ChartDataItem = ArrayItem<ChartData>;
-export type UnixDate = t.TypeOf<typeof UnixDateDecoder>;
 export type Fx = t.TypeOf<typeof FxDecoder>;
 
 export const intervalForRange = (range: ChartRange): ChartInterval => {

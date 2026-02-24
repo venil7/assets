@@ -40,7 +40,6 @@ const TxTableHeader = ({ disabled, asset }: TxTableProps) => (
       <th>Return</th>
       <th hidden={asset.domestic}>Return (base)</th>
       <th hidden={asset.domestic}>Fx imact</th>
-      <th className="d-none d-md-table-cell">Comments</th>
       <th hidden={disabled}>&#xfe19;</th>
     </tr>
   </thead>
@@ -80,8 +79,6 @@ const TxTableRow = (
       <td /**price/unit */>{money(tx.price, ccy)}</td>
       <td /**cost */>{money(tx.ccy.cost, ccy)}</td>
       <td /**value */>{money(tx.ccy.value, ccy)}</td>
-      {/* <td>{decimal(tx.holdings, 5, locale)}</td>
-      <td>{money(tx.total_invested, ccy, locale)}</td> */}
       <td
         className={classNames({
           profit: profitCcy,
@@ -109,9 +106,6 @@ const TxTableRow = (
         })}
       >
         {money(tx.base.fxImpact)}
-      </td>
-      <td /**comments */ className="d-none d-md-table-cell ellipsis pre">
-        {tx.comments.substring(0, 20)}
       </td>
       <td /**menu */ hidden={disabled} onClick={(evt) => evt.stopPropagation()}>
         <TxMenu

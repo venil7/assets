@@ -16,17 +16,15 @@ export const getTxEnricher =
   (tx: GetTx): Action<EnrichedTx> => {
     return pipe(
       TE.Do,
-      TE.bind("asset", getAsset),
-      TE.bind("meta", ({ asset }) => yahooApi.meta(asset.ticker)),
-      TE.bind("txFxRate", ({ meta, asset }) =>
-        yahooApi.baseCcyConversionRate(meta.currency, asset.base_ccy, tx.date)
+      TE.bind("meta", () => yahooApi.meta(tx.asset_ticker)),
+      TE.bind("txFxRate", ({ meta }) =>
+        yahooApi.baseCcyConversionRate(meta.currency, tx.user_base_ccy, tx.date)
       ),
-      TE.bind("mktFxRate", ({ meta, asset }) =>
-        yahooApi.baseCcyConversionRate(meta.currency, asset.base_ccy)
+      TE.bind("mktFxRate", ({ meta }) =>
+        yahooApi.baseCcyConversionRate(meta.currency, tx.user_base_ccy)
       ),
-      TE.map(({ asset, meta, txFxRate, mktFxRate }) => {
+      TE.map(({ meta, txFxRate, mktFxRate }) => {
         const toMktBase = getToBase(mktFxRate.rate);
-        const averageUnitCost = asset.avg_price!;
 
         switch (tx.type) {
           case "buy": {
@@ -66,18 +64,17 @@ export const getTxEnricher =
             };
           }
           case "sell": {
-            const costCcy = averageUnitCost * tx.quantity_ext;
-            const valueCcy = tx.price * tx.quantity_ext;
+            const costCcy = -tx.cost_basis; //avg price x qty
+            const valueCcy = -tx.cost; //price x qty
 
             const [returnCcy, returnPctCcy] = change({
               before: costCcy,
               after: valueCcy
             });
 
-            // before is wrong, but no better data available
-            const costBase = toMktBase(averageUnitCost) * tx.quantity_ext;
-            const valueBase =
-              toMktBase(meta.regularMarketPrice) * tx.quantity_ext;
+            const toSellBase = getToBase(txFxRate.rate);
+            const costBase = toSellBase(costCcy);
+            const valueBase = toSellBase(valueCcy);
 
             const [returnBase, returnPctBase] = change({
               before: costBase,

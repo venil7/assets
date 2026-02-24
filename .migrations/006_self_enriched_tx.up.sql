@@ -1,29 +1,3 @@
-create table
-  transactions (
-    id integer primary key autoincrement,
-    asset_id integer not null,
-    type text not null check (type in ('buy', 'sell')),
-    quantity real not null,
-    price real not null,
-    date date default current_timestamp,
-    comments varchar,
-    created datetime default current_timestamp,
-    modified datetime default current_timestamp
-  );
-
----
-insert into
-  transactions (asset_id, type, quantity, price)
-values
-  (1, 'buy', 1, 100),
-  (1, 'buy', 2, 110),
-  (1, 'buy', 3, 120),
-  (1, 'sell', 6, 130),
-  (1, 'buy', 1, 100),
-  (1, 'buy', 2, 110),
-  (1, 'buy', 3, 120),
-  (1, 'sell', 2, 130);
-
 --  create view
 drop view if exists transactions_ext;
 
@@ -60,7 +34,7 @@ with
       *,
       sum(
         case
-          when running_holding = 0 then 1
+          when running_holding < 1e-7 then 1 -- if less then one ten millionth
           else 0
         end
       ) over (
@@ -129,7 +103,7 @@ with
     from
       running_cost_cte
   ),
-  cost_cte as (
+  txs_ext as (
     select
       id,
       asset_id,
@@ -158,12 +132,13 @@ with
       avg_price_cte
   )
 select
-  *
+  t.*,
+  a.name as asset_name,
+  a.ticker as asset_ticker,
+  p.name as portfolio_name,
+  p.description as portfolio_description,
+  p.user_id
 from
-  cost_cte;
-
---- use
-select
-  *
-from
-  transactions_ext;
+  txs_ext t
+  inner join assets a on a.id = t.asset_id
+  inner join portfolios p on p.id = a.portfolio_id;
