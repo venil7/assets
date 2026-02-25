@@ -1,14 +1,19 @@
-SELECT A.id,
+SELECT
+  A.id,
   A.portfolio_id,
-  A.name,
   A.ticker,
-  A.created,
-  A.modified,
-  A.holdings,
+  A.name,
+  A.holding,
   A.invested,
-  A.num_txs,
   A.avg_price,
-  P.base_ccy
+  A.break_even,
+  A.realized_pnl,
+  A.num_txs,
+  A.last_activity,
+  A.last_activity_ts,
+  P.base_ccy,
+  A.created,
+  A.modified
 FROM assets_ext A
   INNER JOIN prefs P ON A.user_id = P.user_id
 WHERE A.portfolio_id = $portfolioId

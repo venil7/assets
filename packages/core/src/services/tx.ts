@@ -102,5 +102,6 @@ export const getTxsEnricher =
   (yahooApi: YahooApi) =>
   (txs: GetTx[]): Action<readonly EnrichedTx[]> => {
     const enrichTx = getTxEnricher(yahooApi);
-    return pipe(txs, TE.traverseArray(enrichTx));
+    return pipe(txs, TE.traverseSeqArray(enrichTx));
+    // return pipe(txs, TE.traverseArray(enrichTx));
   };
