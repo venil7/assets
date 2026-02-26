@@ -66,7 +66,7 @@ with
   running_cost_cte as (
     select
       *,
-      quantity_ext / max(running_holding) over true_stretch as contribution,
+      quantity_ext / max(running_holding) over entire_stretch as contribution,
       case
         when sum(quantity_ext * price) over true_stretch <= 1e-7 then 0
         else sum(quantity_ext * price) over true_stretch
@@ -82,6 +82,15 @@ with
         order by
           id,
           date
+      ),
+      entire_stretch as (
+        partition by
+          asset_id,
+          stretch_ext
+        order by
+          id,
+          date range between unbounded preceding
+          and unbounded following
       )
   ),
   avg_price_cte as (
@@ -90,7 +99,12 @@ with
       case
         when quantity_ext < 0 then lag (raw_avg_price, 1) over true_stretch
         else raw_avg_price
-      end as running_average_price
+      end as running_average_price,
+      stretch_ext = max(stretch_ext) over (
+        partition by
+          asset_id range between unbounded preceding
+          and unbounded following
+      ) as final_stretch
     from
       running_cost_cte
     window
@@ -100,44 +114,71 @@ with
           stretch_ext
       )
   ),
-  txs_ext as (
+  txs_ext_cte as (
     select
-      id,
-      asset_id,
-      date,
+      *,
+      case
+        when quantity_ext > 0
+        and not final_stretch then
+        -- sold price * qty - cost_basis
+        last_value (price) over true_stretch * quantity - (quantity_ext * running_average_price)
+        else null
+      end as pnl,
       strftime ('%s', date) as timestamp,
-      quantity,
-      quantity_ext,
       quantity_ext * price as cost,
-      price,
-      contribution,
       stretch_ext as stretch,
-      running_holding,
-      running_cost,
-      running_average_price,
       quantity_ext * running_average_price as cost_basis,
       running_average_price * running_holding as running_break_even,
       case
         when quantity_ext < 0 then (price - running_average_price) * quantity
         else 0
-      end as realized_pnl,
-      type,
-      comments,
-      created,
-      modified
+      end as realized_pnl
     from
       avg_price_cte
+    window
+      true_stretch as (
+        partition by
+          asset_id,
+          stretch_ext
+        order by
+          id,
+          date range between unbounded preceding
+          and unbounded following
+      )
   )
 select
-  t.*,
+  t.id,
+  t.asset_id,
+  t.type,
+  t.quantity,
+  t.quantity_ext,
+  t.price,
+  t.date,
+  t.timestamp,
+  t.running_holding,
+  t.running_cost,
+  t.running_average_price,
+  t.running_break_even,
+  t.stretch,
+  t.final_stretch,
+  t.pnl,
+  t.realized_pnl,
+  t.cost,
+  t.cost_basis,
+  t.contribution,
+  t.comments,
+  t.created,
+  t.modified,
   a.name as asset_name,
   a.ticker as asset_ticker,
   p.name as portfolio_name,
   p.description as portfolio_description,
   p.user_id
 from
-  txs_ext t
+  txs_ext_cte t
   inner join assets a on a.id = t.asset_id
   inner join portfolios p on p.id = a.portfolio_id
+where
+  asset_id = 190
 order by
-  timestamp desc;
+  timestamp asc;

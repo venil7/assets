@@ -58,8 +58,8 @@ export const getTxEnricher =
             };
           }
           case "sell": {
-            const costCcy = -tx.cost_basis; //avg price x qty
-            const valueCcy = -tx.cost; //price x qty
+            const costCcy = -tx.cost_basis; // avg price x qty
+            const valueCcy = -tx.cost; // price x qty
 
             const [returnCcy, returnPctCcy] = change({
               before: costCcy,

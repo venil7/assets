@@ -10,6 +10,7 @@ export type AssetDetailsProps = {
 
 export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
   const { money, decimal, percent } = useFormatters();
+  const assetCcy = asset.meta.currency as Ccy;
   return (
     <div className="asset-details-tab">
       <HorizontalStack>
@@ -39,18 +40,15 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Avg unit cost</strong>
-            <span>{money(asset.avg_price, asset.meta.currency as Ccy)}</span>
+            <span>{money(asset.avg_price, assetCcy)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Total cost</strong>
-            <span>{money(asset.invested, asset.meta.currency as Ccy)}</span>
+            <span>{money(asset.invested, assetCcy)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Realized gain</strong>
-            <span>
-              {money(asset.ccy.realizedGain, asset.meta.currency as Ccy)} (
-              {percent(asset.ccy.realizedGainPct)})
-            </span>
+            <span>{money(asset.realized_pnl, assetCcy)}</span>
           </ListGroup.Item>
         </ListGroup>
 
@@ -69,10 +67,7 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Realized gain (base)</strong>
-            <span>
-              {money(asset.base.realizedGain)} (
-              {percent(asset.base.realizedGainPct)})
-            </span>
+            <span>{money(asset.base.realizedGain)}</span>
           </ListGroup.Item>
         </ListGroup>
       </HorizontalStack>

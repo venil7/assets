@@ -3,7 +3,7 @@ SELECT
   A.portfolio_id,
   A.ticker,
   A.name,
-  A.holding,
+  A.holdings,
   A.invested,
   A.avg_price,
   A.break_even,
@@ -11,6 +11,7 @@ SELECT
   A.num_txs,
   A.last_activity,
   A.last_activity_ts,
+  A.user_id,
   P.base_ccy,
   A.created,
   A.modified

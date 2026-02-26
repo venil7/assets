@@ -35,10 +35,7 @@ export const PortfolioDetails: React.FC<PortfolioDetailsProps> = ({
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Realized gain (base)</strong>
-            <span>
-              {money(portfolio.base.realizedGain)} (
-              {percent(portfolio.base.realizedGainPct)})
-            </span>
+            <span>{money(portfolio.base.realizedGain)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>FX impact</strong>

@@ -1,5 +1,5 @@
 import * as t from "io-ts";
-import { withFallback } from "io-ts-types";
+import { BooleanFromNumber, withFallback } from "io-ts-types";
 import { UnixDateDecoder } from "./date";
 import { NumberDecoder } from "./number";
 import { CcyDecoder } from "./prefs";
@@ -19,25 +19,29 @@ const extTxTypes = {
   ...baseTxTypes,
   id: t.number,
   asset_id: t.number,
-  timestamp: UnixDateDecoder,
   quantity_ext: t.number, //signed, +buy, -sell
-  cost: t.number,
-  contribution: t.number,
   stretch: t.number, // a series of txs all belonging to the same stretch untill sell all event
+  final_stretch: BooleanFromNumber, // indicates last stretch
   running_holding: t.number, // quantity owned after transaction
   running_cost: t.number, // total asset cost after this transaction
   running_average_price: t.number, //averga unit price, after this transaction
-  cost_basis: t.number, // amount expressed in average  unit price
   running_break_even: t.number,
+  pnl: nullableDecoder(t.number), //for buy txs of non final stretch
   realized_pnl: t.number, //only for sell transactions
+  cost: t.number,
+  cost_basis: t.number, // amount expressed in average  unit price
+  contribution: t.number,
+  // from joined asset & portfolio & user
   asset_name: t.string,
   asset_ticker: t.string,
   portfolio_name: t.string,
   portfolio_description: t.string,
   user_id: t.number,
+  user_base_ccy: CcyDecoder,
+  // meta
+  timestamp: UnixDateDecoder,
   created: dateDecoder,
-  modified: dateDecoder,
-  user_base_ccy: CcyDecoder
+  modified: dateDecoder
 };
 
 export const PostTxDecoder = t.type(baseTxTypes);

@@ -24,7 +24,6 @@ import {
 import type { YahooApi } from "../http";
 import { unixNow } from "../utils/date";
 import { change, pctOf, sum } from "../utils/finance";
-import { maybe } from "../utils/func";
 import { type Action, type Optional } from "../utils/utils";
 
 export const getAssetEnricher =
@@ -50,10 +49,6 @@ export const getAssetEnricher =
         }) => {
           const buyTxs = pipe(txs, A.filter(byBuy));
           const sellTxs = pipe(txs, A.filter(bySell));
-          const buyTxsTotalCost = sum<EnrichedTx>(({ ccy }) => ccy.cost)(
-            buyTxs
-          );
-          // transactions
           const beforePeriodTx = pipe(
             txs,
             earliestTxBeforeTimestamp(periodChanges.start)
@@ -94,34 +89,20 @@ export const getAssetEnricher =
               };
             })();
 
-            const realizedGain = pipe(
-              sellTxs,
-              sum(({ ccy }) => ccy.returnValue),
-              Math.abs
-            );
-            const realizedGainPct = pctOf(buyTxsTotalCost, realizedGain);
-            return {
-              chart,
-              totals,
-              changes,
-              realizedGain,
-              realizedGainPct
-            };
+            return { chart, totals, changes };
           })();
 
           const base: EnrichedAsset["base"] = (() => {
             const avgBuyRate =
               pipe(
                 buyTxs,
-                sum(
-                  ({ base, ccy }) => base.fxRate * (ccy.cost / buyTxsTotalCost)
-                )
+                sum(({ base, contribution }) => base.fxRate * contribution)
               ) || mktFxRate.rate; // can be zero, so failsafing
 
             const toMktBase = getToBase(mktFxRate.rate);
             const toAvgBuyBase = getToBase(avgBuyRate);
 
-            const avgPrice = pipe(asset.avg_price, maybe(toAvgBuyBase));
+            const avgPrice = toAvgBuyBase(asset.avg_price);
             const invested = toAvgBuyBase(asset.invested);
             const value = asset.holdings ? toMktBase(ccy.changes.current) : 0;
 

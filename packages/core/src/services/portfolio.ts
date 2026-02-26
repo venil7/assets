@@ -61,10 +61,7 @@ export const getPortfolioEnricher =
           assets,
           sum(({ base }) => base.realizedGain)
         );
-        const realizedGainPct = pipe(
-          assets,
-          sum(({ base, weight }) => base.realizedGainPct * (weight || 0))
-        );
+
         const fxImpact = pipe(
           assets,
           sum(({ base }) => base.fxImpact ?? 0)
@@ -149,7 +146,6 @@ export const getPortfolioEnricher =
             invested,
             totals,
             realizedGain,
-            realizedGainPct,
             fxImpact
           }
         };

@@ -1,9 +1,9 @@
 with
   tx_aggregates as (
     select
-      id,
+      max(id) as id,
       asset_id,
-      running_holding as holding,
+      running_holding as holdings,
       running_cost as cost,
       running_average_price as avg_price,
       running_break_even as break_even,
@@ -29,7 +29,7 @@ with
     select
       a.*,
       p.user_id,
-      coalesce(t.holding, 0) as holding,
+      coalesce(t.holdings, 0) as holdings,
       coalesce(t.cost, 0) as invested,
       coalesce(t.avg_price, 0) as avg_price,
       coalesce(t.break_even, 0) as break_even,

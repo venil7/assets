@@ -14,11 +14,9 @@ const extPortfolioTypes = {
   id: t.number,
   user_id: t.number,
   ...basePortfolioTypes,
-  created: dateDecoder,
-  modified: dateDecoder,
-  total_invested: t.number,
   num_assets: t.number,
-  contribution: t.number
+  created: dateDecoder,
+  modified: dateDecoder
 };
 
 export const PostPortfolioDecoder = t.type(basePortfolioTypes);
@@ -42,7 +40,6 @@ export const EnrichedPortfolioDecoder = t.type({
     invested: t.number,
     totals: TotalsDecoder,
     realizedGain: t.number,
-    realizedGainPct: t.number,
     fxImpact: t.number
   })
 });

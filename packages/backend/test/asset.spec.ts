@@ -65,7 +65,7 @@ test("Delete asset", async () => {
   expect(id).toBe(asset.id);
 });
 
-test("Calculate holding, invested and avg_price", async () => {
+test("Calculate holdings, invested and avg_price", async () => {
   const { id: portfolioId } = await run(api.portfolio.create(fakePortfolio()));
   const { id: assetId } = await run(api.asset.create(portfolioId, fakeAsset()));
 
