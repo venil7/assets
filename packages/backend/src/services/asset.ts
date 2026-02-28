@@ -22,12 +22,12 @@ import * as TE from "fp-ts/TaskEither";
 import { mapWebError } from "../domain/error";
 import type { WebAction } from "../fp-express";
 import type { Repository } from "../repository";
-import { getTxs as enrichedTxsGetter } from "./tx";
+import { getFinalStretchTxs } from "./tx";
 
 const assetDecoder = liftTE(PostAssetDecoder);
 
 const getEnrichedTxs = (repo: Repository, yahooApi: YahooApi) =>
-  flow(enrichedTxsGetter(repo, yahooApi), TE.mapLeft(handleError())) as (
+  flow(getFinalStretchTxs(repo, yahooApi), TE.mapLeft(handleError())) as (
     assetId: AssetId,
     portfolioId: PortfolioId,
     userId: UserId

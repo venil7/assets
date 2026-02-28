@@ -5,6 +5,7 @@ import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
+import type { UnixDate } from "../../domain";
 import { unixNow } from "../../utils/date";
 import { change } from "../../utils/finance";
 import { UnixDateDecoder } from "../date";
@@ -26,7 +27,7 @@ const IndicatorsDecoder = t.type({
 
 export const ChartDecoder = t.type({
   meta: ChartMetaDecoder,
-  timestamp: withFallback(t.array(t.number), []), // may not be present
+  timestamp: withFallback(t.array(UnixDateDecoder), []), // may not be present
   indicators: IndicatorsDecoder
 });
 
@@ -47,11 +48,11 @@ type RawChartResult = NonNullable<RawChartResponse["chart"]["result"]>[0];
 
 type ArrayElement<A> = A extends Array<infer E> ? E : never;
 
-type Timestamps = RawChartResult["timestamp"];
+// type Timestamps = RawChartResult["timestamp"];
 type Indicators = ArrayElement<RawChartResult["indicators"]["quote"]>;
 
 const chartDataPointTypes = {
-  timestamp: t.number,
+  timestamp: UnixDateDecoder,
   volume: t.number,
   price: t.number
 };
@@ -61,7 +62,7 @@ export const ChartDataPointDecoder = t.type(chartDataPointTypes);
 export type ChartDataPoint = t.TypeOf<typeof ChartDataPointDecoder>;
 
 const combineIndicators = (
-  timestamps: Timestamps,
+  timestamps: UnixDate[],
   { volume, close }: Indicators
 ): ChartDataPoint[] => {
   return pipe(
@@ -94,7 +95,7 @@ export const YahooChartDataDecoder = pipe(
             price: meta.chartPreviousClose,
             volume: 0,
             timestamp: timestamp.length
-              ? timestamp[0] - 5 * 60
+              ? ((timestamp[0] - 5 * 60) as UnixDate)
               : meta.regularMarketTime
           };
           let chart1 = meta.previousClose ? [prevClose] : [];

@@ -1,181 +1,133 @@
 import { fromUnixTime, getUnixTime } from "date-fns";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
-import * as NeA from "fp-ts/lib/NonEmptyArray";
 import * as TE from "fp-ts/lib/TaskEither";
+import { defaultTotals } from "../decoders";
 import { DEFAULT_CHART_RANGE, type ChartRange } from "../decoders/yahoo/meta";
 import {
-  byBuy,
-  bySell,
+  chartInBaseCcy,
   defaultBuyTx,
   EARLIEST_DATE,
   earliestTxBeforeTimestamp,
-  getToBase,
+  periodChanges,
   txsAfterTimestamp,
   type ChartData,
   type ChartDataItem,
   type EnrichedAsset,
+  type EnrichedAssetBase,
+  type EnrichedAssetCcy,
   type EnrichedTx,
   type GetAsset,
-  type GetTx,
-  type PeriodChanges,
-  type Totals
+  type GetTx
 } from "../domain";
 import type { YahooApi } from "../http";
 import { unixNow } from "../utils/date";
-import { change, pctOf, sum } from "../utils/finance";
+import { change, sum } from "../utils/finance";
 import { type Action, type Optional } from "../utils/utils";
 
 export const getAssetEnricher =
   (yahooApi: YahooApi) =>
   (
     asset: GetAsset,
-    getTxs: () => Action<EnrichedTx[]>,
+    getFinalStrecthTxs: () => Action<EnrichedTx[]>,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedAsset> => {
     return pipe(
       TE.Do,
       TE.bind("chart", () => yahooApi.chart(asset.ticker, range)),
-      TE.bind("txs", getTxs),
-      TE.bind("mktFxRate", ({ chart: { meta } }) =>
-        // possibly optimize by taking from tx
-        yahooApi.baseCcyConversionRate(meta.currency, asset.base_ccy)
+      TE.bind("finalStretchTxs", getFinalStrecthTxs),
+      TE.bind("fxRates", ({ chart }) =>
+        yahooApi.fxRates(chart.meta.currency, asset.base_ccy)
       ),
       TE.map(
         ({
-          txs,
-          chart: { chart: origChart, periodChanges, meta },
-          mktFxRate
+          finalStretchTxs,
+          fxRates,
+          chart: { chart: origChart, periodChanges: assetPeriodChanges, meta }
         }) => {
-          const buyTxs = pipe(txs, A.filter(byBuy));
-          const sellTxs = pipe(txs, A.filter(bySell));
-          const beforePeriodTx = pipe(
-            txs,
-            earliestTxBeforeTimestamp(periodChanges.start)
-          );
-          const periodTxs = pipe(txs, txsAfterTimestamp(periodChanges.start));
-
           const domestic =
             meta.currency.toUpperCase() == asset.base_ccy.toUpperCase();
 
-          const ccy = ((): EnrichedAsset["ccy"] => {
-            const value = asset.holdings * periodChanges.current;
-            const chart: ChartData = enrichChart(origChart, txs);
-            const totals: Totals = (() => {
-              const [returnValue, returnPct] = change({
-                before: asset.invested,
-                after: value
-              });
-              return { returnValue, returnPct };
-            })();
-            const changes: PeriodChanges = (() => {
-              const beginning =
-                periodChanges.beginning *
-                // if no holdings, we assume that holding is 1,
-                (asset.holdings ? (beforePeriodTx?.running_holding ?? 0) : 1);
-              const current = periodChanges.current * (asset.holdings || 1);
-              const periodTxsCost = sum<EnrichedTx>((tx) => tx.ccy.cost)(
-                periodTxs
-              );
-              const returnValue = current - beginning - periodTxsCost;
-              const returnPct = pctOf(current, returnValue);
-
-              return {
-                ...periodChanges,
-                returnValue,
-                returnPct,
-                beginning,
-                current
-              };
-            })();
-
-            return { chart, totals, changes };
-          })();
-
-          const base: EnrichedAsset["base"] = (() => {
-            const avgBuyRate =
-              pipe(
-                buyTxs,
-                sum(({ base, contribution }) => base.fxRate * contribution)
-              ) || mktFxRate.rate; // can be zero, so failsafing
-
-            const toMktBase = getToBase(mktFxRate.rate);
-            const toAvgBuyBase = getToBase(avgBuyRate);
-
-            const avgPrice = toAvgBuyBase(asset.avg_price);
-            const invested = toAvgBuyBase(asset.invested);
-            const value = asset.holdings ? toMktBase(ccy.changes.current) : 0;
-
-            const chart: ChartData = pipe(
-              ccy.chart,
-              NeA.map((dp) => ({
-                ...dp,
-                price: toMktBase(dp.price)
-              }))
-            );
-
-            const totals: Totals = (() => {
-              const [returnValue, returnPct] = change({
-                before: invested,
-                after: value
-              });
-              return { returnValue, returnPct };
-            })();
-
-            const buyTxsTotalCostBase = sum<EnrichedTx>(
-              ({ base }) => base.cost
-            )(buyTxs);
-
-            const fxImpact = pipe(
-              buyTxs,
-              sum(({ base }) => base.fxImpact ?? 0)
-            );
-
-            const realizedGain = pipe(
-              sellTxs,
-              sum(({ base }) => base.returnValue),
-              Math.abs
-            );
-            const realizedGainPct = pctOf(buyTxsTotalCostBase, realizedGain);
-
-            const changes: PeriodChanges = (() => {
-              const beginning = toMktBase(ccy.changes.beginning);
-              const current = toMktBase(ccy.changes.current);
-              const periodTxsCost = sum<EnrichedTx>((tx) => tx.base.cost)(
-                periodTxs
-              );
-              const returnValue = current - beginning - periodTxsCost;
-              const returnPct = pctOf(current, returnValue);
-              return {
-                ...periodChanges,
-                returnValue,
-                returnPct,
-                beginning,
-                current
-              };
-            })();
+          // asset has no active investemnt
+          if (!finalStretchTxs.length) {
+            const ccy: EnrichedAssetCcy = {
+              chart: origChart,
+              changes: assetPeriodChanges,
+              totals: defaultTotals()
+            };
+            const base: EnrichedAssetBase = {
+              fxRate: 1,
+              invested: 0,
+              fxImpact: 0,
+              breakEven: 0,
+              avgPrice: null,
+              realizedPnl: 0,
+              totals: defaultTotals(),
+              chart: chartInBaseCcy(origChart, fxRates),
+              changes: periodChanges([], assetPeriodChanges, fxRates)
+            };
 
             return {
-              chart,
-              totals,
-              changes,
-              fxImpact,
-              invested,
-              avgPrice,
-              avgBuyRate,
-              realizedGain,
-              realizedGainPct
+              ccy,
+              base,
+              meta,
+              domestic,
+              weight: null,
+              ...asset
+            };
+          }
+
+          // an active stretch of investments is present
+          const beforePeriodStartTx = pipe(
+            finalStretchTxs,
+            earliestTxBeforeTimestamp(assetPeriodChanges.start)
+          );
+          const duringPeriodTxs = pipe(
+            finalStretchTxs,
+            txsAfterTimestamp(assetPeriodChanges.start)
+          );
+          const periodStretchTxs: EnrichedTx[] = [
+            ...(beforePeriodStartTx ? [beforePeriodStartTx] : []),
+            ...duringPeriodTxs
+          ];
+
+          const ccy = ((): EnrichedAssetCcy => {
+            const value = asset.holdings * meta.regularMarketPrice;
+            const [returnValue, returnPct] = change({
+              before: asset.invested,
+              after: value
+            });
+            return {
+              totals: { returnValue, returnPct },
+              chart: enrichChart(origChart, finalStretchTxs),
+              changes: periodChanges(periodStretchTxs, assetPeriodChanges)
             };
           })();
 
+          const domesticBase = {
+            ...ccy,
+            fxRate: 1,
+            fxImpact: 0,
+            invested: asset.invested,
+            avgPrice: asset.avg_price,
+            breakEven: asset.break_even,
+            realizedPnl: asset.realized_pnl
+          };
+          const base = domestic
+            ? domesticBase
+            : domesticBase; /*foreignAssetBaseCalc(
+                periodStretchTxs,
+                assetPeriodChanges,
+                fxRates
+              );*/
+
           return {
-            ...asset,
-            meta,
-            mktFxRate: mktFxRate.rate,
-            domestic,
-            weight: null, // cannot calc weight for single asset
             ccy,
-            base
+            base,
+            meta,
+            ...asset,
+            domestic,
+            weight: null // cannot calc weight for single asset
           };
         }
       )

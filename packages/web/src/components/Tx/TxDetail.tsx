@@ -44,16 +44,6 @@ export const TxDetails: React.FC<TxDetailsProps> = ({ data: tx, asset }) => {
         </ListGroup>
         <ListGroup variant="flush" hidden={domestic}>
           <ListGroup.Item>
-            <strong>Fx rate</strong>
-            <span>
-              {money(1)}={money(tx.base.fxRate, ccy)}
-            </span>
-          </ListGroup.Item>
-          <ListGroup.Item>
-            <strong>Fx impact</strong>
-            <span>{money(tx.base.fxImpact)}</span>
-          </ListGroup.Item>
-          <ListGroup.Item>
             <strong>Comments</strong>
             <pre>{tx.comments}</pre>
           </ListGroup.Item>

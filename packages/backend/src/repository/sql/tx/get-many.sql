@@ -13,8 +13,11 @@ select
   t.running_break_even,
   t.stretch,
   t.final_stretch,
+  t.sold_price,
   t.pnl,
+  t.pnl_pct,
   t.realized_pnl,
+  t.value,
   t.cost,
   t.cost_basis,
   t.contribution,
@@ -31,5 +34,6 @@ from transactions_ext t
   inner join prefs p on t.user_id = p.user_id
 where t.asset_id = $assetId
   and t.user_id = $userId
+  and ($finalStretch <> 1 or t.final_stretch = 1)
 order by t.date asc
 limit $limit offset $offset;

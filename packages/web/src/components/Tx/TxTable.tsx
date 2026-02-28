@@ -38,8 +38,6 @@ const TxTableHeader = ({ disabled, asset }: TxTableProps) => (
       <th>Cost</th>
       <th>Value</th>
       <th>Return</th>
-      <th hidden={asset.domestic}>Return (base)</th>
-      <th hidden={asset.domestic}>Fx imact</th>
       <th hidden={disabled}>&#xfe19;</th>
     </tr>
   </thead>
@@ -67,8 +65,7 @@ const TxTableRow = (
     );
   const ccy = asset.meta.currency as Ccy;
   const buy = tx.type == "buy";
-  const profitCcy = tx.ccy.returnValue >= 0;
-  const profitBase = tx.base.returnValue >= 0;
+  const profitCcy = tx.pnl_pct >= 0;
   return (
     <tr key={tx.id} onClick={handleView(tx)}>
       <td /**type */ className="capitalize">{tx.type}</td>
@@ -77,8 +74,8 @@ const TxTableRow = (
       </td>
       <td /**quantity */>{decimal(tx.quantity)}</td>
       <td /**price/unit */>{money(tx.price, ccy)}</td>
-      <td /**cost */>{money(tx.ccy.cost, ccy)}</td>
-      <td /**value */>{money(tx.ccy.value, ccy)}</td>
+      <td /**cost */>{money(tx.cost, ccy)}</td>
+      <td /**value */>{money(tx.value, ccy)}</td>
       <td
         className={classNames({
           profit: profitCcy,
@@ -86,26 +83,7 @@ const TxTableRow = (
           unrealized: buy
         })} /**return */
       >
-        {money(tx.ccy.returnValue, ccy)}&nbsp; ({percent(tx.ccy.returnPct)})
-      </td>
-      <td
-        hidden={domestic}
-        className={classNames({
-          profit: profitBase,
-          loss: !profitBase,
-          unrealized: buy
-        })} /**return base */
-      >
-        {money(tx.base.returnValue)}&nbsp; ({percent(tx.base.returnPct)})
-      </td>
-      <td
-        /**fx impact */ hidden={domestic}
-        className={classNames({
-          profit: (tx.base.fxImpact ?? 0) >= 0,
-          loss: (tx.base.fxImpact ?? 0) < 0
-        })}
-      >
-        {money(tx.base.fxImpact)}
+        {money(tx.pnl, ccy)}&nbsp; ({percent(tx.pnl_pct)})
       </td>
       <td /**menu */ hidden={disabled} onClick={(evt) => evt.stopPropagation()}>
         <TxMenu

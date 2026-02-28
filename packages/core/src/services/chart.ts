@@ -5,6 +5,7 @@ import type { ChartDataPoint } from "../decoders/yahoo/chart";
 import type { ChartRange } from "../decoders/yahoo/meta";
 import type { ChartData, EnrichedAsset, EnrichedPortfolio } from "../domain";
 import { onEmpty } from "../utils/array";
+import { unixTimestamp } from "../utils/date";
 
 const commonRanges =
   <Item>(getRanges: FunctionN<[Item], ChartRange[]>) =>
@@ -75,7 +76,7 @@ const combineCharts =
     }
     return pipe(
       points,
-      onEmpty(() => ({ timestamp: 0, volume: 0, price: 0 }))
+      onEmpty(() => ({ timestamp: unixTimestamp(0), volume: 0, price: 0 }))
     );
   };
 

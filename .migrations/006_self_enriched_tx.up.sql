@@ -101,15 +101,13 @@ with
   avg_price_cte as (
     select
       *,
+      round(sum(contribution) over true_stretch, 9) as running_contribution,
       case
         when quantity_ext < 0 then lag (raw_avg_price, 1) over true_stretch
         else raw_avg_price
       end as running_average_price,
-      stretch_ext = max(stretch_ext) over (
-        partition by
-          asset_id range between unbounded preceding
-          and unbounded following
-      ) as final_stretch
+      stretch_ext = max(stretch_ext) over extended_stretch
+      and last_value (running_holding) over extended_stretch > 0 as final_stretch
     from
       running_cost_cte
     window
@@ -117,6 +115,17 @@ with
         partition by
           asset_id,
           stretch_ext
+        order by
+          id,
+          date
+      ),
+      extended_stretch as (
+        partition by
+          asset_id
+        order by
+          id,
+          date range between unbounded preceding
+          and unbounded following
       )
   ),
   txs_ext_cte as (
@@ -124,9 +133,16 @@ with
       *,
       case
         when quantity_ext > 0
+        and not final_stretch then last_value (price) over true_stretch
+        when quantity_ext < 0 then price
+        else null
+      end as sold_price,
+      case
+        when quantity_ext > 0
         and not final_stretch then
         -- sold price * qty - cost_basis
-        last_value (price) over true_stretch * quantity - (quantity_ext * running_average_price)
+        last_value (price) over true_stretch * quantity - (running_average_price * quantity)
+        when quantity_ext < 0 then price * quantity - running_average_price * quantity
         else null
       end as pnl,
       strftime ('%s', date) as timestamp,
@@ -164,9 +180,13 @@ select
   t.running_cost,
   t.running_average_price,
   t.running_break_even,
+  t.running_contribution,
   t.stretch,
   t.final_stretch,
+  t.sold_price,
   t.pnl,
+  t.pnl / t.cost_basis as pnl_pct,
+  t.sold_price * t.quantity as value,
   t.realized_pnl,
   t.cost,
   t.cost_basis,

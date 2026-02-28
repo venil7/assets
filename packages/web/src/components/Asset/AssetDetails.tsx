@@ -67,7 +67,7 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Realized gain (base)</strong>
-            <span>{money(asset.base.realizedGain)}</span>
+            <span>{money(asset.base.realizedPnl)}</span>
           </ListGroup.Item>
         </ListGroup>
       </HorizontalStack>

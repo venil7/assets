@@ -43,16 +43,26 @@ export const getTxs =
   (
     assetId: AssetId,
     _portfolioId: PortfolioId,
-    userId: UserId
+    userId: UserId,
+    finalStretch: boolean = false
   ): WebAction<readonly EnrichedTx[]> => {
     const enrichTxs = getTxsEnricher(yahooApi);
 
     return pipe(
-      repo.tx.getAll(assetId, userId),
+      repo.tx.getAll(assetId, userId, finalStretch),
       TE.chain(enrichTxs),
       mapWebError
     );
   };
+export const getFinalStretchTxs =
+  (repo: Repository, yahooApi: YahooApi) =>
+  (assetId: AssetId, _portfolioId: PortfolioId, userId: UserId) =>
+    getTxs(repo, yahooApi)(
+      assetId,
+      _portfolioId,
+      userId,
+      true /*final stretch only */
+    );
 
 export const createTx =
   (repo: Repository, yahooApi: YahooApi) =>

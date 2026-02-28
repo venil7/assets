@@ -16,3 +16,5 @@ export const DateOrd: Ord<Date> = {
 
 export const now = () => new Date();
 export const unixNow = () => getUnixTime(now()) as UnixDate;
+
+export const unixTimestamp = (i: number) => Math.floor(Math.abs(i)) as UnixDate;

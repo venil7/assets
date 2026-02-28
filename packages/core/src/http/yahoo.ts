@@ -1,6 +1,7 @@
 import { getUnixTime } from "date-fns";
 import * as A from "fp-ts/lib/Array";
 import { identity, pipe } from "fp-ts/lib/function";
+import * as NEA from "fp-ts/lib/NonEmptyArray";
 import * as TE from "fp-ts/lib/TaskEither";
 import type { Ccy } from "../decoders";
 import { YahooChartDataDecoder } from "../decoders/yahoo/chart";
@@ -9,15 +10,17 @@ import { YahooTickerSearchResultDecoder } from "../decoders/yahoo/ticker";
 import {
   handleError,
   intervalForRange,
-  priceForDate,
   validationError,
   type ChartMeta,
   type Fx,
+  type FxRates,
+  type FxRecord,
   type UnixDate,
   type YahooChartData,
   type YahooTickerSearchResult
 } from "../domain";
-import { now } from "../utils/date";
+import { fuzzyIndexSearch } from "../utils/array";
+import { now, unixTimestamp } from "../utils/date";
 import { type Action, type Optional } from "../utils/utils";
 import { methods, type Methods } from "./rest";
 
@@ -58,54 +61,92 @@ export const getYahooApi = (methods: Methods) => {
     );
   };
 
-  const baseCcyConversionRate = (
-    ccy: string,
-    base: Ccy,
-    date: Optional<Date> = undefined /**no date means latest market rate */
-  ): Action<Fx> => {
-    if (ccy === base)
+  const fxRates = (ccy: string, base: Ccy): Action<FxRates> => {
+    if (ccy === base) {
+      const latest = { rate: 1, timestamp: unixTimestamp(0) };
       return TE.of({
         ccy,
         base,
-        rate: 1,
-        time: getUnixTime(date ?? now()) as UnixDate
+        rates: NEA.of(latest),
+        latest
       });
-    if (ccy === "GBp" && base === "GBP")
+    }
+    if (ccy === "GBp" && base === "GBP") {
+      const latest = { rate: 100, timestamp: unixTimestamp(0) };
       return TE.of({
         ccy,
         base,
-        rate: 100,
-        time: getUnixTime(date ?? now()) as UnixDate
+        rates: NEA.of(latest),
+        latest
       });
+    }
 
     const term = `${base}/${ccy}`;
 
     return pipe(
       TE.Do,
-      TE.let("date", () => date),
       TE.bind("search", () => search(term)),
       TE.filterOrElse(
         ({ search }) => search.quotes.length > 0,
-        handleError(`${term} is not convertible`)
+        handleError(`${term} fx rate is not available`)
       ),
       TE.let("symbol", ({ search }) => search.quotes[0].symbol),
-      TE.bind("chart", ({ symbol, date }) =>
-        chart(symbol, /*maybeRangeForDate(date)*/ "max")
-      ),
-      TE.map(({ chart, date }) => {
-        let rate = priceForDate(chart, date);
-        // if price in pence adjust accordingly
-        if (ccy === "GBp") {
-          rate *= 100;
+      TE.bind("chart", ({ symbol }) => chart(symbol, "max")),
+      TE.map(({ chart }) => {
+        const factor = ccy == "GBp" ? 100 : 0;
+        const rates = pipe(
+          chart.chart,
+          NEA.map(({ timestamp, price }) => ({
+            timestamp,
+            rate: price * factor
+          }))
+        );
+        return {
+          ccy,
+          base,
+          rates,
+          latest: {
+            rate: chart.meta.regularMarketPrice,
+            timestamp: chart.meta.regularMarketTime
+          }
+        };
+      })
+    );
+  };
+
+  const fxRate = (
+    ccy: string,
+    base: Ccy,
+    date: Optional<Date> = undefined /**no date means latest market rate */
+  ): Action<Fx> => {
+    return pipe(
+      fxRates(ccy, base),
+      TE.map(({ rates }) => {
+        if (rates.length == 1) {
+          return {
+            ccy,
+            base,
+            rate: rates[0].rate,
+            timestamp: getUnixTime(date ?? now()) as UnixDate
+          };
         }
-        const time = getUnixTime(date ?? now()) as UnixDate;
-        return { ccy, base, rate, time };
+
+        const fuzzyFindIndex = fuzzyIndexSearch<FxRecord>(
+          (item) => item.timestamp
+        );
+
+        const idx = pipe(rates, fuzzyFindIndex(getUnixTime(date ?? now())));
+        return {
+          ccy,
+          base,
+          rate: rates[idx].rate,
+          timestamp: rates[idx].timestamp
+        };
       })
     );
   };
 
   const checkTickerExists = (ticker: string): Action<boolean> => {
-    // logger.info(`checking symbol: ${ticker}`);
     return pipe(
       search(ticker),
       TE.map((a) => a.quotes),
@@ -119,7 +160,14 @@ export const getYahooApi = (methods: Methods) => {
     );
   };
 
-  return { search, chart, meta, baseCcyConversionRate, checkTickerExists };
+  return {
+    meta,
+    chart,
+    search,
+    fxRate,
+    fxRates,
+    checkTickerExists
+  };
 };
 
 export type YahooApi = ReturnType<typeof getYahooApi>;

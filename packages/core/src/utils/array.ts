@@ -1,3 +1,4 @@
+import { pipe } from "fp-ts/lib/function";
 import * as NA from "fp-ts/lib/NonEmptyArray";
 
 export const nonEmpty = <T>(a: T[]): a is NA.NonEmptyArray<T> => a.length > 0;
@@ -15,6 +16,7 @@ export type FuzzySearchStrategy =
   | "left-unsafe" //same, but may go beyond array index, returning -1
   | "right" // select greate index on tie-breaking, staying within array index
   | "right-unsafe"; //same, but may go beyond array index, returning length+1
+
 export const fuzzyIndexSearch =
   <T>(getter: (i: T) => number, strategy: FuzzySearchStrategy = "closest") =>
   (needle: number) =>
@@ -57,4 +59,13 @@ export const fuzzyIndexSearch =
       l = i;
     }
     return l;
+  };
+
+export const fuzzyItemSearch =
+  <T>(getter: (i: T) => number, strategy: FuzzySearchStrategy = "closest") =>
+  (needle: number) =>
+  (items: NA.NonEmptyArray<T>): T => {
+    const findIndex = fuzzyIndexSearch(getter, strategy);
+    const idx = pipe(items, findIndex(needle));
+    return items[idx];
   };

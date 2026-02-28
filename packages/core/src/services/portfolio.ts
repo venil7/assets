@@ -58,8 +58,9 @@ export const getPortfolioEnricher =
         const domestic = assets.reduce((d, a) => d && a.domestic, true);
 
         const realizedGain = pipe(
+          //<-- rename to realizedPnl
           assets,
-          sum(({ base }) => base.realizedGain)
+          sum(({ base }) => base.realizedPnl)
         );
 
         const fxImpact = pipe(

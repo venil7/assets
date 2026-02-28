@@ -22,15 +22,19 @@ const extTxTypes = {
   quantity_ext: t.number, //signed, +buy, -sell
   stretch: t.number, // a series of txs all belonging to the same stretch untill sell all event
   final_stretch: BooleanFromNumber, // indicates last stretch
+  value: nullableDecoder(t.number), // value of sold units
+  pnl: nullableDecoder(t.number), // for buy txs of non final stretch
+  pnl_pct: nullableDecoder(t.number), // return percent on sell
+  realized_pnl: t.number, // only for sell transactions
+  cost: t.number,
+  cost_basis: t.number, // amount expressed in average  unit price
+  contribution: t.number,
+  // asset running values
   running_holding: t.number, // quantity owned after transaction
   running_cost: t.number, // total asset cost after this transaction
   running_average_price: t.number, //averga unit price, after this transaction
   running_break_even: t.number,
-  pnl: nullableDecoder(t.number), //for buy txs of non final stretch
-  realized_pnl: t.number, //only for sell transactions
-  cost: t.number,
-  cost_basis: t.number, // amount expressed in average  unit price
-  contribution: t.number,
+  running_contribution: t.number, //% showing max contribution of this stretch
   // from joined asset & portfolio & user
   asset_name: t.string,
   asset_ticker: t.string,
@@ -55,20 +59,10 @@ export const PostTxsUploadDecoder = t.type({
 
 export const EnrichedTxDecoder = t.type({
   ...extTxTypes,
-  ccy: t.type({
-    cost: t.number,
-    value: t.number,
-    returnValue: t.number,
-    returnPct: t.number
-  }),
-  base: t.type({
-    cost: t.number,
-    value: t.number,
-    fxRate: t.number,
-    returnValue: t.number,
-    returnPct: t.number,
-    fxImpact: nullableDecoder(t.number)
-  })
+  // removing the nullables
+  value: t.number,
+  pnl: t.number,
+  pnl_pct: t.number
 });
 
 export const EnrichedTxsDecoder = t.array(EnrichedTxDecoder);

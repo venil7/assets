@@ -21,8 +21,6 @@ export const fxRate: HandlerTask<Fx, Context> = ({
     TE.bind("ccy", () => stringFromUrl(req.params.ccy)),
     TE.bind("base", () => ccyFromUrl(req.params.base)),
     TE.bind("date", () => optDateFromUrl(req.params.date)),
-    TE.chain(({ ccy, base, date }) =>
-      yahooApi.baseCcyConversionRate(ccy, base, date)
-    ),
+    TE.chain(({ ccy, base, date }) => yahooApi.fxRate(ccy, base, date)),
     mapWebError
   );

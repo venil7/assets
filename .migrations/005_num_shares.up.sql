@@ -159,7 +159,7 @@ select
         assets_ext a
       where
         id = new.asset_id
-    ) <= new.quantity then raise (abort, 'Insufficient holdings')
+    ) < new.quantity then raise (abort, 'Insufficient holdings')
   end;
 
 end;
@@ -177,7 +177,7 @@ select
         assets_ext a
       where
         id = new.asset_id
-    ) <= new.quantity then raise (abort, 'Insufficient holdings')
+    ) < new.quantity then raise (abort, 'Insufficient holdings')
   end;
 
 end;
