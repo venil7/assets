@@ -1,7 +1,7 @@
-import type { YahooApi } from "@darkruby/assets-core";
 import type { Repository } from "../repository";
 import type { WebService } from "../services";
 import type { AppCache } from "../services/cache";
+import type { YahooApi } from "../yahoo/client";
 
 export type Context = {
   repo: Repository;

@@ -1,9 +1,9 @@
+import type { UnixDate } from "@darkruby/assets-core/src/domain";
+import type { GetTx } from "@darkruby/assets-core/src/domain/tx";
 import { expect, test } from "bun:test";
 import { fromUnixTime } from "date-fns";
 import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
-import type { UnixDate } from "../src/domain";
-import type { GetTx } from "../src/domain/tx";
-import { calculateReturns, txsRealizedPnl } from "../src/services/returns";
+import { calculateReturns, txsRealizedPnl } from "../src/enrichment/returns";
 
 // test.only("df extend test", () => {
 //   console.log("---------->>>test");

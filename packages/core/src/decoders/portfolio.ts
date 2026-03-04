@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 import { nonEmptyArray } from "io-ts-types";
-import { dateDecoder } from "./util";
+import { dateDecoder } from "./date";
 import { ChartDataPointDecoder } from "./yahoo/chart";
 import { RangeDecoder } from "./yahoo/meta";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";

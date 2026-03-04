@@ -1,7 +1,8 @@
 import * as t from "io-ts";
-import { dateDecoder, nullableDecoder } from "./util";
+import { nullableDecoder } from "./util";
 
 import { nonEmptyArray } from "io-ts-types";
+import { dateDecoder } from "./date";
 import { NumberDecoder } from "./number";
 import { CcyDecoder } from "./prefs";
 import { UserIdDecoder } from "./user";

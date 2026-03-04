@@ -8,9 +8,7 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "heap-js": "^2.6.0",
     "io-ts": "^2.2.22",
-    "io-ts-reporters": "^2.0.1",
-    "nodejs-polars": "0.24"
+    "io-ts-reporters": "^2.0.1"
   }
 }

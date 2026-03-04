@@ -1,5 +1,6 @@
 import {
   CcyDecoder,
+  dateDecoder,
   UserIdDecoder,
   type Action,
   type AssetId,
@@ -8,7 +9,6 @@ import {
   type UserId
 } from "@darkruby/assets-core";
 import {
-  dateDecoder,
   liftTE,
   nullableDecoder
 } from "@darkruby/assets-core/src/decoders/util";

@@ -1,16 +1,12 @@
-import {
-  yahooApi as rawYahooApi,
-  type Ccy,
-  type Optional,
-  type YahooApi
-} from "@darkruby/assets-core";
+import { type Ccy, type Optional } from "@darkruby/assets-core";
 import {
   DEFAULT_CHART_RANGE,
   type ChartRange
 } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { createLogger } from "../fp-express";
 
-import type { AppCache } from "./cache";
+import type { AppCache } from "../services/cache";
+import { yahooApi as rawYahooApi, type YahooApi } from "./client";
 
 const logger = createLogger("cached yahoo");
 

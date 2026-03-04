@@ -65,7 +65,7 @@ test("Total invested/num assets is zero in new portfolio", async () => {
   expect(num_assets).toBe(0);
 });
 
-test("correct amount of invested/assets in portfolio", async () => {
+test("Correct amount of invested/assets in portfolio", async () => {
   const { id: portfolioId } = await run(api.portfolio.create(fakePortfolio()));
 
   const a1 = await run(api.asset.create(portfolioId, fakeAsset("msft")));

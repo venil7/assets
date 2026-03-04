@@ -11,6 +11,7 @@ select
   t.running_cost,
   t.running_average_price,
   t.running_break_even,
+  t.running_contribution,
   t.stretch,
   t.final_stretch,
   t.sold_price,

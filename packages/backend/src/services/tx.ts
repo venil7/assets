@@ -1,6 +1,4 @@
 import {
-  getTxEnricher,
-  getTxsEnricher,
   PostTxDecoder,
   PostTxsUploadDecoder,
   type AssetId,
@@ -9,15 +7,16 @@ import {
   type Optional,
   type PortfolioId,
   type TxId,
-  type UserId,
-  type YahooApi
+  type UserId
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import { mapWebError } from "../domain/error";
+import { getTxEnricher, getTxsEnricher } from "../enrichment";
 import type { WebAction } from "../fp-express";
 import type { Repository } from "../repository";
+import type { YahooApi } from "../yahoo/client";
 
 const txDecoder = liftTE(PostTxDecoder);
 const txUploadDecoder = liftTE(PostTxsUploadDecoder);
@@ -54,6 +53,7 @@ export const getTxs =
       mapWebError
     );
   };
+
 export const getFinalStretchTxs =
   (repo: Repository, yahooApi: YahooApi) =>
   (assetId: AssetId, _portfolioId: PortfolioId, userId: UserId) =>

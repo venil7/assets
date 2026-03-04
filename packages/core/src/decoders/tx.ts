@@ -1,9 +1,10 @@
 import * as t from "io-ts";
-import { BooleanFromNumber, withFallback } from "io-ts-types";
-import { UnixDateDecoder } from "./date";
+import { withFallback } from "io-ts-types";
+import { BooleanDecoder } from "./boolean";
+import { dateDecoder, UnixDateDecoder } from "./date";
 import { NumberDecoder } from "./number";
 import { CcyDecoder } from "./prefs";
-import { dateDecoder, nullableDecoder } from "./util";
+import { nullableDecoder } from "./util";
 
 export const TxTypeDecoder = t.union([t.literal("buy"), t.literal("sell")]);
 
@@ -21,7 +22,7 @@ const extTxTypes = {
   asset_id: t.number,
   quantity_ext: t.number, //signed, +buy, -sell
   stretch: t.number, // a series of txs all belonging to the same stretch untill sell all event
-  final_stretch: BooleanFromNumber, // indicates last stretch
+  final_stretch: BooleanDecoder, // indicates last stretch
   value: nullableDecoder(t.number), // value of sold units
   pnl: nullableDecoder(t.number), // for buy txs of non final stretch
   pnl_pct: nullableDecoder(t.number), // return percent on sell

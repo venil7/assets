@@ -12,13 +12,15 @@
   "dependencies": {
     "@darkruby/assets-core": "workspace:*",
     "@types/ms": "^2.1.0",
+    "cors": "^2.8.5",
     "csv-parse": "^6.1.0",
     "csv-stringify": "^6.6.0",
-    "cors": "^2.8.5",
     "express": "~4.21.2",
+    "heap-js": "^2.7.1",
     "io-ts": "~2.2.21",
     "jsonwebtoken": "^9.0.2",
-    "lru-cache": "^11.0.2"
+    "lru-cache": "^11.0.2",
+    "nodejs-polars": "^0.24.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

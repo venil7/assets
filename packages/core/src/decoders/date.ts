@@ -3,8 +3,21 @@ import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import type { Refinement } from "fp-ts/lib/Refinement";
 import * as t from "io-ts";
+import {
+  DateFromISOString,
+  DateFromNumber,
+  DateFromUnixTime,
+  date
+} from "io-ts-types";
 import { NumberDecoder } from "./number";
-import { chainDecoder, dateDecoder, validationErr } from "./util";
+import { chainDecoder, validationErr } from "./util";
+
+export const dateDecoder: t.Type<Date, any> = t.union([
+  DateFromISOString,
+  DateFromUnixTime,
+  DateFromNumber,
+  date
+]);
 
 export const nonFuture = pipe(
   dateDecoder as t.Type<Date>,

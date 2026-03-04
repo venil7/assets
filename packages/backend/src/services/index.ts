@@ -1,5 +1,5 @@
-import type { YahooApi } from "@darkruby/assets-core";
 import type { Repository } from "../repository";
+import type { YahooApi } from "../yahoo/client";
 import * as asset from "./asset";
 import * as auth from "./auth";
 import * as portfolio from "./portfolio";

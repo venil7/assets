@@ -1,7 +1,4 @@
 import {
-  getOptionalPorfolioEnricher,
-  getPortfolioEnricher,
-  getPortfoliosEnricher,
   handleError,
   PostPortfolioDecoder,
   type Action,
@@ -14,15 +11,20 @@ import {
   type Id,
   type Optional,
   type PortfolioId,
-  type UserId,
-  type YahooApi
+  type UserId
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import { flow, pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
 import { mapWebError } from "../domain/error";
+import {
+  getOptionalPorfolioEnricher,
+  getPortfolioEnricher,
+  getPortfoliosEnricher
+} from "../enrichment";
 import type { WebAction } from "../fp-express";
 import type { Repository } from "../repository";
+import type { YahooApi } from "../yahoo/client";
 import { getTxs as enrichedTxsGetter } from "./tx";
 
 const portfolioDecoder = liftTE(PostPortfolioDecoder);
