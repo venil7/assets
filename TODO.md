@@ -18,14 +18,15 @@
 [x] window titles - @unhead/react
 [x] possibly remove node_modules, replace with bun Native encryption
 [x] chore: move fp-express to backed
-[ ] chore: move assets-core to core
-[ ] empty portfolio bug
+[-] empty portfolio bug
 [x] delete non empty portfolio bug
 [x] preferences should reset breadcrumb
 1.8
+[x] chore: move assets-core to core
 [-] research chart merges to Polars
-[ ] time-weighted return calc (via polars)
-[ ] money-weighted return calc (via polars)
-[ ] realized PnL calc (via polars)
+[-] time-weighted return calc (via polars)
+[x] money-weighted ccy return calc (via polars)
+[x] money-weighted base return calc (via polars)
+[-] realized PnL calc ccy & base, asset
 [ ] chart shows transactions
 [ ] break even line

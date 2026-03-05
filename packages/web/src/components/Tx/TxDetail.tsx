@@ -38,6 +38,10 @@ export const TxDetails: React.FC<TxDetailsProps> = ({ data: tx, asset }) => {
             <span>{money(tx.running_break_even, ccy)}</span>
           </ListGroup.Item>
           <ListGroup.Item>
+            <strong>Running contribution</strong>
+            <span>{percent(tx.running_contribution)}</span>
+          </ListGroup.Item>
+          <ListGroup.Item>
             <strong>Asset contribution</strong>
             <span>{percent(tx.contribution)}</span>
           </ListGroup.Item>

@@ -143,7 +143,7 @@ with
       strftime ('%s', date) as timestamp,
       quantity_ext * price as cost,
       stretch_ext as stretch,
-      quantity_ext * running_average_price as cost_basis,
+      quantity * running_average_price as cost_basis,
       running_average_price * running_holding as running_break_even,
       case
         when quantity_ext < 0 then (price - running_average_price) * quantity

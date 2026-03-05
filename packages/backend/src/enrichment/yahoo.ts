@@ -7,21 +7,30 @@ import {
   type EnrichedTx,
   type FxRates,
   type FxRecord,
+  type GetAsset,
   type Optional,
   type PeriodChanges
 } from "@darkruby/assets-core";
 import { ap } from "fp-ts/lib/Identity";
 import { pipe } from "fp-ts/lib/function";
-import { col, Float64, Int32, readRecords } from "nodejs-polars";
+import { col, Float64, Int32, lit, readRecords } from "nodejs-polars";
 
 export const periodChanges = (
+  asset: GetAsset,
+  beforePeriodTx: Optional<EnrichedTx>,
   periodTxs: EnrichedTx[],
   assetPeriodChages: PeriodChanges,
   fxRates: Optional<FxRates> = null
 ): PeriodChanges => {
-  const { start, end } = assetPeriodChages;
+  const {
+    start,
+    end,
+    current: currentPrice,
+    beginning: periodStartPrice
+  } = assetPeriodChages;
 
-  if (!periodTxs.length) {
+  // no active investment during the period,
+  if (!beforePeriodTx && !periodTxs.length) {
     if (!fxRates) return assetPeriodChages;
 
     const findRate = fuzzyItemSearch<FxRecord>((item) => item.timestamp);
@@ -44,39 +53,61 @@ export const periodChanges = (
     return { beginning, current, returnPct, returnValue, start, end };
   }
 
-  const [initTx, ...restTxs] = periodTxs;
-  const lastTx = restTxs[restTxs.length - 1] ?? initTx;
-  const { current: currentPrice, beginning: periodStartPrice } =
-    assetPeriodChages;
-  const value = lastTx.running_cost * currentPrice;
   const costSum = sum<EnrichedTx>((t) => t.cost);
-  const initValue = initTx.running_holding * periodStartPrice;
-  const returnValue = value - costSum(restTxs) - initValue;
-  const pctContribuSum = sum<EnrichedTx>((t) => {
-    // first TX goes by running holding, and running contrib
-    if (t.id == initTx.id) {
-      const periodStartValue = t.running_holding * assetPeriodChages.current;
-      const [, periodReturnPct] = change({
-        before: periodStartValue,
-        after: t.value
-      });
-      return periodReturnPct * t.running_contribution;
-    }
-    // others go by quantity and contrib
-    const periodStartValue = t.quantity_ext * assetPeriodChages.current;
-    const [, periodReturnPct] = change({
-      before: periodStartValue,
-      after: t.value
-    });
-    return periodReturnPct * t.contribution;
+  const pnlPctContribuSum = sum<EnrichedTx>((t) => {
+    const capitalContribution = t.cost / asset.invested;
+    return t.pnl_pct * capitalContribution;
   });
-  const returnPct = pctContribuSum(periodTxs);
+
+  const calcBeforePeriod = (beforePeriodTx: EnrichedTx): PeriodChanges => {
+    const beginning = beforePeriodTx.running_holding * periodStartPrice;
+    const current = beforePeriodTx.running_holding * currentPrice;
+    let [returnValue, returnPct] = change({
+      before: beginning,
+      after: current
+    });
+    const capitalContribution = beforePeriodTx.cost / asset.invested;
+    returnPct *= capitalContribution;
+    return { beginning, current, returnPct, returnValue, start, end };
+  };
+
+  const calcDuringPeriod = (periodTxs: EnrichedTx[]): PeriodChanges => {
+    const current = asset.holdings * currentPrice;
+    const returnValue = current - costSum(periodTxs);
+    const returnPct = pnlPctContribuSum(periodTxs);
+
+    return { beginning: 0, current, returnPct, returnValue, start, end };
+  };
+
+  // txs only inside period
+  if (!beforePeriodTx && periodTxs.length) {
+    return calcDuringPeriod(periodTxs);
+  }
+
+  // txs only outside period
+  if (beforePeriodTx && !periodTxs.length) {
+    return calcBeforePeriod(beforePeriodTx);
+  }
+
+  // txs both before and during period txs
+  beforePeriodTx = beforePeriodTx!;
+  const {
+    beginning,
+    returnPct: beforeReturnPct,
+    returnValue: beforeReturnValue
+  } = calcBeforePeriod(beforePeriodTx);
+  const {
+    current,
+    returnPct: duringReturnPct,
+    returnValue: duringReturnValue
+  } = calcDuringPeriod(periodTxs);
 
   return {
-    beginning: initValue,
-    current: value,
-    returnPct,
-    returnValue,
+    beginning,
+    current,
+    returnPct: beforeReturnPct + duringReturnPct,
+    returnValue:
+      beforeReturnValue + duringReturnValue - beforePeriodTx.running_cost,
     start,
     end
   };
@@ -117,22 +148,30 @@ export const periodChanges = (
   };
 };*/
 
+const ChartSchema = {
+  timestamp: Int32,
+  price: Float64,
+  volume: Float64
+};
+const RateRecSchema = {
+  timestamp: Int32,
+  rate: Float64
+};
+const TxSchema = {
+  id: Int32,
+  quantity_ext: Float64,
+  price: Float64,
+  value: Float64,
+  timestamp: Int32
+};
+
 export const chartInBaseCcy = (
   chart: ChartData,
   fxRates: FxRates
 ): ChartData => {
-  const ChartSchema = {
-    timestamp: Int32,
-    price: Float64,
-    volume: Float64
-  };
-  const RateRecSchema = {
-    timestamp: Int32,
-    rate: Float64
-  };
   const C = readRecords(chart, { schema: ChartSchema });
   const R = readRecords(fxRates.rates, { schema: RateRecSchema });
-  return C.joinAsof(R, { on: "timestamp", strategy: "nearest" })
+  return C.joinAsof(R, { on: "timestamp", strategy: "nearest" }) //? nearest is questionable
     .select(
       col("timestamp"),
       col("volume"),
@@ -141,16 +180,21 @@ export const chartInBaseCcy = (
     .toRecords() as ChartData;
 };
 
-// export const priceForDate = (
-//   data: YahooChartData,
-//   date: Optional<Date>
-// ): number => {
-//   // if no date supplied return Market price
-//   if (!date) return data.meta.regularMarketPrice;
-//   // else return best price approximation, by fuzzy searching in chart data
-//   const fuzzyFindChartIndex = fuzzyIndexSearch<ChartDataItem>(
-//     (item) => item.timestamp
-//   );
-//   const idx = pipe(data.chart, fuzzyFindChartIndex(getUnixTime(date)));
-//   return data.chart[idx].price;
-// };
+export const fxImpact = (txs: EnrichedTx[], fxRates: FxRates): number => {
+  const T = readRecords(txs, { schema: TxSchema });
+  const R = readRecords(fxRates.rates, { schema: RateRecSchema });
+  const TR = T.joinAsof(R, { on: "timestamp", strategy: "nearest" })
+    .withColumns(lit(fxRates.latest.rate).alias("latest_rate"))
+    .withColumns(
+      col("value").divideBy(col("rate")).alias("value_base"),
+      col("value").divideBy(col("latest_rate")).alias("todays_value_base")
+    )
+    .withColumns(
+      col("todays_value_base").sub(col("value_base")).alias("fx_impact")
+    );
+  const { fxImpact } = TR.select(
+    col("fx_impact").sum().alias("fxImpact")
+  ).toRecords()[0];
+
+  return Number(fxImpact);
+};

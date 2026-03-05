@@ -25,7 +25,7 @@ import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { type YahooApi } from "../yahoo/client";
-import { chartInBaseCcy, periodChanges } from "./yahoo";
+import { chartInBaseCcy, fxImpact, periodChanges } from "./yahoo";
 
 export const getAssetEnricher =
   (yahooApi: YahooApi) =>
@@ -41,98 +41,106 @@ export const getAssetEnricher =
       TE.bind("fxRates", ({ chart }) =>
         yahooApi.fxRates(chart.meta.currency, asset.base_ccy)
       ),
-      TE.map(
-        ({
-          finalStretchTxs,
-          fxRates,
-          chart: { chart: origChart, periodChanges: assetPeriodChanges, meta }
-        }) => {
-          const domestic =
-            meta.currency.toUpperCase() == asset.base_ccy.toUpperCase();
+      TE.map(({ finalStretchTxs, fxRates, chart }) => {
+        const {
+          chart: origChart,
+          periodChanges: assetPeriodChanges,
+          meta
+        } = chart;
+        const domestic =
+          meta.currency.toUpperCase() == asset.base_ccy.toUpperCase();
+        const activeInvestemntStrecth = !!finalStretchTxs.length;
 
-          // asset has no active investemnt
-          if (!finalStretchTxs.length) {
-            const ccy: EnrichedAssetCcy = {
-              chart: origChart,
-              changes: assetPeriodChanges,
-              totals: defaultTotals()
-            };
-            const base: EnrichedAssetBase = {
-              fxRate: 1,
-              invested: 0,
-              fxImpact: 0,
-              breakEven: 0,
-              avgPrice: null,
-              realizedPnl: 0,
-              totals: defaultTotals(),
-              chart: chartInBaseCcy(origChart, fxRates),
-              changes: periodChanges([], assetPeriodChanges, fxRates)
-            };
-
-            return {
-              ccy,
-              base,
-              meta,
-              domestic,
-              weight: null,
-              ...asset
-            };
-          }
-
-          // an active stretch of investments is present
-          const beforePeriodStartTx = pipe(
-            finalStretchTxs,
-            earliestTxBeforeTimestamp(assetPeriodChanges.start)
-          );
-          const duringPeriodTxs = pipe(
-            finalStretchTxs,
-            txsAfterTimestamp(assetPeriodChanges.start)
-          );
-          const periodStretchTxs: EnrichedTx[] = [
-            ...(beforePeriodStartTx ? [beforePeriodStartTx] : []),
-            ...duringPeriodTxs
-          ];
-
-          const ccy = ((): EnrichedAssetCcy => {
-            const value = asset.holdings * meta.regularMarketPrice;
-            const [returnValue, returnPct] = change({
-              before: asset.invested,
-              after: value
-            });
-            return {
-              totals: { returnValue, returnPct },
-              chart: enrichChart(origChart, finalStretchTxs),
-              changes: periodChanges(periodStretchTxs, assetPeriodChanges)
-            };
-          })();
-
-          const domesticBase = {
-            ...ccy,
-            fxRate: 1,
-            fxImpact: 0,
-            invested: asset.invested,
-            avgPrice: asset.avg_price,
-            breakEven: asset.break_even,
-            realizedPnl: asset.realized_pnl
+        // asset has no active investemnt
+        if (!activeInvestemntStrecth) {
+          const ccy: EnrichedAssetCcy = {
+            chart: origChart,
+            changes: assetPeriodChanges,
+            totals: defaultTotals()
           };
-          const base = domestic
-            ? domesticBase
-            : domesticBase; /*foreignAssetBaseCalc(
-                periodStretchTxs,
-                assetPeriodChanges,
-                fxRates
-              );*/
+          const base: EnrichedAssetBase = {
+            fxRate: domestic ? 1 : fxRates.latest.rate,
+            invested: 0,
+            fxImpact: 0,
+            breakEven: 0,
+            avgPrice: null,
+            realizedPnl: 0, // < --- this is mising
+            totals: defaultTotals(),
+            chart: chartInBaseCcy(origChart, fxRates),
+            changes: periodChanges(asset, null, [], assetPeriodChanges, fxRates)
+          };
 
           return {
             ccy,
             base,
             meta,
-            ...asset,
             domestic,
-            weight: null // cannot calc weight for single asset
+            weight: null,
+            ...asset
           };
         }
-      )
+
+        // an active stretch of investments is present
+        const beforePeriodStartTx = pipe(
+          finalStretchTxs,
+          earliestTxBeforeTimestamp(assetPeriodChanges.start)
+        );
+        const duringPeriodTxs = pipe(
+          finalStretchTxs,
+          txsAfterTimestamp(assetPeriodChanges.start)
+        );
+
+        const ccy = ((): EnrichedAssetCcy => {
+          const value = asset.holdings * meta.regularMarketPrice;
+          const [returnValue, returnPct] = change({
+            before: asset.invested,
+            after: value
+          });
+          return {
+            totals: { returnValue, returnPct },
+            chart: enrichChart(origChart, finalStretchTxs),
+            changes: periodChanges(
+              asset,
+              beforePeriodStartTx,
+              duringPeriodTxs,
+              assetPeriodChanges
+            )
+          };
+        })();
+
+        const domesticBase = {
+          ...ccy,
+          fxRate: 1,
+          fxImpact: 0,
+          invested: asset.invested,
+          avgPrice: asset.avg_price,
+          breakEven: asset.break_even,
+          realizedPnl: asset.realized_pnl
+        };
+
+        const base = domestic
+          ? domesticBase
+          : {
+              ...domesticBase,
+              fxRates: fxRates.latest.rate,
+              fxImpact: fxImpact(finalStretchTxs, fxRates),
+              chart: chartInBaseCcy(origChart, fxRates)
+            };
+        /*foreignAssetBaseCalc(
+                periodStretchTxs,
+                assetPeriodChanges,
+                fxRates
+              );*/
+
+        return {
+          ccy,
+          base,
+          meta,
+          ...asset,
+          domestic,
+          weight: null // cannot calc weight for single asset
+        };
+      })
     );
   };
 

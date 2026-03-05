@@ -97,7 +97,7 @@ export const getYahooApi = (methods: Methods) => {
       TE.let("symbol", ({ search }) => search.quotes[0].symbol),
       TE.bind("chart", ({ symbol }) => chart(symbol, "max")),
       TE.map(({ chart }) => {
-        const factor = ccy == "GBp" ? 100 : 0;
+        const factor = ccy == "GBp" ? 100 : 1;
         const rates = pipe(
           chart.chart,
           NEA.map(({ timestamp, price }) => ({
