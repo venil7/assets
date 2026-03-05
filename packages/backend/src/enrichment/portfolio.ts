@@ -54,7 +54,7 @@ export const getPortfolioEnricher =
           new Set<string>(assets.map((a) => a.meta.currency)).values(),
           Array.from<string>
         );
-        const domestic = assets.reduce((d, a) => d && a.domestic, true);
+        const domestic = assets.reduce((d, a) => d && a.base.domestic, true);
 
         const realizedGain = pipe(
           //<-- rename to realizedPnl

@@ -102,7 +102,7 @@ export const TxFields: React.FC<TxFieldsProps> = ({
           <Col>
             <DatePicker date={tx.date} onChange={setDate} disabled={disabled} />
           </Col>
-          <Col hidden={asset.domestic}>
+          <Col hidden={asset.base.domestic}>
             <InputGroup.Text>
               {money(1, asset.base_ccy)}≈
               {money(rate, asset.meta.currency as Ccy)}

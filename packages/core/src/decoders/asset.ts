@@ -42,13 +42,13 @@ export const EnrichedAssetDecoder = t.type({
   meta: ChartMetaDecoder,
   // mktFxRate: t.number,
   weight: nullableDecoder(t.number),
-  domestic: t.boolean, // is denominated in base ccy?
   ccy: t.type({
     chart: nonEmptyArray(ChartDataPointDecoder),
     changes: PeriodChangesDecoder,
     totals: TotalsDecoder
   }),
   base: t.type({
+    domestic: t.boolean, // is denominated in base ccy?
     invested: t.number,
     fxImpact: t.number,
     fxRate: t.number,

@@ -48,7 +48,7 @@ const TxTableRow = (
   _idx: number,
   { disabled, asset, onDelete, onEdit, onClone }: TxTableProps
 ) => {
-  const domestic = asset.domestic;
+  const domestic = asset.base.domestic;
   const { money, decimal, percent } = useFormatters();
   const handleView = (tx: EnrichedTx) => () => txDetailsModal(tx, { asset });
   const handleEdit = (txid: number, tx: PostTx) =>

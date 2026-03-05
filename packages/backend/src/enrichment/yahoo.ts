@@ -1,19 +1,44 @@
 import {
   change,
+  defaultTotals,
+  earliestTxBeforeTimestamp,
   fuzzyItemSearch,
   getToBase,
   sum,
+  txsAfterTimestamp,
   type ChartData,
+  type EnrichedAssetBase,
+  type EnrichedAssetCcy,
   type EnrichedTx,
   type FxRates,
   type FxRecord,
   type GetAsset,
   type Optional,
-  type PeriodChanges
+  type PeriodChanges,
+  type YahooChartData
 } from "@darkruby/assets-core";
 import { ap } from "fp-ts/lib/Identity";
 import { pipe } from "fp-ts/lib/function";
+import { Eq as stringEq } from "fp-ts/lib/string";
 import { col, Float64, Int32, lit, readRecords } from "nodejs-polars";
+import { enrichChart } from "./chart";
+
+const ChartSchema = {
+  timestamp: Int32,
+  price: Float64,
+  volume: Float64
+};
+const RateRecSchema = {
+  timestamp: Int32,
+  rate: Float64
+};
+const TxSchema = {
+  id: Int32,
+  quantity_ext: Float64,
+  price: Float64,
+  value: Float64,
+  timestamp: Int32
+};
 
 export const periodChanges = (
   asset: GetAsset,
@@ -113,56 +138,104 @@ export const periodChanges = (
   };
 };
 
-/*export const foreignAssetBaseCalc = (
-  periodTxs: EnrichedTx[],
-  assetPeriodChages: PeriodChanges,
-  fxRates: FxRates
-): EnrichedAssetBase => {
-  const TXs = readRecords(periodTxs);
-  const FXs = readRecords(fxRates.rates);
-  const FX = DataFrame({ latest_fx: [fxRates.latest.rate] });
-  const EnrichedTxs = TXs.joinAsof(FXs, { on: "timestamp" })
-    .join(FX, { how: "cross" })
-    .withColumn(col("price").divideBy(col("latest_fx")).alias("price_base"))
-    .withColumns(
-      col("price_base").multiplyBy(col("quantity_ext")).alias("cost_base"),
-      col("price_base").multiplyBy(col("value")).alias("value_base"),
-      col("price_base")
-        .multiplyBy(col("todays_rate"))
-        .alias("todays_value_base")
-    )
-    .withColumns(
-      col("todays_value_base").sub(col("value_base")).alias("fx_impact")
-    );
+export const enrichedAssetCcy = (
+  asset: GetAsset,
+  chart: YahooChartData,
+  finalStretchTxs: EnrichedTx[]
+): EnrichedAssetCcy => {
+  const { chart: origChart, periodChanges: assetPeriodChanges, meta } = chart;
+  const activeInvestemntStretch = !!finalStretchTxs.length;
 
-  //extract invested and fx impact from enriched txs
-  const { invested, fxImpact } = EnrichedTxs.select(
-    col("cost_base").sum().alias("invested"),
-    col("fx_impact").sum().alias("fxImpact")
-  ).toRecords()[0];
+  if (!activeInvestemntStretch) {
+    const ccy = {
+      chart: origChart,
+      changes: assetPeriodChanges,
+      totals: defaultTotals()
+    } satisfies EnrichedAssetCcy;
+    return ccy;
+  }
+
+  const beforePeriodStartTx = pipe(
+    finalStretchTxs,
+    earliestTxBeforeTimestamp(assetPeriodChanges.start)
+  );
+  const duringPeriodTxs = pipe(
+    finalStretchTxs,
+    txsAfterTimestamp(assetPeriodChanges.start)
+  );
+
+  const value = asset.holdings * meta.regularMarketPrice;
+  const [returnValue, returnPct] = change({
+    before: asset.invested,
+    after: value
+  });
 
   return {
-    invested,
-    fxImpact
-    //  chart: chartInBaseCcy(origChart, fxRates),
+    totals: { returnValue, returnPct },
+    chart: enrichChart(origChart, finalStretchTxs),
+    changes: periodChanges(
+      asset,
+      beforePeriodStartTx,
+      duringPeriodTxs,
+      assetPeriodChanges
+    )
   };
-};*/
+};
 
-const ChartSchema = {
-  timestamp: Int32,
-  price: Float64,
-  volume: Float64
-};
-const RateRecSchema = {
-  timestamp: Int32,
-  rate: Float64
-};
-const TxSchema = {
-  id: Int32,
-  quantity_ext: Float64,
-  price: Float64,
-  value: Float64,
-  timestamp: Int32
+export const enrichedAssetBase = (
+  asset: GetAsset,
+  chart: YahooChartData,
+  finalStretchTxs: EnrichedTx[],
+  ccy: EnrichedAssetCcy,
+  fxRates: FxRates
+): EnrichedAssetBase => {
+  const { chart: origChart, periodChanges: assetPeriodChanges, meta } = chart;
+  const domestic = stringEq.equals(meta.currency, asset.base_ccy);
+  const activeInvestemntStretch = !!finalStretchTxs.length;
+
+  if (!activeInvestemntStretch) {
+    const base = {
+      fxRate: domestic ? 1 : fxRates.latest.rate,
+      domestic,
+      invested: 0,
+      fxImpact: 0,
+      breakEven: 0,
+      avgPrice: null,
+      realizedPnl: 0, // < --- this is mising
+      totals: defaultTotals(),
+      chart: chartInBaseCcy(origChart, fxRates),
+      changes: periodChanges(asset, null, [], assetPeriodChanges, fxRates)
+    } satisfies EnrichedAssetBase;
+    return base;
+  }
+
+  const domesticBase = {
+    ...ccy,
+    fxRate: 1,
+    fxImpact: 0,
+    domestic: true,
+    invested: asset.invested,
+    avgPrice: asset.avg_price,
+    breakEven: asset.break_even,
+    realizedPnl: asset.realized_pnl
+  } satisfies EnrichedAssetBase;
+  if (domestic) return domesticBase;
+
+  const beforePeriodStartTx = pipe(
+    finalStretchTxs,
+    earliestTxBeforeTimestamp(assetPeriodChanges.start)
+  );
+  const duringPeriodTxs = pipe(
+    finalStretchTxs,
+    txsAfterTimestamp(assetPeriodChanges.start)
+  );
+
+  return {
+    ...domesticBase,
+    fxRate: fxRates.latest.rate,
+    fxImpact: fxImpact(finalStretchTxs, fxRates),
+    chart: chartInBaseCcy(origChart, fxRates)
+  };
 };
 
 export const chartInBaseCcy = (

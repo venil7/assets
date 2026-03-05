@@ -16,7 +16,7 @@ type TxDetailsProps = FieldsProps<EnrichedTx> & {
 export const TxDetails: React.FC<TxDetailsProps> = ({ data: tx, asset }) => {
   const { decimal, money, percent } = useFormatters();
   const ccy = asset.meta.currency as Ccy;
-  const domestic = asset.domestic;
+  const domestic = asset.base.domestic;
   return (
     <div className="asset-details-tab">
       <HorizontalStack>

@@ -1,11 +1,20 @@
 import type {
   ChartData,
+  ChartDataItem,
   ChartDataPoint,
   ChartRange,
   EnrichedAsset,
-  EnrichedPortfolio
+  EnrichedPortfolio,
+  GetTx
 } from "@darkruby/assets-core";
-import { onEmpty, unixTimestamp } from "@darkruby/assets-core";
+import {
+  defaultBuyTx,
+  EARLIEST_DATE,
+  onEmpty,
+  unixNow,
+  unixTimestamp
+} from "@darkruby/assets-core";
+import { fromUnixTime, getUnixTime } from "date-fns";
 import * as A from "fp-ts/lib/Array";
 import { pipe, type FunctionN } from "fp-ts/lib/function";
 import { Heap } from "heap-js";
@@ -94,3 +103,60 @@ export const combinePortfolioCharts = combineCharts<EnrichedPortfolio>((p) => ({
   id: `${p.id}${p.name}`,
   chart: p.base.chart
 }));
+
+export const enrichChart = (chart: ChartData, txs: GetTx[]): ChartData => {
+  let txi = 0; // current tx index
+
+  const earliestChartDate = fromUnixTime(chart[0]?.timestamp ?? unixNow());
+  const earliestTxDate = txs[0]?.date;
+  if (!earliestTxDate) {
+    // no transactions exist for this asset;
+    // chart will just be showing price per 1 unit
+    txs = [
+      {
+        ...defaultBuyTx(EARLIEST_DATE),
+        quantity: 1,
+        running_holding: 1
+      } as GetTx
+    ];
+  }
+  if (earliestTxDate < earliestChartDate) {
+    // there are transaction earlier that chart begins
+    // we need to fast forward until tx just before chart begins
+    while (
+      txi + 1 < txs.length &&
+      getUnixTime(txs[txi + 1].date) < chart[0].timestamp
+    ) {
+      txi += 1;
+    }
+  }
+  if (earliestTxDate > earliestChartDate) {
+    // chart starts earlier than earliest transaction
+    // chart will be showing zero units until first transaction is encountered
+    txs = [
+      {
+        ...defaultBuyTx(EARLIEST_DATE),
+        // quantity: 0,
+        running_holding: 0
+      } as GetTx,
+      ...txs
+    ];
+  }
+
+  const res: ChartDataItem[] = [];
+  for (let dp of chart) {
+    let currentTx = txs[txi];
+    const isLastTx = txi == txs.length - 1;
+    if (isLastTx) {
+      res.push({ ...dp, price: dp.price * currentTx.running_holding });
+      continue;
+    }
+    const nextTx = txs[txi + 1];
+    if (dp.timestamp >= getUnixTime(nextTx.date)) {
+      txi += 1;
+      currentTx = nextTx;
+    }
+    res.push({ ...dp, price: dp.price * currentTx.running_holding });
+  }
+  return res as ChartData;
+};

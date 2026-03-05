@@ -52,7 +52,7 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
           </ListGroup.Item>
         </ListGroup>
 
-        <ListGroup variant="flush" hidden={asset.domestic}>
+        <ListGroup variant="flush" hidden={asset.base.domestic}>
           <ListGroup.Item>
             <strong>FX impact</strong>
             <span>{money(asset.base.fxImpact)}</span>
