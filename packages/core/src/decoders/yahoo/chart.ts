@@ -126,26 +126,26 @@ export const YahooChartDataDecoder = pipe(
           chart.chart[chart.chart.length - 1]?.timestamp
         );
       }),
-      E.map(({ chart: { meta, chart }, start, end }) => {
-        const current = meta.regularMarketPrice;
-        const beginning =
+      E.map(({ chart: { meta, chart }, start: startTs, end: endTs }) => {
+        const endPrice = meta.regularMarketPrice;
+        const startPrice =
           chart[0]?.price ?? meta.previousClose ?? meta.chartPreviousClose;
         const [returnValue, returnPct] = change({
-          before: beginning,
+          before: startPrice,
           after: meta.regularMarketPrice
         });
         return {
           meta,
           chart,
           periodChanges: {
-            start,
-            end,
-            beginning,
-            current,
+            startTs,
+            endTs,
+            startPrice,
+            endPrice,
             returnPct,
             returnValue
           }
-        };
+        } satisfies ProcessedChartResponse;
       })
     );
   })

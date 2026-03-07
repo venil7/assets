@@ -9,10 +9,10 @@ const totalsTypes = {
 
 const periodChangesTypes = {
   ...totalsTypes,
-  beginning: t.number,
-  current: t.number,
-  start: UnixDateDecoder,
-  end: UnixDateDecoder
+  startPrice: t.number,
+  endPrice: t.number,
+  startTs: UnixDateDecoder,
+  endTs: UnixDateDecoder
 };
 
 export const PeriodChangesDecoder = t.type(periodChangesTypes);

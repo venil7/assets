@@ -68,13 +68,13 @@ export const getPortfolioEnricher =
         );
 
         const changes: PeriodChanges = (() => {
-          const beginning = pipe(
+          const startPrice = pipe(
             assets,
-            sum(({ base }) => base.changes.beginning)
+            sum(({ base }) => base.changes.startPrice)
           );
-          const current = pipe(
+          const endPrice = pipe(
             assets,
-            sum(({ base }) => base.changes.current)
+            sum(({ base }) => base.changes.endPrice)
           );
 
           const returnValue = pipe(
@@ -85,27 +85,27 @@ export const getPortfolioEnricher =
             assets,
             sum((a) => a.base.changes.returnPct * a.weight!)
           );
-          const start = pipe(
+          const startTs = pipe(
             assets,
-            A.map(({ base }) => base.changes.start),
+            A.map(({ base }) => base.changes.startTs),
             onEmpty(unixNow),
             (s) => Math.min(...s)
           ) as UnixDate;
-          const end = pipe(
+          const endTs = pipe(
             assets,
-            A.map(({ base }) => base.changes.end),
+            A.map(({ base }) => base.changes.endTs),
             onEmpty(unixNow),
             (s) => Math.max(...s)
           ) as UnixDate;
 
           return {
-            beginning,
-            current,
+            startPrice,
+            endPrice,
             returnValue,
             returnPct,
-            start,
-            end
-          };
+            startTs,
+            endTs
+          } satisfies PeriodChanges;
         })();
 
         const totals = ((): Totals => {
@@ -192,13 +192,13 @@ export const calcPortfolioWeights = (
 ): EnrichedPortfolio[] => {
   const total = pipe(
     portfolios,
-    sum(({ base }) => base.changes.current)
+    sum(({ base }) => base.changes.endPrice)
   );
   return pipe(
     portfolios,
     A.map((p: EnrichedPortfolio) => {
       if (total > 0) {
-        p.weight = p.base.changes.current / total;
+        p.weight = p.base.changes.endPrice / total;
       }
       return p;
     })

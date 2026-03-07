@@ -32,7 +32,6 @@ export const getAssetEnricher =
       TE.map(({ txs, fxRates, chart }) => {
         const { meta } = chart;
         const $txsWithRate = txsWithRates(txs, fxRates);
-        // console.log($txsWithRate);
         const ccy = $enrichedAssetCcy(asset, chart, $txsWithRate);
         const base = $enrichedAssetBase(
           asset,
@@ -86,13 +85,13 @@ export const getOptionalAssetEnricher =
 export const calcAssetWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
   const total = pipe(
     assets,
-    sum(({ base }) => base.changes.current)
+    sum(({ base }) => base.changes.endPrice)
   );
   return pipe(
     assets,
     A.map((asset) => {
       if (total > 0) {
-        asset.weight = asset.base.changes.current / total;
+        asset.weight = asset.base.changes.endPrice / total;
       }
       return asset;
     })

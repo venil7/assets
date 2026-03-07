@@ -13,7 +13,6 @@ import {
   type FxRates,
   type FxRecord,
   type GetAsset,
-  type Optional,
   type PeriodChanges,
   type YahooChartData
 } from "@darkruby/assets-core";
@@ -46,7 +45,6 @@ export const TxSchema = {
   cost: Float64,
   price: Float64,
   value: Float64,
-  // date: Datetime(), //<--possibly remove
   pnl_pct: Float64,
   timestamp: Int32,
   final_stretch: Bool,
@@ -91,7 +89,7 @@ export const $enrichedAssetCcy = (
   return {
     totals: { returnValue, returnPct },
     chart: enrichChart(origChart, finalStretchTxs),
-    changes: $periodChanges(asset, $finalStretchTxsWithRate, assetPeriodChanges)
+    changes: periodChangesCcy(asset, finalStretchTxs, assetPeriodChanges)
   };
 };
 
@@ -112,7 +110,7 @@ export const $enrichedAssetBase = (
   const fxRate = fxRates.latest.rate;
 
   if (!activeInvestmentStretch) {
-    const changes = $periodChanges(
+    const changes = $periodChangesBase(
       asset,
       $finalStretchTxsWithRate,
       assetPeriodChanges,
@@ -148,12 +146,12 @@ export const $enrichedAssetBase = (
   const breakEven = $breakEven($finalStretchTxsWithRate);
   const avgPrice = breakEven / asset.holdings;
   const toBase = getToBase(fxRates.latest.rate);
-  const value = asset.holdings * toBase(assetPeriodChanges.current);
+  const value = asset.holdings * toBase(assetPeriodChanges.endPrice);
   const [returnValue, returnPct] = change({
     before: investedBase,
     after: value
   });
-  const changes = $periodChanges(
+  const changes = $periodChangesBase(
     asset,
     $finalStretchTxsWithRate,
     assetPeriodChanges,
@@ -238,78 +236,60 @@ const $applyRates = ($finalStretchTxsWithRate: DataFrame): EnrichedTx[] => {
     )
     .withColumns(col("value").minus(col("cost")).alias("pnl"))
     .withColumns(col("pnl").divideBy("cost").alias("pnl_pct"))
+    .withColumns(
+      col("quantity_ext")
+        .multiplyBy(col("price"))
+        .cumSum()
+        .alias("running_cost")
+    )
     .toRecords() as unknown as EnrichedTx[];
 };
 
-const $periodChanges = (
+const periodChangesCcy = (
   asset: GetAsset,
-  $finalStretchTxsWithRate: DataFrame,
-  assetPeriodChages: PeriodChanges,
-  fxRates: Optional<FxRates> = null
+  finalStretchTxs: EnrichedTx[],
+  assetPeriodChages: PeriodChanges
 ): PeriodChanges => {
-  const {
-    start,
-    end,
-    current: currentPrice,
-    beginning: periodStartPrice
-  } = assetPeriodChages;
+  const { startTs, endTs } = assetPeriodChages;
 
-  const finalStretchTxs = $applyRates($finalStretchTxsWithRate);
-  const investedBase = $investedBase($finalStretchTxsWithRate);
-
-  let beforePeriodTx = pipe(finalStretchTxs, earliestTxBeforeTimestamp(start));
-  const periodTxs = pipe(finalStretchTxs, txsAfterTimestamp(start));
+  let beforePeriodTx = pipe(
+    finalStretchTxs,
+    earliestTxBeforeTimestamp(startTs)
+  );
+  const periodTxs = pipe(finalStretchTxs, txsAfterTimestamp(startTs));
 
   // no active investment during the period,
   if (!beforePeriodTx && !periodTxs.length) {
-    // if domestic
-    if (!fxRates) return assetPeriodChages;
-
-    const findRate = fuzzyItemSearch<FxRecord>((item) => item.timestamp);
-    const beginning = pipe(
-      fxRates.rates,
-      findRate(assetPeriodChages.start),
-      (r) => getToBase(r.rate),
-      ap(assetPeriodChages.beginning)
-    );
-    const current = pipe(
-      fxRates.rates,
-      findRate(assetPeriodChages.start),
-      (r) => getToBase(r.rate),
-      ap(assetPeriodChages.current)
-    );
-    const [returnValue, returnPct] = change({
-      before: beginning,
-      after: current
-    });
-    return { beginning, current, returnPct, returnValue, start, end };
+    return assetPeriodChages;
   }
 
   const costSum = sum<EnrichedTx>((t) => t.cost);
   const pnlPctContribuSum = sum<EnrichedTx>((t) => {
-    const capitalContribution = t.cost / investedBase;
+    const capitalContribution = t.cost / asset.invested;
     return t.pnl_pct * capitalContribution;
   });
 
   const calcBeforePeriod = (beforePeriodTx: EnrichedTx): PeriodChanges => {
-    const beginning = beforePeriodTx.running_holding * periodStartPrice;
-    const current = beforePeriodTx.running_holding * currentPrice;
+    const startPrice =
+      beforePeriodTx.running_holding * assetPeriodChages.startPrice;
+    const endPrice =
+      beforePeriodTx.running_holding * assetPeriodChages.endPrice;
     let [returnValue, returnPct] = change({
-      before: beginning,
-      after: current
+      before: startPrice,
+      after: endPrice
     });
-    const capitalContribution = beforePeriodTx.cost / investedBase; //asset.invested;
+    const capitalContribution = beforePeriodTx.running_cost / asset.invested;
     returnPct *= capitalContribution;
 
-    return { beginning, current, returnPct, returnValue, start, end };
+    return { startPrice, endPrice, returnPct, returnValue, startTs, endTs };
   };
 
   const calcDuringPeriod = (periodTxs: EnrichedTx[]): PeriodChanges => {
-    const current = asset.holdings * currentPrice;
-    const returnValue = current - costSum(periodTxs);
+    const endPrice = asset.holdings * assetPeriodChages.endPrice;
+    const returnValue = endPrice - costSum(periodTxs);
     const returnPct = pnlPctContribuSum(periodTxs);
 
-    return { beginning: 0, current, returnPct, returnValue, start, end };
+    return { startPrice: 0, endPrice, returnPct, returnValue, startTs, endTs };
   };
 
   // txs only inside period
@@ -325,31 +305,65 @@ const $periodChanges = (
   // txs both before and during period txs
   beforePeriodTx = beforePeriodTx!;
 
-  const {
-    beginning,
-    returnPct: beforeReturnPct,
-    returnValue: beforeReturnValue
-  } = calcBeforePeriod(beforePeriodTx);
-
-  const {
-    current,
-    returnPct: duringReturnPct,
-    returnValue: duringReturnValue
-  } = calcDuringPeriod(periodTxs);
-
-  const returnPct = beforeReturnPct + duringReturnPct;
-  const returnValue =
-    beforeReturnValue + duringReturnValue - beforePeriodTx.running_cost;
+  const startPrice =
+    beforePeriodTx.running_holding * assetPeriodChages.startPrice;
+  const endPrice =
+    periodTxs[periodTxs.length - 1].running_holding *
+    assetPeriodChages.endPrice;
+  const periodCost = costSum(periodTxs);
+  const returnValue = endPrice - periodCost - startPrice;
+  const returnPct = returnValue / (endPrice + periodCost);
 
   return {
-    beginning,
-    current,
+    startPrice,
+    endPrice,
     returnPct,
     returnValue,
-    start,
-    end
+    startTs,
+    endTs
   };
 };
 
-const $finalStretch = ($txsWithRate: DataFrame): DataFrame =>
-  $txsWithRate.filter(col("final_stretch"));
+const $periodChangesBase = (
+  asset: GetAsset,
+  $finalStretchTxsWithRate: DataFrame,
+  assetPeriodChages: PeriodChanges,
+  fxRates: FxRates
+): PeriodChanges => {
+  const findRate = fuzzyItemSearch<FxRecord>((item) => item.timestamp);
+  const baseStartPrice = pipe(
+    fxRates.rates,
+    findRate(assetPeriodChages.startTs),
+    (r) => getToBase(r.rate),
+    ap(assetPeriodChages.startPrice)
+  );
+  const baseEndPrice = pipe(
+    fxRates.rates,
+    findRate(assetPeriodChages.endTs),
+    (r) => getToBase(r.rate),
+    ap(assetPeriodChages.endPrice)
+  );
+  const [returnValue, returnPct] = change({
+    before: baseStartPrice,
+    after: baseEndPrice
+  });
+  const ccyPeriodChanges = {
+    ...assetPeriodChages,
+    returnPct,
+    returnValue,
+    startPrice: baseStartPrice,
+    endPrice: baseEndPrice
+  } satisfies PeriodChanges;
+
+  const finalStretchTxs = $applyRates($finalStretchTxsWithRate);
+  const investedBase = $investedBase($finalStretchTxsWithRate); // ?
+
+  return periodChangesCcy(
+    { ...asset, invested: investedBase } satisfies GetAsset,
+    finalStretchTxs,
+    ccyPeriodChanges
+  );
+};
+
+const $finalStretch = ($txs: DataFrame): DataFrame =>
+  $txs.filter(col("final_stretch"));

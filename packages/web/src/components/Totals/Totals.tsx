@@ -1,6 +1,6 @@
 import type {
   PeriodChanges,
-  Totals as TotalsData,
+  Totals as TotalsData
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import * as React from "react";
@@ -17,13 +17,13 @@ type TotalsProps = {
 export const Totals: React.FC<TotalsProps> = ({
   totals,
   change,
-  range,
+  range
 }: TotalsProps) => {
   const { money } = useFormatters();
 
   return (
     <div className="totals">
-      <h4 className="value">{money(change.current)}</h4>
+      <h4 className="value">{money(change.endPrice)}</h4>
       <div className="change">
         <h6 className="value">
           <MoneyAndChangeIndicator value={totals} />
