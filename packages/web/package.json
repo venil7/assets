@@ -1,7 +1,7 @@
 {
   "name": "@darkruby/assets-web",
   "private": true,
-  "version": "1.6.2",
+  "version": "1.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",

@@ -12,29 +12,32 @@ import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { type YahooApi } from "../yahoo/client";
-import { enrichedAssetBase, enrichedAssetCcy } from "./yahoo";
+import { $enrichedAssetBase, $enrichedAssetCcy, txsWithRates } from "./returns";
 
 export const getAssetEnricher =
   (yahooApi: YahooApi) =>
   (
     asset: GetAsset,
-    getFinalStrecthTxs: () => Action<EnrichedTx[]>,
+    // getFinalStrecthTxs: () => Action<EnrichedTx[]>,
+    getAllTxs: () => Action<EnrichedTx[]>,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedAsset> => {
     return pipe(
       TE.Do,
       TE.bind("chart", () => yahooApi.chart(asset.ticker, range)),
-      TE.bind("finalStretchTxs", getFinalStrecthTxs),
+      TE.bind("txs", getAllTxs),
       TE.bind("fxRates", ({ chart }) =>
         yahooApi.fxRates(chart.meta.currency, asset.base_ccy)
       ),
-      TE.map(({ finalStretchTxs, fxRates, chart }) => {
+      TE.map(({ txs, fxRates, chart }) => {
         const { meta } = chart;
-        const ccy = enrichedAssetCcy(asset, chart, finalStretchTxs);
-        const base = enrichedAssetBase(
+        const $txsWithRate = txsWithRates(txs, fxRates);
+        // console.log($txsWithRate);
+        const ccy = $enrichedAssetCcy(asset, chart, $txsWithRate);
+        const base = $enrichedAssetBase(
           asset,
           chart,
-          finalStretchTxs,
+          $txsWithRate,
           ccy,
           fxRates
         );
