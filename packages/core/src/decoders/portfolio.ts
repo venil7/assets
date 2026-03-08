@@ -1,6 +1,7 @@
 import * as t from "io-ts";
 import { nonEmptyArray } from "io-ts-types";
 import { dateDecoder } from "./date";
+import { UserIdDecoder } from "./user";
 import { ChartDataPointDecoder } from "./yahoo/chart";
 import { RangeDecoder } from "./yahoo/meta";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
@@ -12,7 +13,7 @@ const basePortfolioTypes = {
 
 const extPortfolioTypes = {
   id: t.number,
-  user_id: t.number,
+  user_id: UserIdDecoder,
   ...basePortfolioTypes,
   num_assets: t.number,
   created: dateDecoder,

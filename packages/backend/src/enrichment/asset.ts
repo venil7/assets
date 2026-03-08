@@ -4,34 +4,35 @@ import {
   type Action,
   type ChartRange,
   type EnrichedAsset,
-  type EnrichedTx,
   type GetAsset,
   type Optional
 } from "@darkruby/assets-core";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import type { Repository } from "../repository";
 import { type YahooApi } from "../yahoo/client";
 import { $enrichedAssetBase, $enrichedAssetCcy, txsWithRates } from "./returns";
+import { getTxsEnricher } from "./tx";
 
 export const getAssetEnricher =
-  (yahooApi: YahooApi) =>
+  (yahooApi: YahooApi, repo: Repository) =>
   (
     asset: GetAsset,
-    // getFinalStrecthTxs: () => Action<EnrichedTx[]>,
-    getAllTxs: () => Action<EnrichedTx[]>,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedAsset> => {
+    const enrichTxs = getTxsEnricher(yahooApi);
     return pipe(
       TE.Do,
       TE.bind("chart", () => yahooApi.chart(asset.ticker, range)),
-      TE.bind("txs", getAllTxs),
+      TE.bind("txs", () => repo.tx.getAll(asset.id, asset.user_id, false)),
+      TE.bind("enrichedTxs", ({ txs }) => enrichTxs(txs)),
       TE.bind("fxRates", ({ chart }) =>
         yahooApi.fxRates(chart.meta.currency, asset.base_ccy)
       ),
-      TE.map(({ txs, fxRates, chart }) => {
+      TE.map(({ enrichedTxs, fxRates, chart }) => {
         const { meta } = chart;
-        const $txsWithRate = txsWithRates(txs, fxRates);
+        const $txsWithRate = txsWithRates(enrichedTxs, fxRates);
         const ccy = $enrichedAssetCcy(asset, chart, $txsWithRate);
         const base = $enrichedAssetBase(
           asset,
@@ -53,31 +54,25 @@ export const getAssetEnricher =
   };
 
 export const getAssetsEnricher =
-  (yahooApi: YahooApi) =>
-  (
-    assets: GetAsset[],
-    getEnrichedTxs: (asset: GetAsset) => Action<EnrichedTx[]>,
-    range?: ChartRange
-  ): Action<EnrichedAsset[]> => {
-    const assetTxs = (asset: GetAsset) => () => getEnrichedTxs(asset);
-    const enrichAsset = getAssetEnricher(yahooApi);
+  (yahooApi: YahooApi, repo: Repository) =>
+  (assets: GetAsset[], range?: ChartRange): Action<EnrichedAsset[]> => {
+    const enrichAsset = getAssetEnricher(yahooApi, repo);
     return pipe(
       assets,
-      TE.traverseArray((asset) => enrichAsset(asset, assetTxs(asset), range)),
+      TE.traverseArray((asset) => enrichAsset(asset, range)),
       TE.map((assets) => calcAssetWeights(assets as EnrichedAsset[]))
     ) as Action<EnrichedAsset[]>;
   };
 
 export const getOptionalAssetEnricher =
-  (yahooApi: YahooApi) =>
+  (yahooApi: YahooApi, repo: Repository) =>
   (
     asset: Optional<GetAsset>,
-    getEnrichedTxs: () => Action<EnrichedTx[]>,
     range?: ChartRange
   ): Action<Optional<EnrichedAsset>> => {
     if (asset) {
-      const enrichAsset = getAssetEnricher(yahooApi);
-      return enrichAsset(asset, getEnrichedTxs, range);
+      const enrichAsset = getAssetEnricher(yahooApi, repo);
+      return enrichAsset(asset, range);
     }
     return TE.of(null);
   };

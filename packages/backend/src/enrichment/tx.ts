@@ -33,7 +33,7 @@ export const getTxEnricher =
 
 export const getTxsEnricher =
   (yahooApi: YahooApi) =>
-  (txs: GetTx[]): Action<readonly EnrichedTx[]> => {
+  (txs: GetTx[]): Action<EnrichedTx[]> => {
     const enrichTx = getTxEnricher(yahooApi);
-    return pipe(txs, TE.traverseSeqArray(enrichTx)); // <-- sequential to take advantage of yahoo cache
+    return pipe(txs, TE.traverseSeqArray(enrichTx)) as Action<EnrichedTx[]>; // <-- sequential to take advantage of yahoo cache
   };

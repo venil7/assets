@@ -25,7 +25,7 @@ export const enrichSummary = (portfolios: EnrichedPortfolio[]): Summary => {
     );
     const validRanges = commonPortfolioRanges(portfolios);
     return { range, validRanges };
-  })();
+  })() satisfies EnrichedPortfolio["meta"];
 
   const value: PeriodChanges = (() => {
     const startPrice = pipe(

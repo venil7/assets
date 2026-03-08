@@ -7,8 +7,6 @@ import {
   type Action,
   type ChartRange,
   type EnrichedPortfolio,
-  type EnrichedTx,
-  type GetAsset,
   type GetPortfolio,
   type Optional,
   type PeriodChanges,
@@ -16,30 +14,29 @@ import {
   type UnixDate
 } from "@darkruby/assets-core";
 import * as A from "fp-ts/lib/Array";
-import { pipe, type FunctionN, type LazyArg } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
 import * as TE from "fp-ts/lib/TaskEither";
+import type { Repository } from "../repository";
 import type { YahooApi } from "../yahoo/client";
 import { calcAssetWeights, getAssetsEnricher } from "./asset";
 import { combineAssetCharts, commonAssetRanges } from "./chart";
 
 export const getPortfolioEnricher =
-  (yahooApi: YahooApi) =>
+  (yahooApi: YahooApi, repo: Repository) =>
   (
     portfolio: GetPortfolio,
-    getAssets: LazyArg<Action<GetAsset[]>>,
-    getEnrichedTxs: (asset: GetAsset) => Action<EnrichedTx[]>,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedPortfolio> => {
-    const enrichAssets = getAssetsEnricher(yahooApi);
+    const enrichAssets = getAssetsEnricher(yahooApi, repo);
 
     return pipe(
       TE.Do,
       TE.apS("portfolio", TE.of(portfolio)),
       TE.bind("assets", () =>
         pipe(
-          getAssets(),
-          TE.chain((a) => enrichAssets(a, getEnrichedTxs, range)),
+          repo.asset.getAll(portfolio.id, portfolio.user_id),
+          TE.chain((assets) => enrichAssets(assets, range)),
           TE.map(A.filter((a) => Boolean(a.invested))),
           TE.map(calcAssetWeights)
         )
@@ -154,35 +151,28 @@ export const getPortfolioEnricher =
   };
 
 export const getPortfoliosEnricher =
-  (yahooApi: YahooApi) =>
+  (yahooApi: YahooApi, repo: Repository) =>
   (
     portfolios: GetPortfolio[],
-    getAssets: FunctionN<[GetPortfolio], Action<GetAsset[]>>,
-    getEnrichedTxs: FunctionN<[GetAsset, GetPortfolio], Action<EnrichedTx[]>>,
     range?: ChartRange
   ): Action<EnrichedPortfolio[]> => {
-    const enrichPortfolio = getPortfolioEnricher(yahooApi);
+    const enrichPortfolio = getPortfolioEnricher(yahooApi, repo);
     return pipe(
       portfolios,
-      TE.traverseArray((p) => {
-        const getTxs = (asset: GetAsset) => getEnrichedTxs(asset, p);
-        return enrichPortfolio(p, () => getAssets(p), getTxs, range);
-      }),
+      TE.traverseArray((p) => enrichPortfolio(p, range)),
       TE.map((ps) => calcPortfolioWeights(ps as EnrichedPortfolio[]))
     );
   };
 
 export const getOptionalPorfolioEnricher =
-  (yahooApi: YahooApi) =>
+  (yahooApi: YahooApi, repo: Repository) =>
   (
     portfolio: Optional<GetPortfolio>,
-    getAssets: () => Action<GetAsset[]>,
-    getEnrichedTxs: (asset: GetAsset) => Action<EnrichedTx[]>,
     range?: ChartRange
   ): Action<Optional<EnrichedPortfolio>> => {
     if (portfolio) {
-      const enrichPortfolio = getPortfolioEnricher(yahooApi);
-      return enrichPortfolio(portfolio, getAssets, getEnrichedTxs, range);
+      const enrichPortfolio = getPortfolioEnricher(yahooApi, repo);
+      return enrichPortfolio(portfolio, range);
     }
     return TE.of(null);
   };

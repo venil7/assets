@@ -54,16 +54,6 @@ export const getTxs =
     );
   };
 
-export const getFinalStretchTxs =
-  (repo: Repository, yahooApi: YahooApi) =>
-  (assetId: AssetId, _portfolioId: PortfolioId, userId: UserId) =>
-    getTxs(repo, yahooApi)(
-      assetId,
-      _portfolioId,
-      userId,
-      true /*final stretch only */
-    );
-
 export const createTx =
   (repo: Repository, yahooApi: YahooApi) =>
   (
