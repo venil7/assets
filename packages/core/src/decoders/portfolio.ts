@@ -2,6 +2,7 @@ import * as t from "io-ts";
 import { nonEmptyArray } from "io-ts-types";
 import { dateDecoder } from "./date";
 import { UserIdDecoder } from "./user";
+import { nullableDecoder } from "./util";
 import { ChartDataPointDecoder } from "./yahoo/chart";
 import { RangeDecoder } from "./yahoo/meta";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
@@ -33,16 +34,15 @@ export const EnrichedPortfolioDecoder = t.type({
   ...extPortfolioTypes,
   meta: PortfolioMetaDecoder,
   currencies: t.array(t.string),
-  weight: t.number,
+  weight: nullableDecoder(t.number),
   domestic: t.boolean,
-  base: t.type({
-    chart: nonEmptyArray(ChartDataPointDecoder),
-    changes: PeriodChangesDecoder,
-    invested: t.number,
-    totals: TotalsDecoder,
-    realizedGain: t.number,
-    fxImpact: t.number
-  })
+  chart: nonEmptyArray(ChartDataPointDecoder),
+  changes: PeriodChangesDecoder,
+  invested: t.number,
+  totals: TotalsDecoder,
+  realizedPnl: t.number,
+  breakEven: nullableDecoder(t.number),
+  fxImpact: t.number
 });
 
 export const EnrichedPortfoliosDecoder = t.array(EnrichedPortfolioDecoder);

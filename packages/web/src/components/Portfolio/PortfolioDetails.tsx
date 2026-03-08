@@ -1,7 +1,7 @@
 import type { EnrichedPortfolio } from "@darkruby/assets-core";
 import * as React from "react";
 import { ListGroup } from "react-bootstrap";
-import { useFormatters } from "../../hooks/prefs";
+import { Decimal, Money } from "../Formatting";
 import { HorizontalStack } from "../Layout/Stack";
 
 type PortfolioDetailsProps = {
@@ -11,7 +11,6 @@ type PortfolioDetailsProps = {
 export const PortfolioDetails: React.FC<PortfolioDetailsProps> = ({
   portfolio
 }) => {
-  const { money, decimal, percent } = useFormatters();
   return (
     <div className="portfolio-details-tab">
       <HorizontalStack>
@@ -21,11 +20,11 @@ export const PortfolioDetails: React.FC<PortfolioDetailsProps> = ({
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Num assets</strong>
-            <span>{decimal(portfolio.num_assets)}</span>
+            <Decimal value={portfolio.num_assets} />
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>Total cost (base)</strong>
-            <span>{money(portfolio.base.invested)}</span>
+            <strong>Total cost</strong>
+            <Money value={portfolio.invested} />
           </ListGroup.Item>
         </ListGroup>
         <ListGroup variant="flush">
@@ -34,12 +33,12 @@ export const PortfolioDetails: React.FC<PortfolioDetailsProps> = ({
             <span>{portfolio.currencies.join(", ")}</span>
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>Realized gain (base)</strong>
-            <span>{money(portfolio.base.realizedGain)}</span>
+            <strong>Realized gain</strong>
+            <Money value={portfolio.realizedPnl} />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>FX impact</strong>
-            <span>{money(portfolio.base.fxImpact)}</span>
+            <Money value={portfolio.fxImpact} />
           </ListGroup.Item>
         </ListGroup>
       </HorizontalStack>

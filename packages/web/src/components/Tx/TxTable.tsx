@@ -10,9 +10,9 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { withCondition } from "../../decorators/nodata";
 import { withProps } from "../../decorators/props";
-import { useFormatters } from "../../hooks/prefs";
 import { isoTimestamp } from "../../util/date";
 import { Dark } from "../Form/Alert";
+import { Decimal, Money, Percent } from "../Formatting";
 import { confirmationModal } from "../Modals/Confirmation";
 import { PagedTable } from "../Table/Table";
 import { TxMenu } from "./Menu";
@@ -49,7 +49,6 @@ const TxTableRow = (
   { disabled, asset, onDelete, onEdit, onClone }: TxTableProps
 ) => {
   const domestic = asset.base.domestic;
-  const { money, decimal, percent } = useFormatters();
   const handleView = (tx: EnrichedTx) => () => txDetailsModal(tx, { asset });
   const handleEdit = (txid: number, tx: PostTx) =>
     pipe(
@@ -72,10 +71,18 @@ const TxTableRow = (
       <td /**date*/ className="d-none d-md-table-cell">
         {isoTimestamp(tx.date)}
       </td>
-      <td /**quantity */>{decimal(tx.quantity)}</td>
-      <td /**price/unit */>{money(tx.price, ccy)}</td>
-      <td /**cost */>{money(tx.cost, ccy)}</td>
-      <td /**value */>{money(tx.value, ccy)}</td>
+      <td /**quantity */>
+        <Decimal value={tx.quantity} />
+      </td>
+      <td /**price/unit */>
+        <Money value={tx.price} ccy={ccy} />
+      </td>
+      <td /**cost */>
+        <Money value={tx.cost} ccy={ccy} />
+      </td>
+      <td /**value */>
+        <Money value={tx.value} ccy={ccy} />
+      </td>
       <td
         className={classNames({
           profit: profitCcy,
@@ -83,7 +90,8 @@ const TxTableRow = (
           unrealized: buy
         })} /**return */
       >
-        {money(tx.pnl, ccy)}&nbsp; ({percent(tx.pnl_pct)})
+        <Money value={tx.pnl} ccy={ccy} />
+        &nbsp; (<Percent value={tx.pnl_pct} />)
       </td>
       <td /**menu */ hidden={disabled} onClick={(evt) => evt.stopPropagation()}>
         <TxMenu

@@ -1,7 +1,7 @@
 import type { Ccy, EnrichedAsset } from "@darkruby/assets-core";
 import * as React from "react";
 import { ListGroup } from "react-bootstrap";
-import { useFormatters } from "../../hooks/prefs";
+import { Decimal, Money } from "../Formatting";
 import { HorizontalStack } from "../Layout/Stack";
 
 export type AssetDetailsProps = {
@@ -9,7 +9,6 @@ export type AssetDetailsProps = {
 };
 
 export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
-  const { money, decimal, percent } = useFormatters();
   const assetCcy = asset.meta.currency as Ccy;
   return (
     <div className="asset-details-tab">
@@ -36,38 +35,38 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
         <ListGroup variant="flush">
           <ListGroup.Item>
             <strong>Holdings</strong>
-            <span>{decimal(asset.holdings)}</span>
+            <Decimal value={asset.holdings} />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Avg unit cost</strong>
-            <span>{money(asset.avg_price, assetCcy)}</span>
+            <Money value={asset.avg_price} ccy={assetCcy} />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Total cost</strong>
-            <span>{money(asset.invested, assetCcy)}</span>
+            <Money value={asset.invested} ccy={assetCcy} />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Realized gain</strong>
-            <span>{money(asset.realized_pnl, assetCcy)}</span>
+            <Money value={asset.realized_pnl} ccy={assetCcy} />
           </ListGroup.Item>
         </ListGroup>
 
         <ListGroup variant="flush" hidden={asset.base.domestic}>
           <ListGroup.Item>
             <strong>FX impact</strong>
-            <span>{money(asset.base.fxImpact)}</span>
+            <Money value={asset.base.fxImpact} />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Avg unit cost (base)</strong>
-            <span>{money(asset.base.avgPrice)}</span>
+            <Money value={asset.base.avgPrice} />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Total cost (base)</strong>
-            <span>{money(asset.base.invested)}</span>
+            <Money value={asset.base.invested} />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Realized gain (base)</strong>
-            <span>{money(asset.base.realizedPnl)}</span>
+            <Money value={asset.base.realizedPnl} />
           </ListGroup.Item>
         </ListGroup>
       </HorizontalStack>

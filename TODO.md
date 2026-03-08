@@ -27,6 +27,11 @@
 [-] time-weighted return calc (via polars)
 [x] money-weighted ccy return calc (via polars)
 [x] money-weighted base return calc (via polars)
-[-] realized PnL calc ccy & base, asset
+[x] realized PnL calc ccy & base, asset
+[ ] realized PnL portfolio
+[ ] colors in details pain: asset, portfolio
+[ ] enriched portfolio : break even
 [ ] chart shows transactions
 [ ] break even line
+[ ] multi asset layered chart for portfolios
+[ ] multi portfollio layered chart for home screen

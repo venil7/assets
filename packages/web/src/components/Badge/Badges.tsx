@@ -84,10 +84,10 @@ export const WeightIndicator = pipe(
 export const PortfolioPeriodChange = pipe(
   ChangeIndicator<EnrichedPortfolio>,
   withProps({
-    numeric: (p) => p.base.changes.returnPct
+    numeric: (p) => p.changes.returnPct
   }),
   withFormatters(({ percent }) => ({
-    formatter: (p) => `${p.meta.range}: ${percent(p.base.changes.returnPct)}`
+    formatter: (p) => `${p.meta.range}: ${percent(p.changes.returnPct)}`
   }))
 );
 
@@ -128,6 +128,7 @@ export const AssetPeriodChange = pipe(
     numeric: (a) => a.ccy.changes.returnPct
   }),
   withFormatters(({ percent }) => ({
-    formatter: (a) => `${a.meta.range}: ${percent(a.ccy.changes.returnPct)}`
+    formatter: ({ ccy, meta }) =>
+      `${meta.range}: ${percent(ccy.changes.returnPct)}`
   }))
 );

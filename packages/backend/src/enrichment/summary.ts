@@ -30,32 +30,32 @@ export const enrichSummary = (portfolios: EnrichedPortfolio[]): Summary => {
   const value: PeriodChanges = (() => {
     const startPrice = pipe(
       portfolios,
-      sum(({ base }) => base.changes.startPrice)
+      sum(({ changes }) => changes.startPrice)
     );
     const endPrice = pipe(
       portfolios,
-      sum(({ base }) => base.changes.endPrice)
+      sum(({ changes }) => changes.endPrice)
     );
 
     const returnValue = pipe(
       portfolios,
-      sum((p) => p.base.changes.returnValue)
+      sum(({ changes }) => changes.returnValue)
     );
     const returnPct = pipe(
       portfolios,
-      sum((p) => p.base.changes.returnPct * p.weight)
+      sum(({ changes, weight }) => changes.returnPct * (weight ?? 0))
     );
 
     const startTs = pipe(
       portfolios,
-      A.map(({ base }) => base.changes.startTs),
+      A.map(({ changes }) => changes.startTs),
       onEmpty(unixNow),
       (s) => Math.min(...s)
     ) as UnixDate;
 
     const endTs = pipe(
       portfolios,
-      A.map(({ base }) => base.changes.endTs),
+      A.map(({ changes }) => changes.endTs),
       onEmpty(unixNow),
       (s) => Math.max(...s)
     ) as UnixDate;
@@ -73,11 +73,11 @@ export const enrichSummary = (portfolios: EnrichedPortfolio[]): Summary => {
   const totals = ((): Totals => {
     const returnValue = pipe(
       portfolios,
-      sum((p) => p.base.totals.returnValue)
+      sum(({ totals }) => totals.returnValue)
     );
     const returnPct = pipe(
       portfolios,
-      sum((p) => p.base.totals.returnPct * p.weight)
+      sum(({ totals, weight }) => totals.returnPct * (weight ?? 0))
     );
 
     return { returnValue, returnPct };

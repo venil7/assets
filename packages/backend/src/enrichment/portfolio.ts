@@ -6,6 +6,7 @@ import {
   unixNow,
   type Action,
   type ChartRange,
+  type EnrichedAsset,
   type EnrichedPortfolio,
   type GetPortfolio,
   type Optional,
@@ -21,6 +22,25 @@ import type { Repository } from "../repository";
 import type { YahooApi } from "../yahoo/client";
 import { calcAssetWeights, getAssetsEnricher } from "./asset";
 import { combineAssetCharts, commonAssetRanges } from "./chart";
+
+const sumInvested = sum<EnrichedAsset>(({ base }) => base.invested);
+const sumRealizedPnl = sum<EnrichedAsset>(({ base }) => base.realizedPnl);
+const sumFxImpact = sum<EnrichedAsset>(({ base }) => base.fxImpact ?? 0);
+const sumBreakEven = sum<EnrichedAsset>(({ base }) => base.breakEven ?? 0);
+const sumStartPrice = sum<EnrichedAsset>(({ base }) => base.changes.startPrice);
+const sumEndPrice = sum<EnrichedAsset>(({ base }) => base.changes.endPrice);
+const sumReturnChangesValue = sum<EnrichedAsset>(
+  ({ base }) => base.changes.returnValue
+);
+const sumChangesReturnPct = sum<EnrichedAsset>(
+  ({ base, weight }) => base.changes.returnPct * (weight ?? 0)
+);
+const sumTotalsReturnValue = sum<EnrichedAsset>(
+  ({ base }) => base.totals.returnValue
+);
+const sumTotalReturnPct = sum<EnrichedAsset>(
+  ({ base, weight }) => base.totals.returnPct * (weight ?? 0)
+);
 
 export const getPortfolioEnricher =
   (yahooApi: YahooApi, repo: Repository) =>
@@ -42,52 +62,31 @@ export const getPortfolioEnricher =
         )
       ),
       TE.map(({ portfolio, assets }) => {
-        const invested = pipe(
-          assets,
-          sum(({ base }) => base.invested)
-        );
+        const domestic = assets.reduce((d, a) => d && a.base.domestic, true);
+
+        const invested = sumInvested(assets);
+        const realizedPnl = sumRealizedPnl(assets);
+        const fxImpact = sumFxImpact(assets);
+        const breakEven = sumBreakEven(assets);
 
         const currencies = pipe(
           new Set<string>(assets.map((a) => a.meta.currency)).values(),
           Array.from<string>
         );
-        const domestic = assets.reduce((d, a) => d && a.base.domestic, true);
-
-        const realizedGain = pipe(
-          //<-- rename to realizedPnl
-          assets,
-          sum(({ base }) => base.realizedPnl)
-        );
-
-        const fxImpact = pipe(
-          assets,
-          sum(({ base }) => base.fxImpact ?? 0)
-        );
 
         const changes: PeriodChanges = (() => {
-          const startPrice = pipe(
-            assets,
-            sum(({ base }) => base.changes.startPrice)
-          );
-          const endPrice = pipe(
-            assets,
-            sum(({ base }) => base.changes.endPrice)
-          );
+          const startPrice = sumStartPrice(assets);
+          const endPrice = sumEndPrice(assets);
+          const returnValue = sumReturnChangesValue(assets);
+          const returnPct = sumChangesReturnPct(assets);
 
-          const returnValue = pipe(
-            assets,
-            sum((a) => a.base.changes.returnValue)
-          );
-          const returnPct = pipe(
-            assets,
-            sum((a) => a.base.changes.returnPct * a.weight!)
-          );
           const startTs = pipe(
             assets,
             A.map(({ base }) => base.changes.startTs),
             onEmpty(unixNow),
             (s) => Math.min(...s)
           ) as UnixDate;
+
           const endTs = pipe(
             assets,
             A.map(({ base }) => base.changes.endTs),
@@ -106,20 +105,14 @@ export const getPortfolioEnricher =
         })();
 
         const totals = ((): Totals => {
-          const returnValue = pipe(
-            assets,
-            sum((a) => a.base.totals.returnValue)
-          );
-          const returnPct = pipe(
-            assets,
-            sum((a) => a.base.totals.returnPct * a.weight!)
-          );
+          const returnValue = sumTotalsReturnValue(assets);
+          const returnPct = sumTotalReturnPct(assets);
           return { returnValue, returnPct };
         })();
 
         const chart = combineAssetCharts(assets);
 
-        const meta = (() => {
+        const meta = ((): EnrichedPortfolio["meta"] => {
           const range = pipe(
             assets,
             A.map((a) => a.meta.range),
@@ -134,18 +127,17 @@ export const getPortfolioEnricher =
           meta,
           // weight cannot be calc
           // for single portfolio
-          weight: 0,
+          weight: null,
           currencies,
           domestic,
-          base: {
-            changes,
-            chart,
-            invested,
-            totals,
-            realizedGain,
-            fxImpact
-          }
-        };
+          changes,
+          chart,
+          invested,
+          breakEven,
+          totals,
+          realizedPnl,
+          fxImpact
+        } satisfies EnrichedPortfolio;
       })
     );
   };
@@ -182,13 +174,13 @@ export const calcPortfolioWeights = (
 ): EnrichedPortfolio[] => {
   const total = pipe(
     portfolios,
-    sum(({ base }) => base.changes.endPrice)
+    sum(({ changes }) => changes.endPrice)
   );
   return pipe(
     portfolios,
     A.map((p: EnrichedPortfolio) => {
       if (total > 0) {
-        p.weight = p.base.changes.endPrice / total;
+        p.weight = p.changes.endPrice / total;
       }
       return p;
     })
