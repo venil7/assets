@@ -14,6 +14,7 @@ import { useFormatters } from "../../hooks/prefs";
 
 type ChangeBadgeProps<T> = {
   value: T;
+  outline?: boolean;
   color?: BadgeProps["bg"];
   numeric: (t: T) => number;
   formatter: (t: T) => string;
@@ -23,11 +24,19 @@ export function ChangeIndicator<T>({
   value,
   formatter,
   color,
-  numeric
+  numeric,
+  outline = false
 }: ChangeBadgeProps<T>) {
   const bg = (() => {
     if (color) return color;
     const n = numeric(value);
+    if (outline) {
+      return n < 0
+        ? "outline-danger"
+        : n > 0
+          ? "outline-success"
+          : "outline-secondary";
+    }
     return n < 0 ? "danger" : n > 0 ? "success" : "secondary";
   })();
   return <Badge bg={bg}>{formatter(value)}</Badge>;
@@ -54,7 +63,7 @@ export type MoneyAndChangeIndicatorProps = Omit<
 >;
 export const MoneyAndChangeIndicator: React.FC<
   MoneyAndChangeIndicatorProps
-> = ({ value, range }) => {
+> = ({ value, range, outline }) => {
   const { money, percent } = useFormatters();
   const numeric = (t: Totals) => t.returnPct;
   const formatter = ({ returnValue, returnPct }: Totals) => {
@@ -66,6 +75,7 @@ export const MoneyAndChangeIndicator: React.FC<
       value={value}
       numeric={numeric}
       formatter={formatter}
+      outline={outline}
     />
   );
 };

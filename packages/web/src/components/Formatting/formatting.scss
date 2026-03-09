@@ -1,8 +1,15 @@
-.money-positive,
-.percent-positive {
-  color: SeaGreen;
-}
-.money-negative,
-.percent-negative {
-  color: LightCoral;
+.money,
+.percent,
+.decimal {
+  background-color: LavenderBlush;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: 0px 1px 1px rgba(36, 36, 36, 0.2);
+  &.positive {
+    color: mediumspringgreen;
+  }
+  &.negative {
+    background-color: OrangeRed;
+  }
 }

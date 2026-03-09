@@ -2,14 +2,14 @@ import type { ChartData, ChartDataItem } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
 import {
+  Area,
   Bar,
   CartesianGrid,
   ComposedChart,
-  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis,
+  YAxis
 } from "recharts";
 import { withVisibility } from "../../decorators/nodata";
 import { useFormatters } from "../../hooks/prefs";
@@ -21,7 +21,7 @@ export type ChartProps = {
 
 const RawChart: React.FC<ChartProps> = ({
   data,
-  timeFormatter,
+  timeFormatter
 }: ChartProps) => {
   const { money } = useFormatters();
   const tickFormatter = (n: number) => money(n);
@@ -81,12 +81,24 @@ const RawChart: React.FC<ChartProps> = ({
             formatter={tooltipValueFormatter}
           />
           <Bar yAxisId="volume" dataKey="volume" fill="#413ea055" />
-          <Line
+          <defs>
+            <linearGradient id="rising" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#00FA9A" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#00FA9A" stopOpacity={0.1} />
+            </linearGradient>
+            <linearGradient id="falling" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#FA8072" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#FA8072" stopOpacity={0.1} />
+            </linearGradient>
+          </defs>
+          <Area
             yAxisId="price"
             dot={false}
-            type="linear"
+            type="monotone"
             dataKey="price"
             stroke={stroke}
+            fillOpacity={1}
+            fill="url(#rising)"
             animationDuration={0}
           />
           <CartesianGrid stroke="#333" />

@@ -6,22 +6,28 @@ import { useFormatters } from "../../hooks/prefs";
 type PercentProps = {
   value?: Optional<number>;
   prec?: number;
+  nocolor?: boolean;
+  tag?: keyof React.JSX.IntrinsicElements;
 };
 
 export const Percent: React.FC<PercentProps> = ({
   value,
-  prec
+  prec,
+  tag = "span",
+  nocolor = false
 }: PercentProps) => {
   const { percent } = useFormatters();
   const neg = (value ?? 0) < 0;
+  const pos = (value ?? 0) > 0;
+  const Tag = tag as keyof React.JSX.IntrinsicElements;
   return (
-    <span
-      className={classnames({
-        "percent-negative": neg,
-        "percent-positive": !neg
+    <Tag
+      className={classnames(`percent`, {
+        negative: !nocolor && neg,
+        positive: !nocolor && pos
       })}
     >
       {percent(value, prec)}
-    </span>
+    </Tag>
   );
 };

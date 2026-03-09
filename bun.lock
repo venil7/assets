@@ -21,7 +21,7 @@
     },
     "packages/backend": {
       "name": "@darkruby/assets-backend",
-      "version": "1.7.1",
+      "version": "1.8.0",
       "dependencies": {
         "@darkruby/assets-core": "workspace:*",
         "@types/ms": "^2.1.0",
@@ -47,7 +47,7 @@
     },
     "packages/core": {
       "name": "@darkruby/assets-core",
-      "version": "1.7.1",
+      "version": "1.8.0",
       "dependencies": {
         "io-ts": "^2.2.22",
         "io-ts-reporters": "^2.0.1",
@@ -55,7 +55,7 @@
     },
     "packages/web": {
       "name": "@darkruby/assets-web",
-      "version": "1.6.2",
+      "version": "1.8.0",
       "dependencies": {
         "@darkruby/assets-core": "workspace:*",
         "@fortawesome/fontawesome-svg-core": "^7.1.0",
@@ -63,14 +63,14 @@
         "@fortawesome/react-fontawesome": "^3.1.0",
         "@preact/signals-react": "^3.0.1",
         "@unhead/react": "^2.1.4",
-        "bootstrap": "^5.3.3",
+        "bootstrap": "^5.3.8",
         "classnames": "^2.5.1",
         "csv-parse": "^6.1.0",
         "csv-stringify": "^6.6.0",
         "io-ts": "^2.2.22",
         "jose": "^6.0.11",
         "react": "^19.0.0",
-        "react-bootstrap": "^2.10.9",
+        "react-bootstrap": "^2.10.10",
         "react-datepicker": "^9.1.0",
         "react-dom": "^19.0.0",
         "react-dropzone": "^14.3.8",

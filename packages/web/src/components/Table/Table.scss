@@ -1,0 +1,13 @@
+.fixed-table {
+  table-layout: fixed;
+  width: 100%;
+  th,
+  td:not(.menu) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    &.narrow {
+      max-width: 5%;
+    }
+  }
+}
