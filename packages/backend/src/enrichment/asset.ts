@@ -16,7 +16,7 @@ import { $enrichedAssetBase, $enrichedAssetCcy, txsWithRates } from "./returns";
 import { getTxsEnricher } from "./tx";
 
 export const getAssetEnricher =
-  (yahooApi: YahooApi, repo: Repository) =>
+  (repo: Repository, yahooApi: YahooApi) =>
   (
     asset: GetAsset,
     range: ChartRange = DEFAULT_CHART_RANGE
@@ -54,9 +54,9 @@ export const getAssetEnricher =
   };
 
 export const getAssetsEnricher =
-  (yahooApi: YahooApi, repo: Repository) =>
+  (repo: Repository, yahooApi: YahooApi) =>
   (assets: GetAsset[], range?: ChartRange): Action<EnrichedAsset[]> => {
-    const enrichAsset = getAssetEnricher(yahooApi, repo);
+    const enrichAsset = getAssetEnricher(repo, yahooApi);
     return pipe(
       assets,
       TE.traverseArray((asset) => enrichAsset(asset, range)),
@@ -65,13 +65,13 @@ export const getAssetsEnricher =
   };
 
 export const getOptionalAssetEnricher =
-  (yahooApi: YahooApi, repo: Repository) =>
+  (repo: Repository, yahooApi: YahooApi) =>
   (
     asset: Optional<GetAsset>,
     range?: ChartRange
   ): Action<Optional<EnrichedAsset>> => {
     if (asset) {
-      const enrichAsset = getAssetEnricher(yahooApi, repo);
+      const enrichAsset = getAssetEnricher(repo, yahooApi);
       return enrichAsset(asset, range);
     }
     return TE.of(null);

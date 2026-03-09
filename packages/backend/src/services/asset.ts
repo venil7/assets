@@ -31,7 +31,7 @@ export const getAsset =
     userId: UserId,
     range: ChartRange
   ): WebAction<Optional<EnrichedAsset>> => {
-    const enrichAsset = getOptionalAssetEnricher(yahooApi, repo);
+    const enrichAsset = getOptionalAssetEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("asset", () => repo.asset.get(assetId, portfolioId, userId)),
@@ -47,7 +47,7 @@ export const getAssets =
     portfolioId: PortfolioId,
     range: ChartRange
   ): WebAction<readonly EnrichedAsset[]> => {
-    const enrichAssets = getAssetsEnricher(yahooApi, repo);
+    const enrichAssets = getAssetsEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("assets", () => repo.asset.getAll(portfolioId, userId)),
@@ -77,7 +77,7 @@ export const createAsset =
     userId: UserId,
     payload: unknown
   ): WebAction<EnrichedAsset> => {
-    const enrichAsset = getAssetEnricher(yahooApi, repo);
+    const enrichAsset = getAssetEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("asset", () => assetDecoder(payload)),
@@ -98,7 +98,7 @@ export const updateAsset =
     userId: UserId,
     payload: unknown
   ): WebAction<EnrichedAsset> => {
-    const enrichAsset = getAssetEnricher(yahooApi, repo);
+    const enrichAsset = getAssetEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("asset", () => assetDecoder(payload)),

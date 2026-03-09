@@ -30,7 +30,7 @@ export const getPortfolio =
     userId: UserId,
     range: ChartRange
   ): WebAction<Optional<EnrichedPortfolio>> => {
-    const enrichPortfolio = getOptionalPorfolioEnricher(yahooApi, repo);
+    const enrichPortfolio = getOptionalPorfolioEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("portfolio", () => repo.portfolio.get(portfolioId, userId)),
@@ -45,7 +45,7 @@ export const getPortfolios =
     userId: UserId,
     range: ChartRange
   ): WebAction<readonly EnrichedPortfolio[]> => {
-    const enrichPortfolios = getPortfoliosEnricher(yahooApi, repo);
+    const enrichPortfolios = getPortfoliosEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("portfolios", () => repo.portfolio.getAll(userId)),
@@ -57,7 +57,7 @@ export const getPortfolios =
 export const createPortfolio =
   (repo: Repository, yahooApi: YahooApi) =>
   (userId: UserId, payload: unknown): WebAction<EnrichedPortfolio> => {
-    const enrichPortfolio = getPortfolioEnricher(yahooApi, repo);
+    const enrichPortfolio = getPortfolioEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("portfolio", () => portfolioDecoder(payload)),
@@ -76,7 +76,7 @@ export const updatePortfolio =
     userId: UserId,
     payload: unknown
   ): WebAction<EnrichedPortfolio> => {
-    const enrichPortfolio = getPortfolioEnricher(yahooApi, repo);
+    const enrichPortfolio = getPortfolioEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("portfolio", () => portfolioDecoder(payload)),

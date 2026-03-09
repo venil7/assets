@@ -43,12 +43,12 @@ const sumTotalReturnPct = sum<EnrichedAsset>(
 );
 
 export const getPortfolioEnricher =
-  (yahooApi: YahooApi, repo: Repository) =>
+  (repo: Repository, yahooApi: YahooApi) =>
   (
     portfolio: GetPortfolio,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedPortfolio> => {
-    const enrichAssets = getAssetsEnricher(yahooApi, repo);
+    const enrichAssets = getAssetsEnricher(repo, yahooApi);
 
     return pipe(
       TE.Do,
@@ -143,12 +143,12 @@ export const getPortfolioEnricher =
   };
 
 export const getPortfoliosEnricher =
-  (yahooApi: YahooApi, repo: Repository) =>
+  (repo: Repository, yahooApi: YahooApi) =>
   (
     portfolios: GetPortfolio[],
     range?: ChartRange
   ): Action<EnrichedPortfolio[]> => {
-    const enrichPortfolio = getPortfolioEnricher(yahooApi, repo);
+    const enrichPortfolio = getPortfolioEnricher(repo, yahooApi);
     return pipe(
       portfolios,
       TE.traverseArray((p) => enrichPortfolio(p, range)),
@@ -157,13 +157,13 @@ export const getPortfoliosEnricher =
   };
 
 export const getOptionalPorfolioEnricher =
-  (yahooApi: YahooApi, repo: Repository) =>
+  (repo: Repository, yahooApi: YahooApi) =>
   (
     portfolio: Optional<GetPortfolio>,
     range?: ChartRange
   ): Action<Optional<EnrichedPortfolio>> => {
     if (portfolio) {
-      const enrichPortfolio = getPortfolioEnricher(yahooApi, repo);
+      const enrichPortfolio = getPortfolioEnricher(repo, yahooApi);
       return enrichPortfolio(portfolio, range);
     }
     return TE.of(null);
