@@ -13,7 +13,7 @@ import {
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
-import { combinePortfolioCharts, commonPortfolioRanges } from "./chart";
+import { combinePortfolioChartsAlt, commonPortfolioRanges } from "./chart";
 
 const summaryMeta = (portfolios: EnrichedPortfolio[]): Summary["meta"] => {
   const range = pipe(
@@ -95,7 +95,8 @@ const summaryTotals = (portfolios: EnrichedPortfolio[]): Totals => {
 };
 
 export const enrichSummary = (portfolios: EnrichedPortfolio[]): Summary => {
-  const chart = combinePortfolioCharts(portfolios);
+  const chart = combinePortfolioChartsAlt(portfolios);
+
   const meta = summaryMeta(portfolios);
   const changes = summaryChanges(portfolios);
   const totals = summaryTotals(portfolios);

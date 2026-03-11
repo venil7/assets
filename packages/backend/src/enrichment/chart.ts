@@ -12,12 +12,18 @@ import {
   EARLIEST_DATE,
   EARLIEST_TS,
   onEmpty,
-  unixNow,
-  unixTimestamp
+  unixNow
 } from "@darkruby/assets-core";
 import * as A from "fp-ts/lib/Array";
-import { pipe, type FunctionN } from "fp-ts/lib/function";
+import { flow, pipe, type FunctionN } from "fp-ts/lib/function";
 import { Heap } from "heap-js";
+import { col, DataFrame, Float64, Int32, readRecords } from "nodejs-polars";
+
+export const ChartSchema = {
+  timestamp: Int32,
+  price: Float64,
+  volume: Float64
+};
 
 const commonRanges =
   <Item>(getRanges: FunctionN<[Item], ChartRange[]>) =>
@@ -88,7 +94,7 @@ const combineCharts =
     }
     return pipe(
       points,
-      onEmpty(() => ({ timestamp: unixTimestamp(0), volume: 0, price: 0 }))
+      onEmpty(() => ({ timestamp: unixNow(), volume: 0, price: 0 }))
     );
   };
 
@@ -160,3 +166,40 @@ export const enrichChart = (chart: ChartData, txs: GetTx[]): ChartData => {
   }
   return res as ChartData;
 };
+
+const combineChartsAlt = (charts: Array<ChartData>): ChartData => {
+  if (charts.length < 1) return [{ timestamp: unixNow(), volume: 0, price: 0 }];
+  const [init, ...rest] = charts;
+  const combine = (df1: DataFrame, df2: DataFrame): DataFrame => {
+    const ret = df1
+      .join(df2, { on: "timestamp", how: "full", coalesce: true, suffix: "2" })
+      .sort("timestamp")
+      .withColumns(
+        col("price").backwardFill().forwardFill(),
+        col("price2").backwardFill().forwardFill(),
+        col("volume").backwardFill().forwardFill(),
+        col("volume2").backwardFill().forwardFill()
+      )
+      .select(
+        col("timestamp"),
+        col("price").plus(col("price2")).alias("price"),
+        col("volume").plus(col("volume2")).alias("volume")
+      );
+    return ret;
+  };
+  return pipe(
+    rest,
+    A.map((c) => readRecords(c, { schema: ChartSchema })),
+    A.reduce(readRecords(init, { schema: ChartSchema }), combine),
+    (d) => d.toRecords()
+  ) as unknown as ChartData;
+};
+
+export const combineAssetChartsAlt = flow(
+  A.map<EnrichedAsset, ChartData>(({ base }) => base.chart),
+  combineChartsAlt
+);
+export const combinePortfolioChartsAlt = flow(
+  A.map<EnrichedPortfolio, ChartData>(({ chart }) => chart),
+  combineChartsAlt
+);

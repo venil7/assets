@@ -28,18 +28,13 @@ import {
   lit,
   readRecords
 } from "nodejs-polars";
-import { enrichChart } from "./chart";
+import { ChartSchema, enrichChart } from "./chart";
 
-export const ChartSchema = {
-  timestamp: Int32,
-  price: Float64,
-  volume: Float64
-};
-export const RateRecSchema = {
+const RateRecSchema = {
   timestamp: Int32,
   rate: Float64
 };
-export const TxSchema = {
+const TxSchema = {
   id: Int32,
   pnl: Float64,
   cost: Float64,
