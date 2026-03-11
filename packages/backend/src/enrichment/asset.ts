@@ -32,6 +32,12 @@ export const getAssetEnricher =
       ),
       TE.map(({ enrichedTxs, fxRates, chart }) => {
         const { meta } = chart;
+        const volatilityRange = Math.abs(
+          meta.fiftyTwoWeekHigh - meta.fiftyTwoWeekLow
+        );
+        const volatilityPct =
+          volatilityRange /
+          ((meta.fiftyTwoWeekHigh + meta.fiftyTwoWeekLow) / 2);
         const $txsWithRate = txsWithRates(enrichedTxs, fxRates);
         const ccy = $enrichedAssetCcy(asset, chart, $txsWithRate);
         const base = $enrichedAssetBase(
@@ -46,6 +52,8 @@ export const getAssetEnricher =
           ccy,
           base,
           meta,
+          volatilityRange,
+          volatilityPct,
           ...asset,
           weight: null // cannot calc weight for single asset
         } satisfies EnrichedAsset;

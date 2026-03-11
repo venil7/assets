@@ -37,17 +37,16 @@ const RawChart: React.FC<ChartProps> = ({
     }
   };
 
-  const [stroke, fill] = (function () {
+  const [stroke, gradient] = (function () {
     if (data.length > 1) {
       const first = data[0];
       const last = data[data.length - 1];
       if (last.price > first.price) {
-        return ["MediumSeaGreen", "MediumAquamarine"];
+        return ["mediumseagreen", "rising"];
       }
-      return ["Firebrick", "LightSalmon"];
+      return ["firebrick", "falling"];
     }
-
-    return ["plum", "lavender"];
+    return ["mediumseagreen", "rising"];
   })();
 
   return (
@@ -92,13 +91,13 @@ const RawChart: React.FC<ChartProps> = ({
             </linearGradient>
           </defs>
           <Area
-            yAxisId="price"
             dot={false}
+            yAxisId="price"
             type="monotone"
             dataKey="price"
             stroke={stroke}
             fillOpacity={1}
-            fill="url(#rising)"
+            fill={`url(#${gradient})`}
             animationDuration={0}
           />
           <CartesianGrid stroke="#333" />

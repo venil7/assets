@@ -2,7 +2,7 @@ import {
   defaultPortfolio,
   type EnrichedPortfolio,
   type PostPortfolio,
-  type Summary,
+  type Summary
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { pipe } from "fp-ts/lib/function";
@@ -34,7 +34,7 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
   onAdd,
   onUpdate,
   onDelete,
-  onRange,
+  onRange
 }: PortfoliosProps) => {
   const handleAdd = () =>
     pipe(() => portfolioModal(defaultPortfolio()), TE.map(onAdd))();
@@ -47,7 +47,7 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
         <AddBtn onClick={handleAdd} label="Portfolio" />
         <Totals
           totals={summary.totals}
-          change={summary.value}
+          change={summary.changes}
           range={summary.meta.range}
         />
       </HorizontalStack>

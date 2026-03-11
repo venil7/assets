@@ -1,6 +1,7 @@
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as M from "fp-ts/lib/Monoid";
+import * as N from "fp-ts/lib/number";
 
 export type ChangeInParams = { before: number; after: number };
 export const changeInValue = ({ before, after }: ChangeInParams): number =>
@@ -25,7 +26,14 @@ export const sumMonoid: M.Monoid<number> = {
 };
 
 export const sum = A.foldMap(sumMonoid);
+export const min = A.foldMap(M.min(N.Bounded));
+export const max = A.foldMap(M.max(N.Bounded));
+export const unique =
+  <A, R extends string | number>(f: (a: A) => R) =>
+  (as: A[]): Array<R> =>
+    pipe(new Set<R>(as.map(f)).values(), Array.from<R>);
+
 export const avg =
   <A>(f: (a: A) => number) =>
-  (fa: A[]) =>
-    pipe(fa, sum(f)) / fa.length;
+  (as: A[]) =>
+    pipe(as, sum(f)) / as.length;

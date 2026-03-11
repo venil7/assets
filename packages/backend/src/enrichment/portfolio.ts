@@ -1,9 +1,10 @@
 import {
   byDuration,
   DEFAULT_CHART_RANGE,
-  onEmpty,
+  max,
+  min,
   sum,
-  unixNow,
+  unique,
   type Action,
   type ChartRange,
   type EnrichedAsset,
@@ -29,6 +30,8 @@ const sumFxImpact = sum<EnrichedAsset>(({ base }) => base.fxImpact ?? 0);
 const sumBreakEven = sum<EnrichedAsset>(({ base }) => base.breakEven ?? 0);
 const sumStartPrice = sum<EnrichedAsset>(({ base }) => base.changes.startPrice);
 const sumEndPrice = sum<EnrichedAsset>(({ base }) => base.changes.endPrice);
+const minStartTs = min<EnrichedAsset>(({ base }) => base.changes.startTs);
+const maxEndTs = max<EnrichedAsset>(({ base }) => base.changes.endTs);
 const sumReturnChangesValue = sum<EnrichedAsset>(
   ({ base }) => base.changes.returnValue
 );
@@ -41,6 +44,70 @@ const sumTotalsReturnValue = sum<EnrichedAsset>(
 const sumTotalReturnPct = sum<EnrichedAsset>(
   ({ base, weight }) => base.totals.returnPct * (weight ?? 0)
 );
+const sum52wkLow = sum<EnrichedAsset>(({ meta }) => meta.fiftyTwoWeekLow);
+const sum52wkHigh = sum<EnrichedAsset>(({ meta }) => meta.fiftyTwoWeekHigh);
+
+const portfolioMeta = (assets: EnrichedAsset[]): EnrichedPortfolio["meta"] => {
+  const fiftyTwoWeekLow = sum52wkLow(assets);
+  const fiftyTwoWeekHigh = sum52wkHigh(assets);
+  const volatilityRange = Math.abs(fiftyTwoWeekLow - fiftyTwoWeekHigh);
+  const volatilityPct =
+    volatilityRange / ((fiftyTwoWeekLow + fiftyTwoWeekHigh) / 2);
+  const currencies = pipe(
+    assets,
+    unique(({ meta }) => meta.currency)
+  );
+  const exchanges = pipe(
+    assets,
+    unique(({ meta }) => meta.exchangeName)
+  );
+  const types = pipe(
+    assets,
+    unique(({ meta }) => meta.instrumentType)
+  );
+  const range = pipe(
+    assets,
+    A.map((a) => a.meta.range),
+    A.reduce(DEFAULT_CHART_RANGE, Ord.max(byDuration))
+  );
+  const validRanges = commonAssetRanges(assets);
+  return {
+    range,
+    exchanges,
+    types,
+    currencies,
+    validRanges,
+    volatilityRange,
+    volatilityPct,
+    fiftyTwoWeekLow,
+    fiftyTwoWeekHigh
+  };
+};
+
+const portfolioChanges = (assets: EnrichedAsset[]): PeriodChanges => {
+  const startPrice = sumStartPrice(assets);
+  const endPrice = sumEndPrice(assets);
+  const returnValue = sumReturnChangesValue(assets);
+  const returnPct = sumChangesReturnPct(assets);
+
+  const startTs = minStartTs(assets) as UnixDate;
+  const endTs = maxEndTs(assets) as UnixDate;
+
+  return {
+    startPrice,
+    endPrice,
+    returnValue,
+    returnPct,
+    startTs,
+    endTs
+  } satisfies PeriodChanges;
+};
+
+const portfolioTotals = (assets: EnrichedAsset[]): Totals => {
+  const returnValue = sumTotalsReturnValue(assets);
+  const returnPct = sumTotalReturnPct(assets);
+  return { returnValue, returnPct };
+};
 
 export const getPortfolioEnricher =
   (repo: Repository, yahooApi: YahooApi) =>
@@ -63,64 +130,15 @@ export const getPortfolioEnricher =
       ),
       TE.map(({ portfolio, assets }) => {
         const domestic = assets.reduce((d, a) => d && a.base.domestic, true);
-
         const invested = sumInvested(assets);
         const realizedPnl = sumRealizedPnl(assets);
         const fxImpact = sumFxImpact(assets);
         const breakEven = sumBreakEven(assets);
 
-        const currencies = pipe(
-          new Set<string>(assets.map((a) => a.meta.currency)).values(),
-          Array.from<string>
-        );
-
-        const changes: PeriodChanges = (() => {
-          const startPrice = sumStartPrice(assets);
-          const endPrice = sumEndPrice(assets);
-          const returnValue = sumReturnChangesValue(assets);
-          const returnPct = sumChangesReturnPct(assets);
-
-          const startTs = pipe(
-            assets,
-            A.map(({ base }) => base.changes.startTs),
-            onEmpty(unixNow),
-            (s) => Math.min(...s)
-          ) as UnixDate;
-
-          const endTs = pipe(
-            assets,
-            A.map(({ base }) => base.changes.endTs),
-            onEmpty(unixNow),
-            (s) => Math.max(...s)
-          ) as UnixDate;
-
-          return {
-            startPrice,
-            endPrice,
-            returnValue,
-            returnPct,
-            startTs,
-            endTs
-          } satisfies PeriodChanges;
-        })();
-
-        const totals = ((): Totals => {
-          const returnValue = sumTotalsReturnValue(assets);
-          const returnPct = sumTotalReturnPct(assets);
-          return { returnValue, returnPct };
-        })();
-
+        const meta = portfolioMeta(assets);
+        const totals = portfolioTotals(assets);
+        const changes = portfolioChanges(assets);
         const chart = combineAssetCharts(assets);
-
-        const meta = ((): EnrichedPortfolio["meta"] => {
-          const range = pipe(
-            assets,
-            A.map((a) => a.meta.range),
-            A.reduce(DEFAULT_CHART_RANGE, Ord.max(byDuration))
-          );
-          const validRanges = commonAssetRanges(assets);
-          return { range, validRanges };
-        })();
 
         return {
           ...portfolio,
@@ -128,7 +146,6 @@ export const getPortfolioEnricher =
           // weight cannot be calc
           // for single portfolio
           weight: null,
-          currencies,
           domestic,
           changes,
           chart,

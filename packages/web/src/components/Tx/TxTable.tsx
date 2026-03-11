@@ -29,7 +29,7 @@ export type TxTableProps = {
 const TxTableHeader = ({ disabled, asset }: TxTableProps) => (
   <thead>
     <tr>
-      <th>Type</th>
+      <th className="narrow">Type</th>
       <th className="d-none d-md-table-cell">Date</th>
       <th>Quantity</th>
       <th>Price</th>
@@ -90,7 +90,7 @@ const TxTableRow = (
       <td
         /**menu */ hidden={disabled}
         onClick={(evt) => evt.stopPropagation()}
-        className="menu narrow"
+        className="narrow"
       >
         <TxMenu
           onClone={handleClone(tx)}

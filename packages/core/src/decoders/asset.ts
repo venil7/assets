@@ -42,6 +42,8 @@ export const EnrichedAssetDecoder = t.type({
   meta: ChartMetaDecoder,
   // mktFxRate: t.number,
   weight: nullableDecoder(t.number),
+  volatilityRange: t.number,
+  volatilityPct: t.number,
   ccy: t.type({
     chart: nonEmptyArray(ChartDataPointDecoder),
     changes: PeriodChangesDecoder,

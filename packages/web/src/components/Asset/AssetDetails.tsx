@@ -9,12 +9,6 @@ export type AssetDetailsProps = {
 };
 
 export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
-  const range = Math.abs(
-    asset.meta.fiftyTwoWeekHigh - asset.meta.fiftyTwoWeekLow
-  );
-  const volatility =
-    range / ((asset.meta.fiftyTwoWeekHigh + asset.meta.fiftyTwoWeekLow) / 2);
-
   const assetCcy = asset.meta.currency as Ccy;
   return (
     <div className="asset-details-tab">
@@ -49,11 +43,11 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Range</strong>
-            <Money value={range} nocolor />
+            <Money value={asset.volatilityRange} nocolor />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Volatility</strong>
-            <Percent value={volatility} nocolor />
+            <Percent value={asset.volatilityPct} nocolor />
           </ListGroup.Item>
         </ListGroup>
 

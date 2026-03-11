@@ -13,9 +13,9 @@ afterAll(async () => {
 test("Get Summary", async () => {
   await run(api.portfolio.create(fakePortfolio()));
   await run(api.portfolio.create(fakePortfolio()));
-  const { chart, meta, totals, value } = await run(api.summary.get());
+  const { chart, meta, totals, changes } = await run(api.summary.get());
   expect(chart).toBeArray();
   expect(meta).toBeTruthy();
   expect(totals).toBeTruthy();
-  expect(value).toBeTruthy();
+  expect(changes).toBeTruthy();
 });

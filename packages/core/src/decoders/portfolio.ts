@@ -27,13 +27,19 @@ export const GetPortfoliosDecoder = t.array(GetPortfolioDecoder);
 
 export const PortfolioMetaDecoder = t.type({
   range: RangeDecoder,
-  validRanges: t.array(RangeDecoder)
+  validRanges: t.array(RangeDecoder),
+  volatilityRange: t.number,
+  volatilityPct: t.number,
+  currencies: t.array(t.string),
+  exchanges: t.array(t.string),
+  types: t.array(t.string),
+  fiftyTwoWeekHigh: t.number,
+  fiftyTwoWeekLow: t.number
 });
 
 export const EnrichedPortfolioDecoder = t.type({
   ...extPortfolioTypes,
   meta: PortfolioMetaDecoder,
-  currencies: t.array(t.string),
   weight: nullableDecoder(t.number),
   domestic: t.boolean,
   chart: nonEmptyArray(ChartDataPointDecoder),
