@@ -1,13 +1,14 @@
 import {
   type EnrichedPortfolio,
+  type EnrichedSummary,
   type PeriodChanges,
-  type Summary,
   type Totals,
   type UnixDate,
   byDuration,
+  calcCumulativePnl,
   DEFAULT_CHART_RANGE,
-  max,
-  min,
+  maxTs,
+  minTs,
   sum,
   volatility
 } from "@darkruby/assets-core";
@@ -16,7 +17,9 @@ import { pipe } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
 import { combinePortfolioChartsAlt, commonPortfolioRanges } from "./chart";
 
-const summaryMeta = (portfolios: EnrichedPortfolio[]): Summary["meta"] => {
+const summaryMeta = (
+  portfolios: EnrichedPortfolio[]
+): EnrichedSummary["meta"] => {
   const range = pipe(
     portfolios,
     A.map((a) => a.meta.range),
@@ -62,23 +65,19 @@ const summaryChanges = (portfolios: EnrichedPortfolio[]): PeriodChanges => {
     sum(({ changes }) => changes.endPrice)
   );
 
-  const returnValue = pipe(
+  const [returnValue, returnPct] = pipe(
     portfolios,
-    sum(({ changes }) => changes.returnValue)
-  );
-  const returnPct = pipe(
-    portfolios,
-    sum(({ changes, weight }) => changes.returnPct * (weight ?? 0))
+    calcCumulativePnl<EnrichedPortfolio>((a) => a.changes)
   );
 
   const startTs = pipe(
     portfolios,
-    min<EnrichedPortfolio>((p) => p.changes.startTs)
+    minTs<EnrichedPortfolio>((p) => p.changes.startTs)
   ) as UnixDate;
 
   const endTs = pipe(
     portfolios,
-    max<EnrichedPortfolio>((p) => p.changes.endTs)
+    maxTs<EnrichedPortfolio>((p) => p.changes.endTs)
   ) as UnixDate;
 
   return {
@@ -92,19 +91,16 @@ const summaryChanges = (portfolios: EnrichedPortfolio[]): PeriodChanges => {
 };
 
 const summaryTotals = (portfolios: EnrichedPortfolio[]): Totals => {
-  const returnValue = pipe(
+  const [returnValue, returnPct] = pipe(
     portfolios,
-    sum(({ totals }) => totals.returnValue)
+    calcCumulativePnl<EnrichedPortfolio>((p) => p.totals)
   );
-  const returnPct = pipe(
-    portfolios,
-    sum(({ totals, weight }) => totals.returnPct * (weight ?? 0))
-  );
-
   return { returnValue, returnPct };
 };
 
-export const enrichSummary = (portfolios: EnrichedPortfolio[]): Summary => {
+export const enrichSummary = (
+  portfolios: EnrichedPortfolio[]
+): EnrichedSummary => {
   const invested = pipe(
     portfolios,
     sum((p) => p.invested)

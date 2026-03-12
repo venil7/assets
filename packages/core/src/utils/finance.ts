@@ -1,26 +1,33 @@
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as M from "fp-ts/lib/Monoid";
-import * as N from "fp-ts/lib/number";
+import type { Totals } from "../domain";
 
 type ChangeInParams = { before: number; after: number };
-export const changeInValue = ({ before, after }: ChangeInParams): number =>
+const changeInValue = ({ before, after }: ChangeInParams): number =>
   after - before;
-export const changeInPct = ({ before, after }: ChangeInParams): number =>
+const changeInPct = ({ before, after }: ChangeInParams): number =>
   before == 0 ? 0 : (after - before) / before;
 
-export const change = ({
+export const calcPnl = ({
   before,
   after
 }: ChangeInParams): [value: number, pct: number] =>
   [changeInValue({ before, after }), changeInPct({ before, after })] as const;
+
+export const invested = ({ returnValue, returnPct }: Totals) => {
+  if (!returnPct) return returnValue;
+  return returnValue / returnPct;
+};
 
 export const volatility = (
   before: number,
   after: number
 ): [range: number, pct: number] => {
   const volatilityValue = Math.abs(before - after);
-  return [volatilityValue, volatilityValue / ((before + after) / 2)] as const;
+  const denominator = (before + after) / 2;
+  const volatilityPct = denominator ? volatilityValue / denominator : 0;
+  return [volatilityValue, volatilityPct] as const;
 };
 
 export const pctOf = (whole: number, frac: number): number =>
@@ -32,8 +39,7 @@ export const sumMonoid: M.Monoid<number> = {
 };
 
 export const sum = A.foldMap(sumMonoid);
-export const min = A.foldMap(M.min(N.Bounded));
-export const max = A.foldMap(M.max(N.Bounded));
+
 export const unique =
   <A, R extends string | number>(f: (a: A) => R) =>
   (as: A[]): Array<R> =>
@@ -43,3 +49,17 @@ export const avg =
   <A>(f: (a: A) => number) =>
   (as: A[]) =>
     pipe(as, sum(f)) / as.length;
+
+export const calcCumulativePnl =
+  <A, T extends Totals = Totals>(getter: (a: A) => T) =>
+  (as: A[]) => {
+    const totals = pipe(as, A.map(getter));
+    const totalInvested = pipe(totals, sum(invested));
+    const returnValue = pipe(
+      totals,
+      sum((t) => t.returnValue)
+    );
+    const returnPct = returnValue / totalInvested;
+    if (!totalInvested) return [0, 0] as const;
+    return [returnValue, returnPct] as const;
+  };

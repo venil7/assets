@@ -1,5 +1,5 @@
 import {
-  change,
+  calcPnl,
   type Action,
   type EnrichedTx,
   type GetTx
@@ -21,7 +21,7 @@ export const getTxEnricher =
         const buy = tx.type == "buy";
         if (meta && buy) {
           const value = tx.quantity_ext * meta.regularMarketPrice;
-          const [pnl, pnlPct] = change({ before: tx.cost, after: value });
+          const [pnl, pnlPct] = calcPnl({ before: tx.cost, after: value });
           return { ...tx, value, pnl, pnl_pct: pnlPct };
         }
         // consider using EnrichTx decoder

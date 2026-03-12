@@ -7,7 +7,7 @@ import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
 import type { UnixDate } from "../../domain";
 import { unixNow } from "../../utils/date";
-import { change } from "../../utils/finance";
+import { calcPnl } from "../../utils/finance";
 import { UnixDateDecoder } from "../date";
 import { chainDecoder, nullableDecoder, validationErr } from "../util";
 import { ChartMetaDecoder } from "./meta";
@@ -130,7 +130,7 @@ export const YahooChartDataDecoder = pipe(
         const endPrice = meta.regularMarketPrice;
         const startPrice =
           chart[0]?.price ?? meta.previousClose ?? meta.chartPreviousClose;
-        const [returnValue, returnPct] = change({
+        const [returnValue, returnPct] = calcPnl({
           before: startPrice,
           after: meta.regularMarketPrice
         });

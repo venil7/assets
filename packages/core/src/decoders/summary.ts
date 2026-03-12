@@ -15,4 +15,4 @@ const summaryTypes = {
   fxImpact: t.number
 };
 
-export const SummaryDecoder = t.type(summaryTypes);
+export const EnrichedSummaryDecoder = t.type(summaryTypes);

@@ -88,13 +88,13 @@ export const getOptionalAssetEnricher =
 export const calcAssetWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
   const total = pipe(
     assets,
-    sum(({ base }) => base.changes.endPrice)
+    sum(({ base }) => base.invested)
   );
   return pipe(
     assets,
     A.map((asset) => {
       if (total > 0) {
-        asset.weight = asset.base.changes.endPrice / total;
+        asset.weight = asset.base.invested / total;
       }
       return asset;
     })

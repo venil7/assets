@@ -1,5 +1,5 @@
 import {
-  change,
+  calcPnl,
   defaultTotals,
   earliestTxBeforeTimestamp,
   fuzzyItemSearch,
@@ -76,7 +76,7 @@ export const $enrichedAssetCcy = (
   }
   const $finalStretchTxsWithRate = $finalStretch($txsWithRate);
   const value = asset.holdings * meta.regularMarketPrice;
-  const [returnValue, returnPct] = change({
+  const [returnValue, returnPct] = calcPnl({
     before: asset.invested,
     after: value
   });
@@ -143,7 +143,7 @@ export const $enrichedAssetBase = (
   const toBase = getToBase(fxRates.latest.rate);
 
   const value = asset.holdings * toBase(assetPeriodChanges.endPrice);
-  const [returnValue, returnPct] = change({
+  const [returnValue, returnPct] = calcPnl({
     before: investedBase,
     after: value
   });
@@ -270,7 +270,7 @@ const periodChangesCcy = (
       beforePeriodTx.running_holding * assetPeriodChages.startPrice;
     const endPrice =
       beforePeriodTx.running_holding * assetPeriodChages.endPrice;
-    let [returnValue, returnPct] = change({
+    let [returnValue, returnPct] = calcPnl({
       before: startPrice,
       after: endPrice
     });
@@ -337,7 +337,7 @@ const $periodChangesBase = (
     (r) => getToBase(r.rate),
     ap(assetPeriodChages.endPrice)
   );
-  const [returnValue, returnPct] = change({
+  const [returnValue, returnPct] = calcPnl({
     before: baseStartPrice,
     after: baseEndPrice
   });

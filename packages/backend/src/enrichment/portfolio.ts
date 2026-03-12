@@ -1,8 +1,9 @@
 import {
   byDuration,
+  calcCumulativePnl,
   DEFAULT_CHART_RANGE,
-  max,
-  min,
+  maxTs,
+  minTs,
   sum,
   unique,
   volatility,
@@ -31,20 +32,8 @@ const sumFxImpact = sum<EnrichedAsset>(({ base }) => base.fxImpact ?? 0);
 const sumBreakEven = sum<EnrichedAsset>(({ base }) => base.breakEven ?? 0);
 const sumStartPrice = sum<EnrichedAsset>(({ base }) => base.changes.startPrice);
 const sumEndPrice = sum<EnrichedAsset>(({ base }) => base.changes.endPrice);
-const minStartTs = min<EnrichedAsset>(({ base }) => base.changes.startTs);
-const maxEndTs = max<EnrichedAsset>(({ base }) => base.changes.endTs);
-const sumReturnChangesValue = sum<EnrichedAsset>(
-  ({ base }) => base.changes.returnValue
-);
-const sumChangesReturnPct = sum<EnrichedAsset>(
-  ({ base, weight }) => base.changes.returnPct * (weight ?? 0)
-);
-const sumTotalsReturnValue = sum<EnrichedAsset>(
-  ({ base }) => base.totals.returnValue
-);
-const sumTotalReturnPct = sum<EnrichedAsset>(
-  ({ base, weight }) => base.totals.returnPct * (weight ?? 0)
-);
+const minStartTs = minTs<EnrichedAsset>(({ base }) => base.changes.startTs);
+const maxEndTs = maxTs<EnrichedAsset>(({ base }) => base.changes.endTs);
 const sum52wkLow = sum<EnrichedAsset>(({ meta }) => meta.fiftyTwoWeekLow);
 const sum52wkHigh = sum<EnrichedAsset>(({ meta }) => meta.fiftyTwoWeekHigh);
 
@@ -90,11 +79,13 @@ const portfolioMeta = (assets: EnrichedAsset[]): EnrichedPortfolio["meta"] => {
 const portfolioChanges = (assets: EnrichedAsset[]): PeriodChanges => {
   const startPrice = sumStartPrice(assets);
   const endPrice = sumEndPrice(assets);
-  const returnValue = sumReturnChangesValue(assets);
-  const returnPct = sumChangesReturnPct(assets);
-
   const startTs = minStartTs(assets) as UnixDate;
   const endTs = maxEndTs(assets) as UnixDate;
+
+  const [returnValue, returnPct] = pipe(
+    assets,
+    calcCumulativePnl<EnrichedAsset>((a) => a.base.changes)
+  );
 
   return {
     startPrice,
@@ -107,8 +98,10 @@ const portfolioChanges = (assets: EnrichedAsset[]): PeriodChanges => {
 };
 
 const portfolioTotals = (assets: EnrichedAsset[]): Totals => {
-  const returnValue = sumTotalsReturnValue(assets);
-  const returnPct = sumTotalReturnPct(assets);
+  const [returnValue, returnPct] = pipe(
+    assets,
+    calcCumulativePnl<EnrichedAsset>((a) => a.base.totals)
+  );
   return { returnValue, returnPct };
 };
 
@@ -194,7 +187,7 @@ export const calcPortfolioWeights = (
 ): EnrichedPortfolio[] => {
   const total = pipe(
     portfolios,
-    sum(({ changes }) => changes.endPrice)
+    sum(({ invested }) => invested)
   );
   return pipe(
     portfolios,
