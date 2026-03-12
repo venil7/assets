@@ -24,8 +24,9 @@ with
         partition by
           asset_id
         order by
-          id,
-          date
+          date,
+          id rows between unbounded preceding
+          and current row
       )
   ),
   stretch_cte as (
@@ -44,8 +45,9 @@ with
         partition by
           asset_id
         order by
-          id,
-          date
+          date,
+          id rows between unbounded preceding
+          and current row
       )
   ),
   stretch_ext_cte as (
@@ -59,8 +61,9 @@ with
         partition by
           asset_id
         order by
-          id,
-          date
+          date,
+          id rows between unbounded preceding
+          and current row
       )
   ),
   running_cost_cte as (
@@ -80,16 +83,17 @@ with
           asset_id,
           stretch_ext
         order by
-          id,
-          date
+          date,
+          id rows between unbounded preceding
+          and current row
       ),
       entire_stretch as (
         partition by
           asset_id,
           stretch_ext
         order by
-          id,
-          date range between unbounded preceding
+          date,
+          id range between unbounded preceding
           and unbounded following
       )
   ),
@@ -111,15 +115,16 @@ with
           asset_id,
           stretch_ext
         order by
-          id,
-          date
+          date,
+          id rows between unbounded preceding
+          and current row
       ),
       extended_stretch as (
         partition by
           asset_id
         order by
-          id,
-          date range between unbounded preceding
+          date,
+          id range between unbounded preceding
           and unbounded following
       )
   ),
@@ -157,8 +162,8 @@ with
           asset_id,
           stretch_ext
         order by
-          id,
-          date range between unbounded preceding
+          date,
+          id range between unbounded preceding
           and unbounded following
       )
   )
@@ -198,8 +203,3 @@ from
   txs_ext_cte t
   inner join assets a on a.id = t.asset_id
   inner join portfolios p on p.id = a.portfolio_id
-where
-  asset_id = 190
-  -- asset_id = 190
-order by
-  timestamp asc;

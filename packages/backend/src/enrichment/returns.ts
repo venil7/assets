@@ -303,9 +303,7 @@ const periodChangesCcy = (
 
   const startPrice =
     beforePeriodTx.running_holding * assetPeriodChages.startPrice;
-  const endPrice =
-    periodTxs[periodTxs.length - 1].running_holding *
-    assetPeriodChages.endPrice;
+  const endPrice = asset.holdings * assetPeriodChages.endPrice;
   const periodCost = costSum(periodTxs);
   const returnValue = endPrice - periodCost - startPrice;
   const returnPct = returnValue / (endPrice + periodCost);

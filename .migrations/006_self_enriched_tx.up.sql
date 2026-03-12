@@ -29,8 +29,9 @@ with
         partition by
           asset_id
         order by
-          id,
-          date
+          date,
+          id rows between unbounded preceding
+          and current row
       )
   ),
   stretch_cte as (
@@ -49,8 +50,9 @@ with
         partition by
           asset_id
         order by
-          id,
-          date
+          date,
+          id rows between unbounded preceding
+          and current row
       )
   ),
   stretch_ext_cte as (
@@ -64,8 +66,9 @@ with
         partition by
           asset_id
         order by
-          id,
-          date
+          date,
+          id rows between unbounded preceding
+          and current row
       )
   ),
   running_cost_cte as (
@@ -85,16 +88,17 @@ with
           asset_id,
           stretch_ext
         order by
-          id,
-          date
+          date,
+          id rows between unbounded preceding
+          and current row
       ),
       entire_stretch as (
         partition by
           asset_id,
           stretch_ext
         order by
-          id,
-          date range between unbounded preceding
+          date,
+          id range between unbounded preceding
           and unbounded following
       )
   ),
@@ -116,15 +120,16 @@ with
           asset_id,
           stretch_ext
         order by
-          id,
-          date
+          date,
+          id rows between unbounded preceding
+          and current row
       ),
       extended_stretch as (
         partition by
           asset_id
         order by
-          id,
-          date range between unbounded preceding
+          date,
+          id range between unbounded preceding
           and unbounded following
       )
   ),
@@ -162,8 +167,8 @@ with
           asset_id,
           stretch_ext
         order by
-          id,
-          date range between unbounded preceding
+          date,
+          id range between unbounded preceding
           and unbounded following
       )
   )
@@ -212,20 +217,32 @@ create view
 with
   asset_tx_ids as (
     select
-      max(id) as id,
-      asset_id
+      t.id,
+      t.asset_id
     from
       transactions t
-    group by
-      asset_id
+    where
+      t.id = (
+        select
+          id
+        from
+          transactions t2
+        where
+          t2.asset_id = t.asset_id
+        order by
+          t2.date desc,
+          t2.id desc
+        limit
+          1
+      )
   ),
   tx_running as (
     select
       te.asset_id,
-      running_holding as holdings,
-      running_cost as invested,
-      running_average_price as avg_price,
-      running_break_even as break_even
+      te.running_holding as holdings,
+      te.running_cost as invested,
+      te.running_average_price as avg_price,
+      te.running_break_even as break_even
     from
       transactions_ext te
       join asset_tx_ids atx on te.id = atx.id
