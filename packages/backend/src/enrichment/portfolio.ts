@@ -5,6 +5,7 @@ import {
   min,
   sum,
   unique,
+  volatility,
   type Action,
   type ChartRange,
   type EnrichedAsset,
@@ -50,9 +51,11 @@ const sum52wkHigh = sum<EnrichedAsset>(({ meta }) => meta.fiftyTwoWeekHigh);
 const portfolioMeta = (assets: EnrichedAsset[]): EnrichedPortfolio["meta"] => {
   const fiftyTwoWeekLow = sum52wkLow(assets);
   const fiftyTwoWeekHigh = sum52wkHigh(assets);
-  const volatilityRange = Math.abs(fiftyTwoWeekLow - fiftyTwoWeekHigh);
-  const volatilityPct =
-    volatilityRange / ((fiftyTwoWeekLow + fiftyTwoWeekHigh) / 2);
+  const [volatilityRange, volatilityPct] = volatility(
+    fiftyTwoWeekLow,
+    fiftyTwoWeekHigh
+  );
+
   const currencies = pipe(
     assets,
     unique(({ meta }) => meta.currency)

@@ -141,6 +141,7 @@ export const $enrichedAssetBase = (
   const breakEven = $breakEven($finalStretchTxsWithRate);
   const avgPrice = breakEven / asset.holdings;
   const toBase = getToBase(fxRates.latest.rate);
+
   const value = asset.holdings * toBase(assetPeriodChanges.endPrice);
   const [returnValue, returnPct] = change({
     before: investedBase,
@@ -351,7 +352,7 @@ const $periodChangesBase = (
   } satisfies PeriodChanges;
 
   const finalStretchTxs = $applyRates($finalStretchTxsWithRate);
-  const investedBase = $investedBase($finalStretchTxsWithRate); // ?
+  const investedBase = $investedBase($finalStretchTxsWithRate);
 
   return periodChangesCcy(
     { ...asset, invested: investedBase } satisfies GetAsset,

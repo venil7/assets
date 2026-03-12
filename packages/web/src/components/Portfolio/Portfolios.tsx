@@ -14,6 +14,7 @@ import { withNoData, type WithNoData } from "../../decorators/nodata";
 import { RangeChart } from "../Charts/RangesChart";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
+import { TabContent, Tabs } from "../Form/Tabs";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
 import { portfolioModal } from "./PortfolioFields";
@@ -54,13 +55,20 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
 
       <Info hidden={!!portfolios.length}>No portfolios yet</Info>
 
-      <RangeChart
-        onChange={onRange}
-        data={summary.chart}
-        range={summary.meta.range}
-        ranges={summary.meta.validRanges}
-        hidden={!portfolios.length}
-      />
+      <Tabs tabs={["Chart", "Details"]} hidden={!portfolios.length}>
+        <TabContent tab={0}>
+          <RangeChart
+            onChange={onRange}
+            data={summary.chart}
+            range={summary.meta.range}
+            ranges={summary.meta.validRanges}
+            hidden={!portfolios.length}
+          />
+        </TabContent>
+        <TabContent tab={1}>
+          {/* <PortfolioDetails portfolio={portfolio} /> */}
+        </TabContent>
+      </Tabs>
 
       <Stack gap={3}>
         {portfolios.map((port) => (

@@ -44,10 +44,10 @@ export const EnrichedPortfolioDecoder = t.type({
   domestic: t.boolean,
   chart: nonEmptyArray(ChartDataPointDecoder),
   changes: PeriodChangesDecoder,
-  invested: t.number,
   totals: TotalsDecoder,
+  invested: t.number,
   realizedPnl: t.number,
-  breakEven: nullableDecoder(t.number),
+  breakEven: t.number,
   fxImpact: t.number
 });
 

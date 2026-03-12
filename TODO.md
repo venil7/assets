@@ -11,8 +11,9 @@
 - [x] realized PnL portfolio
 - [x] colors in details pain: asset, portfolio
 - [x] volatility, range
-- [ ] fix summary perecnt calc
+- [x] fix summary perecnt calc
 - [x] enriched portfolio : break even
+- [x] chart merge in polars
 - [ ] chart shows transactions
 - [ ] break even line
 - [ ] multi asset layered chart for portfolios

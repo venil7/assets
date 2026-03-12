@@ -1,6 +1,7 @@
 import {
   DEFAULT_CHART_RANGE,
   sum,
+  volatility,
   type Action,
   type ChartRange,
   type EnrichedAsset,
@@ -32,12 +33,11 @@ export const getAssetEnricher =
       ),
       TE.map(({ enrichedTxs, fxRates, chart }) => {
         const { meta } = chart;
-        const volatilityRange = Math.abs(
-          meta.fiftyTwoWeekHigh - meta.fiftyTwoWeekLow
+        const [volatilityRange, volatilityPct] = volatility(
+          meta.fiftyTwoWeekLow,
+          meta.fiftyTwoWeekHigh
         );
-        const volatilityPct =
-          volatilityRange /
-          ((meta.fiftyTwoWeekHigh + meta.fiftyTwoWeekLow) / 2);
+
         const $txsWithRate = txsWithRates(enrichedTxs, fxRates);
         const ccy = $enrichedAssetCcy(asset, chart, $txsWithRate);
         const base = $enrichedAssetBase(

@@ -3,7 +3,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as M from "fp-ts/lib/Monoid";
 import * as N from "fp-ts/lib/number";
 
-export type ChangeInParams = { before: number; after: number };
+type ChangeInParams = { before: number; after: number };
 export const changeInValue = ({ before, after }: ChangeInParams): number =>
   after - before;
 export const changeInPct = ({ before, after }: ChangeInParams): number =>
@@ -12,10 +12,16 @@ export const changeInPct = ({ before, after }: ChangeInParams): number =>
 export const change = ({
   before,
   after
-}: ChangeInParams): [value: number, pct: number] => [
-  changeInValue({ before, after }),
-  changeInPct({ before, after })
-];
+}: ChangeInParams): [value: number, pct: number] =>
+  [changeInValue({ before, after }), changeInPct({ before, after })] as const;
+
+export const volatility = (
+  before: number,
+  after: number
+): [range: number, pct: number] => {
+  const volatilityValue = Math.abs(before - after);
+  return [volatilityValue, volatilityValue / ((before + after) / 2)] as const;
+};
 
 export const pctOf = (whole: number, frac: number): number =>
   whole != 0 ? frac / whole : 0;

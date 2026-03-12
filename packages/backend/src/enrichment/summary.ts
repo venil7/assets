@@ -8,7 +8,8 @@ import {
   DEFAULT_CHART_RANGE,
   max,
   min,
-  sum
+  sum,
+  volatility
 } from "@darkruby/assets-core";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
@@ -22,10 +23,19 @@ const summaryMeta = (portfolios: EnrichedPortfolio[]): Summary["meta"] => {
     A.reduce(DEFAULT_CHART_RANGE, Ord.max(byDuration))
   );
   const validRanges = commonPortfolioRanges(portfolios);
-  const fiftyTwoWeekLow = 0;
-  const fiftyTwoWeekHigh = 0;
-  const volatilityRange = 0;
-  const volatilityPct = 0;
+
+  const fiftyTwoWeekLow = pipe(
+    portfolios,
+    sum((p) => p.meta.fiftyTwoWeekHigh)
+  );
+  const fiftyTwoWeekHigh = pipe(
+    portfolios,
+    sum((p) => p.meta.fiftyTwoWeekLow)
+  );
+  const [volatilityRange, volatilityPct] = volatility(
+    fiftyTwoWeekLow,
+    fiftyTwoWeekHigh
+  );
   const currencies = <string[]>[];
   const exchanges = <string[]>[];
   const types = <string[]>[];
@@ -95,11 +105,37 @@ const summaryTotals = (portfolios: EnrichedPortfolio[]): Totals => {
 };
 
 export const enrichSummary = (portfolios: EnrichedPortfolio[]): Summary => {
+  const invested = pipe(
+    portfolios,
+    sum((p) => p.invested)
+  );
+  const fxImpact = pipe(
+    portfolios,
+    sum((p) => p.fxImpact)
+  );
+  const realizedPnl = pipe(
+    portfolios,
+    sum((p) => p.realizedPnl)
+  );
+  const breakEven = pipe(
+    portfolios,
+    sum((p) => p.breakEven)
+  );
+
   const chart = combinePortfolioChartsAlt(portfolios);
 
   const meta = summaryMeta(portfolios);
   const changes = summaryChanges(portfolios);
   const totals = summaryTotals(portfolios);
 
-  return { chart, meta, changes, totals };
+  return {
+    chart,
+    meta,
+    changes,
+    totals,
+    invested,
+    fxImpact,
+    realizedPnl,
+    breakEven
+  };
 };

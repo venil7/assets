@@ -8,7 +8,11 @@ const summaryTypes = {
   chart: nonEmptyArray(ChartDataPointDecoder),
   changes: PeriodChangesDecoder,
   totals: TotalsDecoder,
-  meta: PortfolioMetaDecoder
+  meta: PortfolioMetaDecoder,
+  invested: t.number,
+  realizedPnl: t.number,
+  breakEven: t.number,
+  fxImpact: t.number
 };
 
 export const SummaryDecoder = t.type(summaryTypes);
