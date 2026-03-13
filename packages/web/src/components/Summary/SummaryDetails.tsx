@@ -16,7 +16,7 @@ export const SummaryDetails: React.FC<SummaryDetailsProps> = ({ summary }) => {
         <ListGroup variant="flush">
           <ListGroup.Item>
             <strong>Num portfolios</strong>
-            <Decimal value={null} />
+            <Decimal value={summary.numPortfolios} />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Types</strong>

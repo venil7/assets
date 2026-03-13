@@ -10,6 +10,7 @@ import {
   maxTs,
   minTs,
   sum,
+  uniques,
   volatility
 } from "@darkruby/assets-core";
 import * as A from "fp-ts/lib/Array";
@@ -39,9 +40,18 @@ const summaryMeta = (
     fiftyTwoWeekLow,
     fiftyTwoWeekHigh
   );
-  const currencies = <string[]>[];
-  const exchanges = <string[]>[];
-  const types = <string[]>[];
+  const currencies = pipe(
+    portfolios,
+    uniques((p) => p.meta.currencies)
+  );
+  const exchanges = pipe(
+    portfolios,
+    uniques((p) => p.meta.exchanges)
+  );
+  const types = pipe(
+    portfolios,
+    uniques((p) => p.meta.types)
+  );
   return {
     range,
     validRanges,
@@ -101,6 +111,7 @@ const summaryTotals = (portfolios: EnrichedPortfolio[]): Totals => {
 export const enrichSummary = (
   portfolios: EnrichedPortfolio[]
 ): EnrichedSummary => {
+  const numPortfolios = portfolios.length;
   const invested = pipe(
     portfolios,
     sum((p) => p.invested)
@@ -125,6 +136,7 @@ export const enrichSummary = (
   const totals = summaryTotals(portfolios);
 
   return {
+    numPortfolios,
     chart,
     meta,
     changes,

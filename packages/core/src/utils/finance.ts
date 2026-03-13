@@ -45,6 +45,17 @@ export const unique =
   (as: A[]): Array<R> =>
     pipe(new Set<R>(as.map(f)).values(), Array.from<R>);
 
+export const uniques =
+  <A, R extends string | number>(f: (a: A) => R[]) =>
+  (as: A[]): Array<R> =>
+    pipe(
+      as,
+      A.map(f),
+      A.flatten,
+      (items) => new Set<R>(items).values(),
+      Array.from<R>
+    );
+
 export const avg =
   <A>(f: (a: A) => number) =>
   (as: A[]) =>

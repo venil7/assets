@@ -5,6 +5,7 @@ import { ChartDataPointDecoder } from "./yahoo/chart";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
 const summaryTypes = {
+  numPortfolios: t.number,
   chart: nonEmptyArray(ChartDataPointDecoder),
   changes: PeriodChangesDecoder,
   totals: TotalsDecoder,

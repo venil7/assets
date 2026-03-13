@@ -11,6 +11,10 @@ import {
   XAxis,
   YAxis
 } from "recharts";
+import type {
+  NameType,
+  ValueType
+} from "recharts/types/component/DefaultTooltipContent";
 import { withVisibility } from "../../decorators/nodata";
 import { useFormatters } from "../../hooks/prefs";
 
@@ -26,14 +30,13 @@ const RawChart: React.FC<ChartProps> = ({
   const { money } = useFormatters();
   const tickFormatter = (n: number) => money(n);
 
-  const tooltipValueFormatter = (v: number, n: keyof ChartDataItem) => {
-    switch (n) {
+  const tooltipValueFormatter = (value?: ValueType, key?: NameType) => {
+    switch (key) {
       case "price":
-        return money(v);
       case "volume":
-        return money(v);
+        return <>{money(Number(value))}</>;
       default:
-        String(v);
+        return <>{value}</>;
     }
   };
 
