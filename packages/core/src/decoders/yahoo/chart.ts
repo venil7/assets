@@ -5,11 +5,13 @@ import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
+import type { UnixDate } from "../../domain";
 import { unixNow } from "../../utils/date";
-import { change } from "../../utils/finance";
+import { calcPnl } from "../../utils/finance";
+import { UnixDateDecoder } from "../date";
 import { chainDecoder, nullableDecoder, validationErr } from "../util";
 import { ChartMetaDecoder } from "./meta";
-import { UnixDateDecoder, type PeriodChangesDecoder } from "./period";
+import { type PeriodChangesDecoder } from "./period";
 
 const QuoteDecoder = t.type({
   open: t.array(nullableDecoder(t.number)),
@@ -25,7 +27,7 @@ const IndicatorsDecoder = t.type({
 
 export const ChartDecoder = t.type({
   meta: ChartMetaDecoder,
-  timestamp: withFallback(t.array(t.number), []), // may not be present
+  timestamp: withFallback(t.array(UnixDateDecoder), []), // may not be present
   indicators: IndicatorsDecoder
 });
 
@@ -46,11 +48,11 @@ type RawChartResult = NonNullable<RawChartResponse["chart"]["result"]>[0];
 
 type ArrayElement<A> = A extends Array<infer E> ? E : never;
 
-type Timestamps = RawChartResult["timestamp"];
+// type Timestamps = RawChartResult["timestamp"];
 type Indicators = ArrayElement<RawChartResult["indicators"]["quote"]>;
 
 const chartDataPointTypes = {
-  timestamp: t.number,
+  timestamp: UnixDateDecoder,
   volume: t.number,
   price: t.number
 };
@@ -60,7 +62,7 @@ export const ChartDataPointDecoder = t.type(chartDataPointTypes);
 export type ChartDataPoint = t.TypeOf<typeof ChartDataPointDecoder>;
 
 const combineIndicators = (
-  timestamps: Timestamps,
+  timestamps: UnixDate[],
   { volume, close }: Indicators
 ): ChartDataPoint[] => {
   return pipe(
@@ -93,7 +95,7 @@ export const YahooChartDataDecoder = pipe(
             price: meta.chartPreviousClose,
             volume: 0,
             timestamp: timestamp.length
-              ? timestamp[0] - 5 * 60
+              ? ((timestamp[0] - 5 * 60) as UnixDate)
               : meta.regularMarketTime
           };
           let chart1 = meta.previousClose ? [prevClose] : [];
@@ -124,26 +126,26 @@ export const YahooChartDataDecoder = pipe(
           chart.chart[chart.chart.length - 1]?.timestamp
         );
       }),
-      E.map(({ chart: { meta, chart }, start, end }) => {
-        const current = meta.regularMarketPrice;
-        const beginning =
+      E.map(({ chart: { meta, chart }, start: startTs, end: endTs }) => {
+        const endPrice = meta.regularMarketPrice;
+        const startPrice =
           chart[0]?.price ?? meta.previousClose ?? meta.chartPreviousClose;
-        const [returnValue, returnPct] = change({
-          before: beginning,
+        const [returnValue, returnPct] = calcPnl({
+          before: startPrice,
           after: meta.regularMarketPrice
         });
         return {
           meta,
           chart,
           periodChanges: {
-            start,
-            end,
-            beginning,
-            current,
+            startTs,
+            endTs,
+            startPrice,
+            endPrice,
             returnPct,
             returnValue
           }
-        };
+        } satisfies ProcessedChartResponse;
       })
     );
   })

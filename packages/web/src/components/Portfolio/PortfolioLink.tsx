@@ -37,8 +37,8 @@ export const PortfolioLink = ({
               <div className="stick-left">{portfolio.name}</div>
               <div className="stick-right">
                 <Totals
-                  totals={portfolio.base.totals}
-                  change={portfolio.base.changes}
+                  totals={portfolio.totals}
+                  change={portfolio.changes}
                   range={portfolio.meta.range}
                 />
               </div>

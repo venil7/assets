@@ -9,7 +9,8 @@
   .change {
     display: flex;
     flex-direction: column;
-    .value,.pct {
+    .value,
+    .pct {
       align-self: flex-end;
     }
   }

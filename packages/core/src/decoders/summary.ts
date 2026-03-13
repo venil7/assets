@@ -6,9 +6,13 @@ import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
 const summaryTypes = {
   chart: nonEmptyArray(ChartDataPointDecoder),
-  value: PeriodChangesDecoder,
+  changes: PeriodChangesDecoder,
   totals: TotalsDecoder,
   meta: PortfolioMetaDecoder,
+  invested: t.number,
+  realizedPnl: t.number,
+  breakEven: t.number,
+  fxImpact: t.number
 };
 
-export const SummaryDecoder = t.type(summaryTypes);
+export const EnrichedSummaryDecoder = t.type(summaryTypes);

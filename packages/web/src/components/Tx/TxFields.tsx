@@ -49,14 +49,14 @@ export const TxFields: React.FC<TxFieldsProps> = ({
   const setQuantity = setField("quantity") as (n: Nullable<number>) => void;
   const { money } = useFormatters();
 
-  const [rate, setRate] = useState(asset.mktFxRate);
+  const [rate, setRate] = useState(asset.base.fxRate);
   const toBase = getToBase(rate);
 
   const getRate = (base: Ccy, ccy: string, date: Date | UnixDate) =>
     pipe(
       fxRate(base, ccy, date),
       TE.map((fx) => fx.rate),
-      TE.getOrElse(() => () => Promise.resolve<number>(asset.mktFxRate))
+      TE.getOrElse(() => () => Promise.resolve<number>(asset.base.fxRate))
     )();
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export const TxFields: React.FC<TxFieldsProps> = ({
           <Col>
             <DatePicker date={tx.date} onChange={setDate} disabled={disabled} />
           </Col>
-          <Col hidden={asset.domestic}>
+          <Col hidden={asset.base.domestic}>
             <InputGroup.Text>
               {money(1, asset.base_ccy)}≈
               {money(rate, asset.meta.currency as Ccy)}

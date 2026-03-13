@@ -1,6 +1,6 @@
 {
   "name": "@darkruby/assets-core",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
@@ -8,7 +8,6 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "heap-js": "^2.6.0",
     "io-ts": "^2.2.22",
     "io-ts-reporters": "^2.0.1"
   }

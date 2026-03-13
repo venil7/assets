@@ -1,4 +1,4 @@
-import { getUnixTime } from "date-fns";
+import { fromUnixTime } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
 import { contramap, reverse } from "fp-ts/lib/Ord";
 import * as t from "io-ts";
@@ -9,11 +9,12 @@ import type {
   PostTxsUploadDecoder
 } from "../decoders/tx";
 import { fuzzyIndexSearch, nonEmpty } from "../utils/array";
-import { DateOrd } from "../utils/date";
+import { DateOrd, unixTimestamp } from "../utils/date";
 import type { Optional } from "../utils/utils";
-import type { UnixDate } from "./yahoo";
+import type { UnixDate } from "./date";
 
-export const EARLIEST_DATE = new Date(0);
+export const EARLIEST_TS = unixTimestamp(0);
+export const EARLIEST_DATE = fromUnixTime(EARLIEST_TS);
 
 export type PostTx = t.TypeOf<typeof PostTxDecoder>;
 export type GetTx = t.TypeOf<typeof GetTxDecoder>;
@@ -66,7 +67,7 @@ export const earliestTxBeforeTimestamp =
   <T extends GetTx>(txs: T[]): Optional<T> => {
     if (nonEmpty(txs)) {
       const fuzzyFindTxBeforeTimestamp = fuzzyIndexSearch<GetTx>(
-        (tx) => getUnixTime(tx.date),
+        (tx) => tx.timestamp,
         "left-unsafe"
       );
       const idx = pipe(txs, fuzzyFindTxBeforeTimestamp(ts));
@@ -79,7 +80,7 @@ export const txsAfterTimestamp =
   <T extends GetTx>(txs: T[]): T[] => {
     if (nonEmpty(txs)) {
       const fuzzyFindTxByTimestamp = fuzzyIndexSearch<GetTx>(
-        (tx) => getUnixTime(tx.date),
+        (tx) => tx.timestamp,
         "right-unsafe"
       );
       return pipe(txs, fuzzyFindTxByTimestamp(ts), txs.slice.bind(txs));

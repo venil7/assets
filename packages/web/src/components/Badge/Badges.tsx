@@ -28,7 +28,14 @@ export function ChangeIndicator<T>({
   const bg = (() => {
     if (color) return color;
     const n = numeric(value);
-    return n < 0 ? "danger" : n > 0 ? "success" : "secondary";
+    switch (true) {
+      case n < 0:
+        return "danger";
+      case n > 0:
+        return "success";
+      default:
+        return "secondary";
+    }
   })();
   return <Badge bg={bg}>{formatter(value)}</Badge>;
 }
@@ -56,7 +63,7 @@ export const MoneyAndChangeIndicator: React.FC<
   MoneyAndChangeIndicatorProps
 > = ({ value, range }) => {
   const { money, percent } = useFormatters();
-  const numeric = (t: Totals) => t.returnPct;
+  const numeric = (t: Totals) => t.returnValue;
   const formatter = ({ returnValue, returnPct }: Totals) => {
     const pre = range ? `${range}: ` : "";
     return `${pre}${money(returnValue)} (${percent(returnPct)})`;
@@ -84,10 +91,10 @@ export const WeightIndicator = pipe(
 export const PortfolioPeriodChange = pipe(
   ChangeIndicator<EnrichedPortfolio>,
   withProps({
-    numeric: (p) => p.base.changes.returnPct
+    numeric: (p) => p.changes.returnPct
   }),
   withFormatters(({ percent }) => ({
-    formatter: (p) => `${p.meta.range}: ${percent(p.base.changes.returnPct)}`
+    formatter: (p) => `${p.meta.range}: ${percent(p.changes.returnPct)}`
   }))
 );
 
@@ -128,6 +135,7 @@ export const AssetPeriodChange = pipe(
     numeric: (a) => a.ccy.changes.returnPct
   }),
   withFormatters(({ percent }) => ({
-    formatter: (a) => `${a.meta.range}: ${percent(a.ccy.changes.returnPct)}`
+    formatter: ({ ccy, meta }) =>
+      `${meta.range}: ${percent(ccy.changes.returnPct)}`
   }))
 );

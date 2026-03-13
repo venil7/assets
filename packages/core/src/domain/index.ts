@@ -1,4 +1,5 @@
 export * from "./asset";
+export * from "./date";
 export * from "./error";
 export * from "./id";
 export * from "./portfolio";

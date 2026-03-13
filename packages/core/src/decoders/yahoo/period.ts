@@ -1,14 +1,6 @@
-import type { Refinement } from "fp-ts/lib/Refinement";
 import * as t from "io-ts";
-
-export const UnixDateDecoder = t.brand(
-  t.number,
-  ((a) => a >= 0 && a == Math.floor(a)) as Refinement<
-    number,
-    t.Branded<number, { readonly UnixDate: symbol }>
-  >,
-  "UnixDate"
-);
+import type { Totals } from "../../domain";
+import { UnixDateDecoder } from "../date";
 
 const totalsTypes = {
   returnValue: t.number,
@@ -16,12 +8,17 @@ const totalsTypes = {
 };
 
 const periodChangesTypes = {
-  beginning: t.number,
-  current: t.number,
   ...totalsTypes,
-  start: UnixDateDecoder,
-  end: UnixDateDecoder
+  startPrice: t.number,
+  endPrice: t.number,
+  startTs: UnixDateDecoder,
+  endTs: UnixDateDecoder
 };
 
 export const PeriodChangesDecoder = t.type(periodChangesTypes);
 export const TotalsDecoder = t.type(totalsTypes);
+
+export const defaultTotals = (): Totals => ({
+  returnValue: 0,
+  returnPct: 0
+});

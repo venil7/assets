@@ -3,7 +3,7 @@ import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useHead } from "@unhead/react";
 import { useEffect } from "react";
-import { Portfolios } from "../components/Portfolio/Portfolios";
+import { Summary } from "../components/Summary/Summary";
 import { useStore } from "../hooks/store";
 
 const RawPortfoliosScreen: React.FC = () => {
@@ -40,16 +40,16 @@ const RawPortfoliosScreen: React.FC = () => {
 
   return (
     <>
-      <Portfolios
+      <Summary
         error={error}
         onAdd={handleAdd}
         fetching={fetching}
         onRange={handleRange}
+        onErrorDismiss={load}
         onUpdate={handleUpdate}
         onDelete={handleDelete}
         summary={summary.data.value}
         portfolios={portfolios.data.value}
-        onErrorDismiss={load}
       />
     </>
   );

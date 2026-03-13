@@ -20,7 +20,7 @@ import {
 } from "./services/cache";
 import { env, envDurationMsec, envNumber } from "./services/env";
 import { initializeApp } from "./services/init";
-import { cachedYahooApi } from "./services/yahoo";
+import { cachedYahooApi } from "./yahoo/cached";
 
 type Config = {
   database: string;

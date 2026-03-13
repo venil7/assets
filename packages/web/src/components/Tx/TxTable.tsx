@@ -5,20 +5,18 @@ import {
   type EnrichedTx,
   type PostTx
 } from "@darkruby/assets-core";
-import classNames from "classnames";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { withCondition } from "../../decorators/nodata";
 import { withProps } from "../../decorators/props";
-import { useFormatters } from "../../hooks/prefs";
-import { isoTimestamp } from "../../util/date";
+import { dateFmt } from "../../util/date";
 import { Dark } from "../Form/Alert";
+import { Decimal, Money, Percent } from "../Formatting";
 import { confirmationModal } from "../Modals/Confirmation";
 import { PagedTable } from "../Table/Table";
 import { TxMenu } from "./Menu";
 import { txDetailsModal } from "./TxDetail";
 import { txModal } from "./TxFields";
-import "./TxTable.scss";
 
 export type TxTableProps = {
   asset: EnrichedAsset;
@@ -31,16 +29,14 @@ export type TxTableProps = {
 const TxTableHeader = ({ disabled, asset }: TxTableProps) => (
   <thead>
     <tr>
-      <th>Type</th>
+      <th className="narrow">Type</th>
       <th className="d-none d-md-table-cell">Date</th>
       <th>Quantity</th>
       <th>Price</th>
       <th>Cost</th>
       <th>Value</th>
       <th>Return</th>
-      <th hidden={asset.domestic}>Return (base)</th>
-      <th hidden={asset.domestic}>Fx imact</th>
-      <th className="d-none d-md-table-cell">Comments</th>
+      <th>Comment</th>
       <th hidden={disabled}>&#xfe19;</th>
     </tr>
   </thead>
@@ -51,8 +47,7 @@ const TxTableRow = (
   _idx: number,
   { disabled, asset, onDelete, onEdit, onClone }: TxTableProps
 ) => {
-  const domestic = asset.domestic;
-  const { money, decimal, percent } = useFormatters();
+  const domestic = asset.base.domestic;
   const handleView = (tx: EnrichedTx) => () => txDetailsModal(tx, { asset });
   const handleEdit = (txid: number, tx: PostTx) =>
     pipe(
@@ -68,52 +63,35 @@ const TxTableRow = (
     );
   const ccy = asset.meta.currency as Ccy;
   const buy = tx.type == "buy";
-  const profitCcy = tx.ccy.returnValue >= 0;
-  const profitBase = tx.base.returnValue >= 0;
+  const profitCcy = tx.pnl_pct >= 0;
   return (
     <tr key={tx.id} onClick={handleView(tx)}>
-      <td /**type */ className="capitalize">{tx.type}</td>
-      <td /**date*/ className="d-none d-md-table-cell">
-        {isoTimestamp(tx.date)}
+      <td /**type */ className="capitalize narrow">{tx.type}</td>
+      <td /**date*/ className="d-none d-md-table-cell">{dateFmt(tx.date)}</td>
+      <td /**quantity */>
+        <Decimal value={tx.quantity} />
       </td>
-      <td /**quantity */>{decimal(tx.quantity)}</td>
-      <td /**price/unit */>{money(tx.price, ccy)}</td>
-      <td /**cost */>{money(tx.ccy.cost, ccy)}</td>
-      <td /**value */>{money(tx.ccy.value, ccy)}</td>
-      {/* <td>{decimal(tx.holdings, 5, locale)}</td>
-      <td>{money(tx.total_invested, ccy, locale)}</td> */}
-      <td
-        className={classNames({
-          profit: profitCcy,
-          loss: !profitCcy,
-          unrealized: buy
-        })} /**return */
-      >
-        {money(tx.ccy.returnValue, ccy)}&nbsp; ({percent(tx.ccy.returnPct)})
+      <td /**price/unit */>
+        <Money value={tx.price} ccy={ccy} nocolor />
+      </td>
+      <td /**cost */>
+        <Money value={tx.cost} ccy={ccy} nocolor />
+      </td>
+      <td /**value */>
+        <Money value={tx.value} ccy={ccy} nocolor />
       </td>
       <td
-        hidden={domestic}
-        className={classNames({
-          profit: profitBase,
-          loss: !profitBase,
-          unrealized: buy
-        })} /**return base */
+      /**return */
       >
-        {money(tx.base.returnValue)}&nbsp; ({percent(tx.base.returnPct)})
+        <Money value={tx.pnl} ccy={ccy} />
+        (<Percent value={tx.pnl_pct} />)
       </td>
+      <td>{tx.comments}</td>
       <td
-        /**fx impact */ hidden={domestic}
-        className={classNames({
-          profit: (tx.base.fxImpact ?? 0) >= 0,
-          loss: (tx.base.fxImpact ?? 0) < 0
-        })}
+        /**menu */ hidden={disabled}
+        onClick={(evt) => evt.stopPropagation()}
+        className="narrow"
       >
-        {money(tx.base.fxImpact)}
-      </td>
-      <td /**comments */ className="d-none d-md-table-cell ellipsis pre">
-        {tx.comments.substring(0, 20)}
-      </td>
-      <td /**menu */ hidden={disabled} onClick={(evt) => evt.stopPropagation()}>
         <TxMenu
           onClone={handleClone(tx)}
           onEdit={handleEdit(tx.id, tx)}

@@ -67,8 +67,8 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
         <HorizontalStack className="top-toolbar">
           <AddBtn onClick={handleAddAsset} label="Asset" />
           <Totals
-            change={portfolio.base.changes}
-            totals={portfolio.base.totals}
+            change={portfolio.changes}
+            totals={portfolio.totals}
             range={portfolio.meta.range}
           />
         </HorizontalStack>
@@ -80,7 +80,7 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
           <TabContent tab={0}>
             <RangeChart
               onChange={onRange}
-              data={portfolio.base.chart}
+              data={portfolio.chart}
               range={portfolio.meta.range}
               ranges={portfolio.meta.validRanges}
               hidden={!portfolio.num_assets}

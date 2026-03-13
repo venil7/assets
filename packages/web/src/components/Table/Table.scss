@@ -1,0 +1,16 @@
+.fixed-table {
+  width: 100%;
+  th,
+  td {
+    white-space: nowrap;
+    &:not(.narrow) {
+      max-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    &.narrow {
+      width: 1%;
+      white-space: nowrap;
+    }
+  }
+}

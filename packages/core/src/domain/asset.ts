@@ -12,6 +12,8 @@ export type PostAsset = t.TypeOf<typeof PostAssetDecoder>;
 export type GetAsset = t.TypeOf<typeof GetAssetDecoder>;
 
 export type EnrichedAsset = t.TypeOf<typeof EnrichedAssetDecoder>;
+export type EnrichedAssetCcy = EnrichedAsset["ccy"];
+export type EnrichedAssetBase = EnrichedAsset["base"];
 
 export const defaultAsset = (): PostAsset => ({ name: "", ticker: "" });
 

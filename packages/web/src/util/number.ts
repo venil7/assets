@@ -1,4 +1,4 @@
-import { ccyToLocale, type Ccy } from "@darkruby/assets-core";
+import { ccyToLocale, type Ccy, type Optional } from "@darkruby/assets-core";
 
 export const moneyFormatter =
   (
@@ -7,13 +7,14 @@ export const moneyFormatter =
   ) =>
   (
     number: number,
-    currency: Ccy = defaultCcy,
+    currency: Optional<Ccy> = defaultCcy,
     locale = defaultLocale
   ): string => {
     const div = currency == "GBp" ? 100 : 1;
+    currency ??= defaultCcy; // in case null
     return new Intl.NumberFormat(locale, {
       style: "currency",
-      currency,
+      currency
     }).format(number / div);
   };
 
@@ -22,7 +23,7 @@ export const decimalFormatter =
   (value: number, prec = defaultPrec): string => {
     return Intl.NumberFormat(locale, {
       style: "decimal",
-      maximumFractionDigits: prec,
+      maximumFractionDigits: prec
     }).format(value);
   };
 
@@ -31,6 +32,6 @@ export const percentFormatter =
   (value: number, prec = defaultPrec): string => {
     return Intl.NumberFormat(locale, {
       style: "percent",
-      maximumFractionDigits: prec,
+      maximumFractionDigits: prec
     }).format(value);
   };

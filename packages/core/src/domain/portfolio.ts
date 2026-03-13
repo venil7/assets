@@ -25,7 +25,7 @@ export const defaultPortfolio = (): PostPortfolio => ({
 export const byPortfolioChangePct: Ord<EnrichedPortfolio> = pipe(
   numberOrd,
   reverse,
-  contramap<number, EnrichedPortfolio>((p) => p.base.changes.returnPct)
+  contramap<number, EnrichedPortfolio>((p) => p.changes.returnPct)
 );
 
 export type PortfolioId = GetPortfolio["id"];
