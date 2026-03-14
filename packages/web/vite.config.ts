@@ -12,18 +12,24 @@ const OUTDIR = path.resolve(ROOT, "dist/public/");
 const version = JSON.parse(readFileSync(PACKAGE_JSON).toString()).version;
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      babel: {
+        plugins: [["babel-plugin-react-compiler"]]
+      }
+    })
+  ],
   base: "/app",
   build: {
     emptyOutDir: true,
     outDir: OUTDIR,
-    assetsDir: "assets",
+    assetsDir: "assets"
   },
   resolve: {
-    alias: { "~": NODE_MODULES },
+    alias: { "~": NODE_MODULES }
   },
   define: {
     VERSION: JSON.stringify(version),
-    BUILD_DATE: JSON.stringify(format(new Date(), "dd-MM-yyyy")),
-  },
+    BUILD_DATE: JSON.stringify(format(new Date(), "dd-MM-yyyy"))
+  }
 });
