@@ -14,8 +14,7 @@
 - [x] fix summary perecnt calc
 - [x] enriched portfolio : break even
 - [x] chart merge in polars
-- [ ] chart shows transactions
-- [ ] break even line
+- [x] chart shows transactions
 - [ ] multi asset layered chart for portfolios
 - [ ] multi portfollio layered chart for home screen
 - [ ] INR

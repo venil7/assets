@@ -1,4 +1,5 @@
 import {
+  defined,
   getToBase,
   txValidator,
   type Ccy,
@@ -34,6 +35,7 @@ import { createModal } from "../Modals/Modal";
 export type TxFieldsProps = Identity<
   FieldsProps<PostTx> & {
     asset: EnrichedAsset;
+    prepopulatePrice?: boolean;
   }
 >;
 
@@ -41,13 +43,16 @@ export const TxFields: React.FC<TxFieldsProps> = ({
   data: tx,
   asset,
   onChange,
+  prepopulatePrice = false,
   disabled
 }) => {
   const setField = usePartialChange(tx, onChange);
   const setPrice = setField("price") as (n: Nullable<number>) => void;
+  const setQty = setField("quantity") as (n: Nullable<number>) => void;
   const setDate = (d: Nullable<Date>) => setField("date")(d ?? new Date());
-  const setQuantity = setField("quantity") as (n: Nullable<number>) => void;
   const { money } = useFormatters();
+
+  const [spend, setSpend] = useState<Nullable<number>>(tx.price * tx.quantity);
 
   const [rate, setRate] = useState(asset.base.fxRate);
   const toBase = getToBase(rate);
@@ -60,8 +65,41 @@ export const TxFields: React.FC<TxFieldsProps> = ({
     )();
 
   useEffect(() => {
+    if (prepopulatePrice) {
+      setPrice(asset.meta.regularMarketPrice);
+    }
+  }, [prepopulatePrice]);
+
+  useEffect(() => {
     getRate(asset.base_ccy, asset.meta.currency, tx.date).then(setRate);
   }, [tx.date]);
+
+  const handlePrice = (price: Nullable<number>) => {
+    if (defined(price)) {
+      if (defined(spend)) {
+        onChange({ ...tx, quantity: spend / price, price });
+      } else if (defined(tx.quantity)) {
+        setPrice(price);
+        setSpend(tx.quantity / price);
+      }
+    }
+  };
+
+  const handleQty = (qty: Nullable<number>) => {
+    if (defined(qty)) {
+      setSpend(tx.price * qty);
+      setQty(qty);
+    }
+  };
+
+  const handleSpend = (total: Nullable<number>) => {
+    if (defined(total) && tx.price > 0) {
+      setQty(total / tx.price);
+      setSpend(total);
+      return;
+    }
+    setQty(0);
+  };
 
   return (
     <Form>
@@ -73,14 +111,6 @@ export const TxFields: React.FC<TxFieldsProps> = ({
         />
       </Form.Group>
       <Form.Group className="mb-3">
-        <Form.Label>Quantity</Form.Label>
-        <FormNumber
-          value={tx.quantity}
-          onChange={setQuantity}
-          disabled={disabled}
-        />
-      </Form.Group>
-      <Form.Group className="mb-3">
         <Form.Label>Price (per unit)</Form.Label>
         <Row>
           <Col>
@@ -88,7 +118,7 @@ export const TxFields: React.FC<TxFieldsProps> = ({
               <InputGroup.Text>{asset.meta.currency}</InputGroup.Text>
               <FormNumber
                 value={tx.price}
-                onChange={setPrice}
+                onChange={handlePrice}
                 disabled={disabled}
               />
               <InputGroup.Text>{money(toBase(tx.price))}</InputGroup.Text>
@@ -96,6 +126,27 @@ export const TxFields: React.FC<TxFieldsProps> = ({
           </Col>
         </Row>
       </Form.Group>
+      <Form.Group className="mb-3">
+        <Row>
+          <Col>
+            <Form.Label>Quantity</Form.Label>
+            <FormNumber
+              value={tx.quantity}
+              onChange={handleQty}
+              disabled={disabled}
+            />
+          </Col>
+          <Col>
+            <Form.Label>Cost / Value</Form.Label>
+            <FormNumber
+              value={spend}
+              onChange={handleSpend}
+              disabled={disabled}
+            />
+          </Col>
+        </Row>
+      </Form.Group>
+
       <Form.Group className="mb-3">
         <Form.Label>Transaction date</Form.Label>
         <Row>
@@ -159,7 +210,7 @@ export const TxModal = createModal<PostTx, TxFieldsProps>(
 
 export const txModal = (
   value: PostTx,
-  props: Pick<TxFieldsProps, "asset" | "disabled">
+  props: Pick<TxFieldsProps, "asset" | "disabled" | "prepopulatePrice">
 ) =>
   pipe(
     { value, ...props },
