@@ -1,5 +1,6 @@
 import {
   calcPnl,
+  isBuy,
   type Action,
   type EnrichedTx,
   type GetTx
@@ -18,7 +19,7 @@ export const getTxEnricher =
       ),
       TE.map(({ meta }) => {
         // if meta is present, TX is of last stretch, and needs enrichment
-        const buy = tx.type == "buy";
+        const buy = isBuy(tx);
         if (meta && buy) {
           const value = tx.quantity_ext * meta.regularMarketPrice;
           const [pnl, pnlPct] = calcPnl({ before: tx.cost, after: value });

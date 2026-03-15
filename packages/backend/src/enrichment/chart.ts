@@ -1,10 +1,10 @@
 import type {
   ChartData,
-  ChartDataItem,
   ChartDataPoint,
   ChartRange,
   EnrichedAsset,
   EnrichedPortfolio,
+  FxRates,
   GetTx
 } from "@darkruby/assets-core";
 import {
@@ -17,13 +17,8 @@ import {
 import * as A from "fp-ts/lib/Array";
 import { flow, pipe, type FunctionN } from "fp-ts/lib/function";
 import { Heap } from "heap-js";
-import { col, DataFrame, Float64, Int32, readRecords } from "nodejs-polars";
-
-export const ChartSchema = {
-  timestamp: Int32,
-  price: Float64,
-  volume: Float64
-};
+import { col, DataFrame, readRecords } from "nodejs-polars";
+import { ChartSchema, RateRecSchema } from "./schema";
 
 const commonRanges =
   <Item>(getRanges: FunctionN<[Item], ChartRange[]>) =>
@@ -73,7 +68,12 @@ const combineCharts =
 
     while (heap.length) {
       const { timestamp } = heap.peek()!.point;
-      const point: ChartDataPoint = { timestamp, price: 0, volume: 0 };
+      const point: ChartDataPoint = {
+        timestamp,
+        price: 0,
+        volume: 0,
+        tx: null
+      };
       const timeSlotIds = new Set<string>();
       while (heap.length && heap.peek()!.point.timestamp == timestamp) {
         const heapItem = heap.pop()!;
@@ -94,7 +94,12 @@ const combineCharts =
     }
     return pipe(
       points,
-      onEmpty(() => ({ timestamp: unixNow(), volume: 0, price: 0 }))
+      onEmpty<ChartDataPoint>(() => ({
+        timestamp: unixNow(),
+        volume: 0,
+        price: 0,
+        tx: undefined
+      }))
     );
   };
 
@@ -110,65 +115,9 @@ export const combinePortfolioCharts = combineCharts<EnrichedPortfolio>((p) => ({
   chart: p.chart
 }));
 
-export const enrichChart = (chart: ChartData, txs: GetTx[]): ChartData => {
-  let txi = 0; // current tx index
-
-  const earliestChartTs = chart[0]?.timestamp ?? unixNow();
-  const earliestTxTs = txs[0]?.timestamp;
-  if (!earliestTxTs) {
-    // no transactions exist for this asset;
-    // chart will just be showing price per 1 unit
-    txs = [
-      {
-        ...defaultBuyTx(EARLIEST_DATE),
-        quantity: 1,
-        running_holding: 1
-      } as GetTx
-    ];
-  }
-  if (earliestTxTs < earliestChartTs) {
-    // there are transaction earlier that chart begins
-    // we need to fast forward until tx just before chart begins
-    while (
-      txi + 1 < txs.length &&
-      txs[txi + 1].timestamp < chart[0].timestamp
-    ) {
-      txi += 1;
-    }
-  }
-  if (earliestTxTs > earliestChartTs) {
-    // chart starts earlier than earliest transaction
-    // chart will be showing zero units until first transaction is encountered
-    txs = [
-      {
-        ...defaultBuyTx(EARLIEST_DATE),
-        timestamp: EARLIEST_TS,
-        running_holding: 0
-      } as GetTx,
-      ...txs
-    ];
-  }
-
-  const res: ChartDataItem[] = [];
-  for (let dp of chart) {
-    let currentTx = txs[txi];
-    const isLastTx = txi == txs.length - 1;
-    if (isLastTx) {
-      res.push({ ...dp, price: dp.price * currentTx.running_holding });
-      continue;
-    }
-    const nextTx = txs[txi + 1];
-    if (dp.timestamp >= nextTx.timestamp) {
-      txi += 1;
-      currentTx = nextTx;
-    }
-    res.push({ ...dp, price: dp.price * currentTx.running_holding });
-  }
-  return res as ChartData;
-};
-
 const combineChartsAlt = (charts: Array<ChartData>): ChartData => {
-  if (charts.length < 1) return [{ timestamp: unixNow(), volume: 0, price: 0 }];
+  if (charts.length < 1)
+    return [{ timestamp: unixNow(), volume: 0, price: 0, tx: null }];
   const [init, ...rest] = charts;
   const combine = (df1: DataFrame, df2: DataFrame): DataFrame => {
     const ret = df1
@@ -203,3 +152,94 @@ export const combinePortfolioChartsAlt = flow(
   A.map<EnrichedPortfolio, ChartData>(({ chart }) => chart),
   combineChartsAlt
 );
+
+export const enrichChart = (chart: ChartData, txs: GetTx[]): ChartData => {
+  let txi = 0; // current tx index
+
+  const earliestChartTs = chart[0]?.timestamp ?? unixNow();
+  const earliestTxTs = txs[0]?.timestamp;
+  if (!earliestTxTs) {
+    // no transactions exist for this asset;
+    // chart will just be showing price per 1 unit
+    txs = [
+      {
+        ...defaultBuyTx(EARLIEST_DATE),
+        timestamp: EARLIEST_TS,
+        quantity: 1,
+        running_holding: 1
+      } as GetTx
+    ];
+  } else if (earliestTxTs < earliestChartTs) {
+    // there are transaction earlier that chart begins
+    // we need to fast forward until tx just before chart begins
+    while (
+      txi + 1 < txs.length &&
+      txs[txi + 1].timestamp < chart[0].timestamp
+    ) {
+      txi += 1;
+    }
+  } else if (earliestTxTs > earliestChartTs) {
+    // chart starts earlier than earliest transaction
+    // chart will be showing zero units until first transaction is encountered
+    txs = [
+      {
+        ...defaultBuyTx(EARLIEST_DATE),
+        timestamp: EARLIEST_TS,
+        running_holding: 0
+      } as GetTx,
+      ...txs
+    ];
+  }
+
+  const res: ChartDataPoint[] = [];
+  const used = A.makeBy(txs.length, (i) => txs[i].timestamp < earliestChartTs);
+  const useTx = (i: number) => {
+    if (i >= 0 && i <= txs.length - 1 && !used[i]) {
+      used[i] = true;
+      return txs[i];
+    }
+    return null;
+  };
+  for (let point of chart) {
+    let currentTx = txs[txi];
+    const isLastTx = txi == txs.length - 1;
+    if (isLastTx) {
+      res.push({
+        ...point,
+        price: point.price * currentTx.running_holding,
+        tx: useTx(txi)
+      });
+      continue;
+    }
+    const nextTx = txs[txi + 1];
+    if (point.timestamp >= nextTx.timestamp) {
+      txi += 1;
+      currentTx = nextTx;
+    }
+    res.push({
+      ...point,
+      tx: useTx(txi),
+      price: point.price * currentTx.running_holding
+    });
+  }
+  return res as ChartData;
+};
+
+export const chartInBaseCcy = (
+  chart: ChartData,
+  fxRates: FxRates
+): ChartData => {
+  const C = readRecords(chart, { schema: ChartSchema });
+  // console.log(
+  //   chart.filter((c) => !!c.tx).map((c) => c.tx?.date instanceof Date)
+  // );
+  const R = readRecords(fxRates.rates, { schema: RateRecSchema });
+  return C.joinAsof(R, { on: "timestamp", strategy: "nearest" }) //? nearest is questionable
+    .select(
+      col("price").divideBy(col("rate")).alias("price"),
+      col("timestamp"),
+      col("volume"),
+      col("tx")
+    )
+    .toRecords() as ChartData;
+};

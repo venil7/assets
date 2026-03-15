@@ -1,6 +1,8 @@
 import { pipe } from "fp-ts/lib/function";
 import * as NA from "fp-ts/lib/NonEmptyArray";
 
+export type ArrayElement<A> = A extends Array<infer E> ? E : never;
+
 export const nonEmpty = <T>(a: T[]): a is NA.NonEmptyArray<T> => a.length > 0;
 
 export const onEmpty =

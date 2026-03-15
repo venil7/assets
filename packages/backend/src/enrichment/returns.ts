@@ -6,7 +6,6 @@ import {
   getToBase,
   sum,
   txsAfterTimestamp,
-  type ChartData,
   type EnrichedAssetBase,
   type EnrichedAssetCcy,
   type EnrichedTx,
@@ -19,40 +18,15 @@ import {
 import { ap } from "fp-ts/lib/Identity";
 import { pipe } from "fp-ts/lib/function";
 import { Eq as stringEq } from "fp-ts/lib/string";
-import {
-  Bool,
-  col,
-  DataFrame,
-  Float64,
-  Int32,
-  lit,
-  readRecords
-} from "nodejs-polars";
-import { ChartSchema, enrichChart } from "./chart";
-
-const RateRecSchema = {
-  timestamp: Int32,
-  rate: Float64
-};
-const TxSchema = {
-  id: Int32,
-  pnl: Float64,
-  cost: Float64,
-  price: Float64,
-  value: Float64,
-  pnl_pct: Float64,
-  timestamp: Int32,
-  final_stretch: Bool,
-  quantity_ext: Float64,
-  running_cost: Float64,
-  running_holding: Float64
-};
+import { col, DataFrame, lit, readRecords } from "nodejs-polars";
+import { chartInBaseCcy, enrichChart } from "./chart";
+import { EnrichedTxSchema, RateRecSchema } from "./schema";
 
 export const txsWithRates = (
   txs: EnrichedTx[],
   fxRates: FxRates
 ): DataFrame => {
-  const $txs = readRecords(txs, { schema: TxSchema });
+  const $txs = readRecords(txs, { schema: EnrichedTxSchema });
   const $fxRates = readRecords(fxRates.rates, { schema: RateRecSchema });
   return $txs
     .joinAsof($fxRates, { on: "timestamp", strategy: "nearest" })
@@ -166,18 +140,6 @@ export const $enrichedAssetBase = (
     changes,
     totals: { returnValue, returnPct }
   } satisfies EnrichedAssetBase;
-};
-
-const chartInBaseCcy = (chart: ChartData, fxRates: FxRates): ChartData => {
-  const C = readRecords(chart, { schema: ChartSchema });
-  const R = readRecords(fxRates.rates, { schema: RateRecSchema });
-  return C.joinAsof(R, { on: "timestamp", strategy: "nearest" }) //? nearest is questionable
-    .select(
-      col("timestamp"),
-      col("volume"),
-      col("price").divideBy(col("rate")).alias("price")
-    )
-    .toRecords() as ChartData;
 };
 
 const $fxImpact = ($finalStretchTxsWithRate: DataFrame): number => {

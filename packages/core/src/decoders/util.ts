@@ -31,7 +31,7 @@ export const liftRTE = <T, R, U = unknown>(decoder: t.Decoder<U, T>) => {
 export const nullableDecoder = <T>(
   decoder: t.Type<T, any, any>
 ): t.Type<Optional<T>, any> => {
-  return t.union([t.null, t.undefined, decoder]);
+  return t.union([decoder, t.null, t.undefined]);
 };
 
 export const chainDecoder =

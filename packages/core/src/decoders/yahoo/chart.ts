@@ -6,9 +6,11 @@ import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
 import type { UnixDate } from "../../domain";
+import type { ArrayElement } from "../../utils";
 import { unixNow } from "../../utils/date";
 import { calcPnl } from "../../utils/finance";
 import { UnixDateDecoder } from "../date";
+import { TxTypeDecoder } from "../tx";
 import { chainDecoder, nullableDecoder, validationErr } from "../util";
 import { ChartMetaDecoder } from "./meta";
 import { type PeriodChangesDecoder } from "./period";
@@ -46,20 +48,24 @@ const RawChartResponseDecoder = t.type({
 type RawChartResponse = t.TypeOf<typeof RawChartResponseDecoder>;
 type RawChartResult = NonNullable<RawChartResponse["chart"]["result"]>[0];
 
-type ArrayElement<A> = A extends Array<infer E> ? E : never;
-
-// type Timestamps = RawChartResult["timestamp"];
 type Indicators = ArrayElement<RawChartResult["indicators"]["quote"]>;
 
 const chartDataPointTypes = {
   timestamp: UnixDateDecoder,
   volume: t.number,
-  price: t.number
+  price: t.number,
+  tx: nullableDecoder(
+    t.type({
+      type: TxTypeDecoder,
+      quantity: t.number,
+      price: t.number
+    })
+  )
 };
 
 export const ChartDataPointDecoder = t.type(chartDataPointTypes);
 
-export type ChartDataPoint = t.TypeOf<typeof ChartDataPointDecoder>;
+type ChartDataPoint = t.TypeOf<typeof ChartDataPointDecoder>;
 
 const combineIndicators = (
   timestamps: UnixDate[],
@@ -69,7 +75,9 @@ const combineIndicators = (
     timestamps,
     A.zip(A.zipWith(close, volume, (c, v) => [c, v] as const)),
     A.filterMap(([timestamp, [price, volume]]) =>
-      price ? O.some({ timestamp, price, volume: volume ?? 0 }) : O.none
+      price
+        ? O.some({ timestamp, price, volume: volume ?? 0, tx: null })
+        : O.none
     )
   );
 };
@@ -92,6 +100,7 @@ export const YahooChartDataDecoder = pipe(
         if (chart.result && chart.result.length > 0) {
           const { meta, timestamp, indicators } = chart.result[0];
           const prevClose: ChartDataPoint = {
+            tx: null,
             price: meta.chartPreviousClose,
             volume: 0,
             timestamp: timestamp.length

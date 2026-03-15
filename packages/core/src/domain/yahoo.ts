@@ -12,7 +12,10 @@ import {
 } from "date-fns";
 import * as t from "io-ts";
 import type { FxDecoder, FxRatesDecoder, FxRecordDecoder } from "../decoders";
-import type { YahooChartDataDecoder } from "../decoders/yahoo/chart";
+import type {
+  ChartDataPointDecoder,
+  YahooChartDataDecoder
+} from "../decoders/yahoo/chart";
 import type { ChartInterval, ChartRange } from "../decoders/yahoo/meta";
 import type {
   PeriodChangesDecoder,
@@ -23,7 +26,6 @@ import type {
   YahooTickerSearchResultDecoder
 } from "../decoders/yahoo/ticker";
 import { now } from "../utils/date";
-import type { ArrayItem } from "../utils/utils";
 import { EARLIEST_DATE } from "./tx";
 
 export type YahooTicker = t.TypeOf<typeof YahooTickerDecoder>;
@@ -37,7 +39,8 @@ export type PeriodChanges = t.TypeOf<typeof PeriodChangesDecoder>;
 export type YahooChartData = t.TypeOf<typeof YahooChartDataDecoder>;
 export type ChartMeta = YahooChartData["meta"];
 export type ChartData = YahooChartData["chart"];
-export type ChartDataItem = ArrayItem<ChartData>;
+export type ChartDataPoint = t.TypeOf<typeof ChartDataPointDecoder>;
+
 export type Fx = t.TypeOf<typeof FxDecoder>;
 export type FxRecord = t.TypeOf<typeof FxRecordDecoder>;
 export type FxRates = t.TypeOf<typeof FxRatesDecoder>;
@@ -64,7 +67,7 @@ export const intervalForRange = (range: ChartRange): ChartInterval => {
   }
 };
 
-type TimeFormatter = (ts: ChartDataItem["timestamp"]) => string;
+type TimeFormatter = (ts: ChartDataPoint["timestamp"]) => string;
 export const tfForRange = (r: ChartRange): TimeFormatter => {
   const pattern = (() => {
     switch (r) {

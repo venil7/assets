@@ -62,8 +62,6 @@ const TxTableRow = (
       TE.map(() => onDelete(txid))
     );
   const ccy = asset.meta.currency as Ccy;
-  const buy = tx.type == "buy";
-  const profitCcy = tx.pnl_pct >= 0;
   return (
     <tr key={tx.id} onClick={handleView(tx)}>
       <td /**type */ className="capitalize narrow">{tx.type}</td>

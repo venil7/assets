@@ -1,4 +1,10 @@
-import type { ChartData, ChartDataItem } from "@darkruby/assets-core";
+import {
+  defined,
+  isBuy,
+  isSell,
+  type ChartData,
+  type ChartDataPoint
+} from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
 import {
@@ -9,7 +15,8 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis
+  YAxis,
+  type DotItemDotProps
 } from "recharts";
 import type {
   NameType,
@@ -20,7 +27,7 @@ import { useFormatters } from "../../hooks/prefs";
 
 export type ChartProps = {
   data: ChartData;
-  timeFormatter: (n: ChartDataItem["timestamp"]) => string;
+  timeFormatter: (n: ChartDataPoint["timestamp"]) => string;
 };
 
 const RawChart: React.FC<ChartProps> = ({
@@ -94,7 +101,8 @@ const RawChart: React.FC<ChartProps> = ({
             </linearGradient>
           </defs>
           <Area
-            dot={false}
+            data={data}
+            dot={EventDot}
             yAxisId="price"
             type="monotone"
             dataKey="price"
@@ -111,3 +119,26 @@ const RawChart: React.FC<ChartProps> = ({
 };
 
 export const Chart = pipe(RawChart, withVisibility());
+
+const EventDot = ({ cx, cy, payload }: DotItemDotProps) => {
+  const tx: ChartDataPoint["tx"] = payload.tx;
+  if (!tx || !defined(cx) || !defined(cy)) return null;
+  const size = 2;
+
+  switch (true) {
+    case isBuy(tx):
+      return (
+        <g>
+          <circle cx={cx} cy={cy} r={size} fill="green" stroke="#00FA9A" />
+        </g>
+      );
+    case isSell(tx):
+      return (
+        <g>
+          <circle cx={cx} cy={cy} r={size} fill="red" stroke="#FF4500" />
+        </g>
+      );
+    default:
+      return null;
+  }
+};

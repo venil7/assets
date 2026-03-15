@@ -37,8 +37,8 @@ export const byDateAsc = pipe(
   contramap<Date, PostTx>((tx) => tx.date)
 );
 
-export const byBuy = (tx: PostTx) => tx.type == "buy";
-export const bySell = (tx: PostTx) => !byBuy(tx);
+export const isBuy = <T extends { type: TxType }>({ type }: T) => type == "buy";
+export const isSell = <T extends { type: TxType }>(tx: T) => !isBuy(tx);
 
 export const cloneTx = ({
   type,
