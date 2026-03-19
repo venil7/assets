@@ -41,6 +41,8 @@ export type ChartMeta = YahooChartData["meta"];
 export type ChartData = YahooChartData["chart"];
 export type ChartDataPoint = t.TypeOf<typeof ChartDataPointDecoder>;
 
+export type MultiChartData = Record<string, ChartData>;
+
 export type Fx = t.TypeOf<typeof FxDecoder>;
 export type FxRecord = t.TypeOf<typeof FxRecordDecoder>;
 export type FxRates = t.TypeOf<typeof FxRatesDecoder>;
