@@ -11,7 +11,7 @@ import { Stack } from "react-bootstrap";
 import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData, type WithNoData } from "../../decorators/nodata";
-import { RangeChart } from "../Charts/RangesChart";
+import { AssetChart } from "../Charts";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
 import { TabContent, Tabs } from "../Form/Tabs";
@@ -58,7 +58,7 @@ const RawSummary: React.FC<SummaryProps> = ({
 
       <Tabs tabs={["Chart", "Details"]} hidden={!portfolios.length}>
         <TabContent tab={0}>
-          <RangeChart
+          <AssetChart
             onChange={onRange}
             data={summary.chart}
             range={summary.meta.range}

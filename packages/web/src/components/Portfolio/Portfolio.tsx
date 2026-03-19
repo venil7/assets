@@ -17,7 +17,7 @@ import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { assetModal } from "../Asset/AssetFields";
 import { AssetLink } from "../Asset/AssetLink";
-import { RangeChart } from "../Charts/RangesChart";
+import { AssetChart } from "../Charts";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
 import { TabContent, Tabs } from "../Form/Tabs";
@@ -78,7 +78,7 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
 
         <Tabs tabs={["Chart", "Details"]} hidden={!portfolio.num_assets}>
           <TabContent tab={0}>
-            <RangeChart
+            <AssetChart
               onChange={onRange}
               data={portfolio.chart}
               range={portfolio.meta.range}

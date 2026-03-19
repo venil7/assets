@@ -7,6 +7,7 @@ import {
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
+import { useMemo } from "react";
 import {
   Area,
   Bar,
@@ -23,17 +24,16 @@ import type {
   ValueType
 } from "recharts/types/component/DefaultTooltipContent";
 import { withVisibility } from "../../decorators/nodata";
+import { withProps } from "../../decorators/props";
 import { useFormatters } from "../../hooks/prefs";
+import { RangeChart, type ChartProps } from "./RangeChart";
 
-export type ChartProps = {
-  data: ChartData;
-  timeFormatter: (n: ChartDataPoint["timestamp"]) => string;
-};
+export type AssetChartProps = ChartProps<ChartData>;
 
-const RawChart: React.FC<ChartProps> = ({
+const RawAssetChart: React.FC<AssetChartProps> = ({
   data,
   timeFormatter
-}: ChartProps) => {
+}: AssetChartProps) => {
   const { money } = useFormatters();
   const tickFormatter = (n: number) => money(n);
 
@@ -47,7 +47,7 @@ const RawChart: React.FC<ChartProps> = ({
     }
   };
 
-  const [stroke, gradient] = (function () {
+  const [stroke, gradient] = useMemo(() => {
     if (data.length > 1) {
       const first = data[0];
       const last = data[data.length - 1];
@@ -57,7 +57,7 @@ const RawChart: React.FC<ChartProps> = ({
       return ["firebrick", "falling"];
     }
     return ["mediumseagreen", "rising"];
-  })();
+  }, [data]);
 
   return (
     <>
@@ -118,7 +118,11 @@ const RawChart: React.FC<ChartProps> = ({
   );
 };
 
-export const Chart = pipe(RawChart, withVisibility());
+export const AssetChart = pipe(
+  RangeChart<ChartData>,
+  withProps({ Chart: RawAssetChart }),
+  withVisibility()
+);
 
 const EventDot = ({ cx, cy, payload }: DotItemDotProps) => {
   const tx: ChartDataPoint["tx"] = payload.tx;
