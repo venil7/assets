@@ -5,7 +5,8 @@ import type {
   EnrichedAsset,
   EnrichedPortfolio,
   FxRates,
-  GetTx
+  GetTx,
+  MultiChartData
 } from "@darkruby/assets-core";
 import {
   defaultBuyTx,
@@ -16,8 +17,10 @@ import {
 } from "@darkruby/assets-core";
 import * as A from "fp-ts/lib/Array";
 import { flow, pipe, type FunctionN } from "fp-ts/lib/function";
+import * as R from "fp-ts/lib/Record";
+import { fromEntries } from "fp-ts/lib/Record";
 import { Heap } from "heap-js";
-import { col, DataFrame, readRecords } from "nodejs-polars";
+import { col, DataFrame, readRecords, Series } from "nodejs-polars";
 import { ChartSchema, RateRecSchema } from "./schema";
 
 const commonRanges =
@@ -115,7 +118,7 @@ export const combinePortfolioCharts = combineCharts<EnrichedPortfolio>((p) => ({
   chart: p.chart
 }));
 
-const combineChartsAlt = (charts: Array<ChartData>): ChartData => {
+const combineChartsAlt = (charts: ChartData[]): ChartData => {
   if (charts.length < 1)
     return [{ timestamp: unixNow(), volume: 0, price: 0, tx: null }];
   const [init, ...rest] = charts;
@@ -229,12 +232,10 @@ export const chartInBaseCcy = (
   chart: ChartData,
   fxRates: FxRates
 ): ChartData => {
-  const C = readRecords(chart, { schema: ChartSchema });
-  // console.log(
-  //   chart.filter((c) => !!c.tx).map((c) => c.tx?.date instanceof Date)
-  // );
-  const R = readRecords(fxRates.rates, { schema: RateRecSchema });
-  return C.joinAsof(R, { on: "timestamp", strategy: "nearest" }) //? nearest is questionable
+  const $C = readRecords(chart, { schema: ChartSchema });
+  const $R = readRecords(fxRates.rates, { schema: RateRecSchema });
+  return $C
+    .joinAsof($R, { on: "timestamp", strategy: "nearest" }) //? nearest is questionable
     .select(
       col("price").divideBy(col("rate")).alias("price"),
       col("timestamp"),
@@ -243,3 +244,60 @@ export const chartInBaseCcy = (
     )
     .toRecords() as ChartData;
 };
+
+const combineMultiChart =
+  <Item>(getter: (itm: Item) => { id: string; chart: ChartData }) =>
+  (items: Item[]): MultiChartData => {
+    const entries = pipe(
+      items,
+      A.map((i) => {
+        const { id, chart } = getter(i);
+        return [id, readRecords(chart, { schema: ChartSchema })] as [
+          string,
+          DataFrame
+        ];
+      })
+    );
+    const $ts = pipe(
+      entries,
+      A.reduce(
+        Series("timestamp", [], ChartSchema.timestamp),
+        ($acc, [, $chartData]) =>
+          $acc.extend($chartData.getColumn("timestamp")) as typeof $acc
+      )
+    )
+      .sort()
+      .unique();
+
+    const $init = DataFrame([$ts]);
+
+    return pipe(
+      entries,
+      fromEntries<DataFrame>,
+      R.map(($chartData) => {
+        return $init
+          .join($chartData, { on: "timestamp", how: "left" })
+          .select(
+            col("timestamp"),
+            col("price").forwardFill().backwardFill(),
+            col("volume").forwardFill().backwardFill(),
+            col("tx")
+          )
+          .toRecords() as ChartData;
+      })
+    );
+  };
+
+export const combineAssetsMultiChart = combineMultiChart<EnrichedAsset>(
+  ({ name, base }) => ({
+    id: name,
+    chart: base.chart
+  })
+);
+
+// export const combineSummaryMultiChart = combineMultiChart<EnrichedAsset>(
+//   (a) => ({
+//     id: a.name,
+//     chart: a.base.chart
+//   })
+// );

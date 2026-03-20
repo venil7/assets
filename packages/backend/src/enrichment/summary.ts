@@ -16,7 +16,7 @@ import {
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
-import { combinePortfolioChartsAlt, commonPortfolioRanges } from "./chart";
+import { combinePortfolioCharts, commonPortfolioRanges } from "./chart";
 
 const summaryMeta = (
   portfolios: EnrichedPortfolio[]
@@ -129,7 +129,7 @@ export const enrichSummary = (
     sum((p) => p.breakEven)
   );
 
-  const chart = combinePortfolioChartsAlt(portfolios);
+  const chart = combinePortfolioCharts(portfolios);
 
   const meta = summaryMeta(portfolios);
   const changes = summaryChanges(portfolios);
