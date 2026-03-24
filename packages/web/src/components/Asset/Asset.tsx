@@ -14,7 +14,7 @@ import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { useFormatters } from "../../hooks/prefs";
 import { AssetChart } from "../Charts";
-import { TabContent, Tabs } from "../Form/Tabs";
+import { generateTabId, TabContent, Tabs } from "../Form/Tabs";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
 import { TxList } from "../Tx/TxList";
@@ -44,6 +44,7 @@ const RawAsset: React.FC<AssetProps> = ({
   onUploadTxs
 }: AssetProps) => {
   const { money } = useFormatters();
+  const tabId = generateTabId();
   return (
     <div className="asset-details">
       <HorizontalStack className="top-toolbar">
@@ -62,7 +63,7 @@ const RawAsset: React.FC<AssetProps> = ({
         />
       </HorizontalStack>
       <Tabs tabs={["Chart", "Details"]}>
-        <TabContent tab={0}>
+        <TabContent tab={tabId()}>
           <AssetChart
             onChange={onRange}
             data={asset.base.chart}
@@ -70,7 +71,7 @@ const RawAsset: React.FC<AssetProps> = ({
             ranges={asset.meta.validRanges}
           />
         </TabContent>
-        <TabContent tab={1}>
+        <TabContent tab={tabId()}>
           <AssetDetails asset={asset} />
         </TabContent>
       </Tabs>

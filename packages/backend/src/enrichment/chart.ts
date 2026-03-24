@@ -10,6 +10,7 @@ import type {
 } from "@darkruby/assets-core";
 import {
   defaultBuyTx,
+  defined,
   EARLIEST_DATE,
   EARLIEST_TS,
   onEmpty,
@@ -20,7 +21,7 @@ import { flow, pipe, type FunctionN } from "fp-ts/lib/function";
 import * as R from "fp-ts/lib/Record";
 import { fromEntries } from "fp-ts/lib/Record";
 import { Heap } from "heap-js";
-import { col, DataFrame, readRecords, Series } from "nodejs-polars";
+import { col, DataFrame, lit, readRecords, Series } from "nodejs-polars";
 import { ChartSchema, RateRecSchema } from "./schema";
 
 const commonRanges =
@@ -275,13 +276,31 @@ const combineMultiChart =
       entries,
       fromEntries<DataFrame>,
       R.map(($chartData) => {
+        const startPrices = $chartData
+          .select("price")
+          .filter(col("price").greaterThan(0))
+          .limit(1)
+          .toRecords()[0];
+        const { price: startPrice } = (
+          defined(startPrices) ? startPrices : { price: 0 }
+        ) as { price: number };
         return $init
           .join($chartData, { on: "timestamp", how: "left" })
           .select(
             col("timestamp"),
             col("price").forwardFill().backwardFill(),
-            col("volume").forwardFill().backwardFill(),
-            col("tx")
+            col("volume").forwardFill().backwardFill()
+          )
+          .withColumns(
+            col("price")
+              .minus(lit(startPrice))
+              .divideBy(lit(startPrice))
+              .multiplyBy(lit(100))
+              .fillNan(0)
+              .alias("price")
+          )
+          .withColumns(
+            col("price").add(col("price").min().abs()).alias("price")
           )
           .toRecords() as ChartData;
       })
@@ -289,15 +308,28 @@ const combineMultiChart =
   };
 
 export const combineAssetsMultiChart = combineMultiChart<EnrichedAsset>(
-  ({ name, base }) => ({
-    id: name,
+  ({ name: id, base }) => ({
+    id,
     chart: base.chart
   })
 );
 
-// export const combineSummaryMultiChart = combineMultiChart<EnrichedAsset>(
-//   (a) => ({
-//     id: a.name,
-//     chart: a.base.chart
-//   })
-// );
+export const combineSummaryMultiChart = combineMultiChart<EnrichedPortfolio>(
+  ({ name: id, chart }) => ({
+    id,
+    chart
+  })
+);
+
+// export const flattenMultiChart = (chart: MultiChartData): ChartData => {
+//   return pipe(
+//     chart,
+//     R.toEntries,
+//     A.map(([, chart]) => readRecords(chart, { schema: ChartSchema })),
+//     (dfs) => concat(dfs)
+//   )
+//     .groupBy("timestamp")
+//     .agg(col("price").sum(), col("volume").sum())
+//     .sort("timestamp")
+//     .toRecords() as ChartData;
+// };

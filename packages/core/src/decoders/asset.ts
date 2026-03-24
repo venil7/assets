@@ -1,12 +1,11 @@
 import * as t from "io-ts";
 import { nullableDecoder } from "./util";
 
-import { nonEmptyArray } from "io-ts-types";
 import { dateDecoder } from "./date";
 import { NumberDecoder } from "./number";
 import { CcyDecoder } from "./prefs";
 import { UserIdDecoder } from "./user";
-import { ChartDataPointDecoder } from "./yahoo/chart";
+import { ChartDataDecoder } from "./yahoo/chart";
 import { ChartMetaDecoder } from "./yahoo/meta";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
@@ -40,21 +39,20 @@ export const GetAssetsDecoder = t.array(GetAssetDecoder);
 export const EnrichedAssetDecoder = t.type({
   ...extAssetTypes,
   meta: ChartMetaDecoder,
-  // mktFxRate: t.number,
   weight: nullableDecoder(t.number),
   volatilityRange: t.number,
   volatilityPct: t.number,
   ccy: t.type({
-    chart: nonEmptyArray(ChartDataPointDecoder),
+    chart: ChartDataDecoder,
     changes: PeriodChangesDecoder,
     totals: TotalsDecoder
   }),
   base: t.type({
-    domestic: t.boolean, // is denominated in base ccy?
+    domestic: t.boolean,
     invested: t.number,
     fxImpact: t.number,
     fxRate: t.number,
-    chart: nonEmptyArray(ChartDataPointDecoder),
+    chart: ChartDataDecoder,
     changes: PeriodChangesDecoder,
     totals: TotalsDecoder,
     avgPrice: nullableDecoder(t.number),

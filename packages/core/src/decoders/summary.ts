@@ -1,12 +1,12 @@
 import * as t from "io-ts";
-import { nonEmptyArray } from "io-ts-types";
 import { PortfolioMetaDecoder } from "./portfolio";
-import { ChartDataPointDecoder } from "./yahoo/chart";
+import { ChartDataDecoder } from "./yahoo/chart";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
 const summaryTypes = {
   numPortfolios: t.number,
-  chart: nonEmptyArray(ChartDataPointDecoder),
+  chart: ChartDataDecoder,
+  // multiChart: MultiChartDataDecoder,
   changes: PeriodChangesDecoder,
   totals: TotalsDecoder,
   meta: PortfolioMetaDecoder,

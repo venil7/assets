@@ -13,10 +13,16 @@ import {
 import * as t from "io-ts";
 import type { FxDecoder, FxRatesDecoder, FxRecordDecoder } from "../decoders";
 import type {
+  ChartDataDecoder,
   ChartDataPointDecoder,
+  MultiChartDataDecoder,
   YahooChartDataDecoder
 } from "../decoders/yahoo/chart";
-import type { ChartInterval, ChartRange } from "../decoders/yahoo/meta";
+import type {
+  ChartInterval,
+  ChartMetaDecoder,
+  ChartRange
+} from "../decoders/yahoo/meta";
 import type {
   PeriodChangesDecoder,
   TotalsDecoder
@@ -37,11 +43,11 @@ export type Totals = t.TypeOf<typeof TotalsDecoder>;
 export type PeriodChanges = t.TypeOf<typeof PeriodChangesDecoder>;
 
 export type YahooChartData = t.TypeOf<typeof YahooChartDataDecoder>;
-export type ChartMeta = YahooChartData["meta"];
-export type ChartData = YahooChartData["chart"];
+export type ChartMeta = t.TypeOf<typeof ChartMetaDecoder>;
 export type ChartDataPoint = t.TypeOf<typeof ChartDataPointDecoder>;
 
-export type MultiChartData = Record<string, ChartData>;
+export type ChartData = t.TypeOf<typeof ChartDataDecoder>;
+export type MultiChartData = t.TypeOf<typeof MultiChartDataDecoder>;
 
 export type Fx = t.TypeOf<typeof FxDecoder>;
 export type FxRecord = t.TypeOf<typeof FxRecordDecoder>;

@@ -20,7 +20,7 @@ import { AssetLink } from "../Asset/AssetLink";
 import { AssetChart } from "../Charts";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
-import { TabContent, Tabs } from "../Form/Tabs";
+import { generateTabId, TabContent, Tabs } from "../Form/Tabs";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
 import { PortfolioDetails } from "./PortfolioDetails";
@@ -61,6 +61,8 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
   // const handleUpdate = () =>
   //   pipe(() => portfolioModal(portfolio), TE.map(onUpdate));
 
+  const tabId = generateTabId();
+
   return (
     <>
       <div className="portfolio-details">
@@ -76,8 +78,11 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
           This portfolio doesn have any assets yet
         </Info>
 
-        <Tabs tabs={["Chart", "Details"]} hidden={!portfolio.num_assets}>
-          <TabContent tab={0}>
+        <Tabs
+          tabs={[`Chart`, /*`Multi`,*/ `Details`]}
+          hidden={!portfolio.num_assets}
+        >
+          <TabContent tab={tabId()}>
             <AssetChart
               onChange={onRange}
               data={portfolio.chart}
@@ -86,7 +91,16 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
               hidden={!portfolio.num_assets}
             />
           </TabContent>
-          <TabContent tab={1}>
+          {/* <TabContent tab={tabId()}>
+            <MultiAssetChart
+              onChange={onRange}
+              data={portfolio.multiChart}
+              range={portfolio.meta.range}
+              ranges={portfolio.meta.validRanges}
+              hidden={!portfolio.num_assets}
+            />
+          </TabContent> */}
+          <TabContent tab={tabId()}>
             <PortfolioDetails portfolio={portfolio} />
           </TabContent>
         </Tabs>

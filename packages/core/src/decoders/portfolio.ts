@@ -1,9 +1,8 @@
 import * as t from "io-ts";
-import { nonEmptyArray } from "io-ts-types";
 import { dateDecoder } from "./date";
 import { UserIdDecoder } from "./user";
 import { nullableDecoder } from "./util";
-import { ChartDataPointDecoder } from "./yahoo/chart";
+import { ChartDataDecoder } from "./yahoo/chart";
 import { RangeDecoder } from "./yahoo/meta";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
@@ -42,7 +41,8 @@ export const EnrichedPortfolioDecoder = t.type({
   meta: PortfolioMetaDecoder,
   weight: nullableDecoder(t.number),
   domestic: t.boolean,
-  chart: nonEmptyArray(ChartDataPointDecoder),
+  chart: ChartDataDecoder,
+  // multiChart: MultiChartDataDecoder,
   changes: PeriodChangesDecoder,
   totals: TotalsDecoder,
   invested: t.number,

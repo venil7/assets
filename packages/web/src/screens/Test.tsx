@@ -5,7 +5,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import { PrimaryButton, SecondaryButton } from "../components/Form/FormControl";
-import { TabContent, Tabs } from "../components/Form/Tabs";
+import { generateTabId, TabContent, Tabs } from "../components/Form/Tabs";
 import { confirmationModal } from "../components/Modals/Confirmation";
 import { PortfolioMenu } from "../components/Portfolio/Menu";
 import { portfolioModal } from "../components/Portfolio/PortfolioFields";
@@ -107,17 +107,18 @@ const TabFormatting: React.FC = () => {
 
 const RawTestScreen: React.FC = () => {
   useHead({ title: "Assets - Test" });
+  const tabId = generateTabId();
 
   return (
     <>
       <Tabs tabs={["Modals", "Menus", "Formatting"]}>
-        <TabContent tab={0}>
+        <TabContent tab={tabId()}>
           <TabModals />
         </TabContent>
-        <TabContent tab={1}>
+        <TabContent tab={tabId()}>
           <TabSelectors />
         </TabContent>
-        <TabContent tab={2}>
+        <TabContent tab={tabId()}>
           <TabFormatting />
         </TabContent>
       </Tabs>

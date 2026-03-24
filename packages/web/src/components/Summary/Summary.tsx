@@ -14,7 +14,7 @@ import { withNoData, type WithNoData } from "../../decorators/nodata";
 import { AssetChart } from "../Charts";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
-import { TabContent, Tabs } from "../Form/Tabs";
+import { generateTabId, TabContent, Tabs } from "../Form/Tabs";
 import { HorizontalStack } from "../Layout/Stack";
 import { portfolioModal } from "../Portfolio/PortfolioFields";
 import { PortfolioLink } from "../Portfolio/PortfolioLink";
@@ -38,6 +38,7 @@ const RawSummary: React.FC<SummaryProps> = ({
   onDelete,
   onRange
 }: SummaryProps) => {
+  const tabId = generateTabId();
   const handleAdd = () =>
     pipe(() => portfolioModal(defaultPortfolio()), TE.map(onAdd))();
   const handleUpdate = (pid: number) => (p: PostPortfolio) => onUpdate(pid, p);
@@ -57,7 +58,7 @@ const RawSummary: React.FC<SummaryProps> = ({
       <Info hidden={!!portfolios.length}>No portfolios yet</Info>
 
       <Tabs tabs={["Chart", "Details"]} hidden={!portfolios.length}>
-        <TabContent tab={0}>
+        <TabContent tab={tabId()}>
           <AssetChart
             onChange={onRange}
             data={summary.chart}
@@ -66,7 +67,7 @@ const RawSummary: React.FC<SummaryProps> = ({
             hidden={!portfolios.length}
           />
         </TabContent>
-        <TabContent tab={1}>
+        <TabContent tab={tabId()}>
           <SummaryDetails summary={summary} />
         </TabContent>
       </Tabs>

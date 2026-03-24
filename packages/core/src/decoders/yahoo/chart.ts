@@ -1,11 +1,10 @@
 import * as A from "fp-ts/lib/Array";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
-import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
-import { withFallback } from "io-ts-types";
-import type { UnixDate } from "../../domain";
+import { nonEmptyArray, withFallback } from "io-ts-types";
+import type { ChartData, UnixDate } from "../../domain";
 import type { ArrayElement } from "../../utils";
 import { unixNow } from "../../utils/date";
 import { calcPnl } from "../../utils/finance";
@@ -64,6 +63,8 @@ const chartDataPointTypes = {
 };
 
 export const ChartDataPointDecoder = t.type(chartDataPointTypes);
+export const ChartDataDecoder = nonEmptyArray(ChartDataPointDecoder);
+export const MultiChartDataDecoder = t.record(t.string, ChartDataDecoder);
 
 type ChartDataPoint = t.TypeOf<typeof ChartDataPointDecoder>;
 
@@ -84,7 +85,7 @@ const combineIndicators = (
 
 type ProcessedChartResponse = {
   meta: t.TypeOf<typeof ChartMetaDecoder>;
-  chart: NonEmptyArray<ChartDataPoint>;
+  chart: t.TypeOf<typeof ChartDataDecoder>;
   periodChanges: t.TypeOf<typeof PeriodChangesDecoder>;
 };
 export const YahooChartDataDecoder = pipe(
@@ -119,7 +120,7 @@ export const YahooChartDataDecoder = pipe(
           }
           const res = {
             meta,
-            chart: chart1 as NonEmptyArray<ChartDataPoint>
+            chart: chart1 as ChartData
           };
           return E.of(res);
         }
