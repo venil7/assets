@@ -1,16 +1,16 @@
-import { pipe } from "fp-ts/lib/function";
+import { pipe, type Lazy } from "fp-ts/lib/function";
 import {
   createContext,
   useContext,
   useState,
-  type PropsWithChildren,
+  type PropsWithChildren
 } from "react";
 import { Nav } from "react-bootstrap";
 import { withVisibility } from "../../decorators/nodata";
 
 export type TabsProps = PropsWithChildren<{
   tabs: readonly string[];
-  hidden?: boolean
+  hidden?: boolean;
 }>;
 
 const TabContext = createContext({ tab: 0 });
@@ -20,7 +20,12 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, hidden, children }) => {
   const handleTabClick = (idx: number) => () => setTab(idx);
   return (
     <>
-      <Nav variant="tabs" activeKey={tab} defaultActiveKey={tab} hidden={hidden}>
+      <Nav
+        variant="tabs"
+        activeKey={tab}
+        defaultActiveKey={tab}
+        hidden={hidden}
+      >
         {tabs.map((name, idx) => (
           <Nav.Item key={`${name}-${idx}`}>
             <Nav.Link eventKey={idx} onClick={handleTabClick(idx)}>
@@ -36,7 +41,7 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, hidden, children }) => {
 
 export const TabContent: React.FC<PropsWithChildren & { tab: number }> = ({
   tab,
-  children,
+  children
 }) => {
   const Div: React.FC<PropsWithChildren> = (p) => (
     <div className="tab-pane mt-3 mb-3">{p.children}</div>
@@ -44,4 +49,9 @@ export const TabContent: React.FC<PropsWithChildren & { tab: number }> = ({
   const TabDiv = pipe(Div, withVisibility());
   const { tab: selectedTab } = useContext(TabContext);
   return <TabDiv hidden={selectedTab !== tab}>{children}</TabDiv>;
+};
+
+export const generateTabId = (): Lazy<number> => {
+  let counter = -1;
+  return () => ++counter;
 };

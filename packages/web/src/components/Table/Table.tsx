@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Table } from "react-bootstrap";
 import { itemsByPage, Pager } from "../Pager/Pager";
+import "./Table.scss";
 
 export type PagedTableProps<T, P extends object = {}> = {
   header: (props: PagedTableProps<T, P>) => React.ReactNode;
@@ -17,7 +18,14 @@ export const PagedTable = function <T, P extends object = {}>(
   const pagedItems = itemsByPage(items, pageSize, page);
   return (
     <>
-      <Table responsive striped hover>
+      <Table
+        responsive
+        striped
+        hover
+        size="sm"
+        variant="dark"
+        className="fixed-table"
+      >
         {header(props)}
         <tbody>
           {pagedItems.map((items, idx) =>

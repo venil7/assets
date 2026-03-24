@@ -18,14 +18,9 @@ Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.c
  - Per transaction impact
 
 ---
-
-<img width="235" height="500" alt="screenshot#1" src="https://github.com/user-attachments/assets/e535c660-9e40-4eae-a54b-821075ac8264" />
-<img width="235" height="500" alt="screenshot#2" src="https://github.com/user-attachments/assets/6bb7314c-e858-4ff1-8a4a-29107e88cda8" />
-<img width="235" height="500" alt="screenshot#3" src="https://github.com/user-attachments/assets/246dcc01-5d05-4740-9dbc-af818c9479f0" />
-
-<img width="235" height="500" alt="screenshot#5" src="https://github.com/user-attachments/assets/994a0654-b4b3-4f7c-8935-662c38b63d5c" />
-<img width="235" height="500" alt="screenshot#6" src="https://github.com/user-attachments/assets/e1268503-0adb-479a-bdb4-a46ac4714dc3" />
-<img width="235" height="500" alt="screenshot#7" src="https://github.com/user-attachments/assets/90a98424-7851-4948-8e6f-98807d61a113" />
+<img width="235" height="500" alt="screenshot1" src="https://github.com/user-attachments/assets/f5bceba8-cf8e-4dac-a531-ce896f9e7d4b" />
+<img width="235" height="500" alt="screenshot2" src="https://github.com/user-attachments/assets/fb6e09d8-91f1-4053-8cdf-93d0d7fc7741" />
+<img width="235" height="500" alt="screenshot3" src="https://github.com/user-attachments/assets/e81ec8e2-919b-43d3-b919-34a39f108c6c" />
 
 ---
 

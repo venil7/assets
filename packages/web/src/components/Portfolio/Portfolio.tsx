@@ -17,10 +17,10 @@ import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { assetModal } from "../Asset/AssetFields";
 import { AssetLink } from "../Asset/AssetLink";
-import { RangeChart } from "../Charts/RangesChart";
+import { AssetChart } from "../Charts";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
-import { TabContent, Tabs } from "../Form/Tabs";
+import { generateTabId, TabContent, Tabs } from "../Form/Tabs";
 import { HorizontalStack } from "../Layout/Stack";
 import { Totals } from "../Totals/Totals";
 import { PortfolioDetails } from "./PortfolioDetails";
@@ -61,14 +61,16 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
   // const handleUpdate = () =>
   //   pipe(() => portfolioModal(portfolio), TE.map(onUpdate));
 
+  const tabId = generateTabId();
+
   return (
     <>
       <div className="portfolio-details">
         <HorizontalStack className="top-toolbar">
           <AddBtn onClick={handleAddAsset} label="Asset" />
           <Totals
-            change={portfolio.base.changes}
-            totals={portfolio.base.totals}
+            change={portfolio.changes}
+            totals={portfolio.totals}
             range={portfolio.meta.range}
           />
         </HorizontalStack>
@@ -76,17 +78,29 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
           This portfolio doesn have any assets yet
         </Info>
 
-        <Tabs tabs={["Chart", "Details"]} hidden={!portfolio.num_assets}>
-          <TabContent tab={0}>
-            <RangeChart
+        <Tabs
+          tabs={[`Chart`, /*`Multi`,*/ `Details`]}
+          hidden={!portfolio.num_assets}
+        >
+          <TabContent tab={tabId()}>
+            <AssetChart
               onChange={onRange}
-              data={portfolio.base.chart}
+              data={portfolio.chart}
               range={portfolio.meta.range}
               ranges={portfolio.meta.validRanges}
               hidden={!portfolio.num_assets}
             />
           </TabContent>
-          <TabContent tab={1}>
+          {/* <TabContent tab={tabId()}>
+            <MultiAssetChart
+              onChange={onRange}
+              data={portfolio.multiChart}
+              range={portfolio.meta.range}
+              ranges={portfolio.meta.validRanges}
+              hidden={!portfolio.num_assets}
+            />
+          </TabContent> */}
+          <TabContent tab={tabId()}>
             <PortfolioDetails portfolio={portfolio} />
           </TabContent>
         </Tabs>

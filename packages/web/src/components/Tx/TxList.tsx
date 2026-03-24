@@ -31,7 +31,8 @@ export const TxList: React.FC<TxListProps> = ({
   ...props
 }: TxListProps) => {
   const handleAdd = pipe(
-    () => txModal(defaultBuyTx(), { asset: props.asset }),
+    () =>
+      txModal(defaultBuyTx(), { asset: props.asset, prepopulatePrice: true }),
     TE.map(onAdd)
   );
 

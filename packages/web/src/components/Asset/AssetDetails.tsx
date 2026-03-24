@@ -1,7 +1,7 @@
 import type { Ccy, EnrichedAsset } from "@darkruby/assets-core";
 import * as React from "react";
 import { ListGroup } from "react-bootstrap";
-import { useFormatters } from "../../hooks/prefs";
+import { Decimal, Money, Percent } from "../Formatting";
 import { HorizontalStack } from "../Layout/Stack";
 
 export type AssetDetailsProps = {
@@ -9,7 +9,7 @@ export type AssetDetailsProps = {
 };
 
 export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
-  const { money, decimal, percent } = useFormatters();
+  const assetCcy = asset.meta.currency as Ccy;
   return (
     <div className="asset-details-tab">
       <HorizontalStack>
@@ -34,45 +34,58 @@ export const AssetDetails: React.FC<AssetDetailsProps> = ({ asset }) => {
 
         <ListGroup variant="flush">
           <ListGroup.Item>
-            <strong>Holdings</strong>
-            <span>{decimal(asset.holdings)}</span>
+            <strong>52wk max</strong>
+            <Money value={asset.meta.fiftyTwoWeekHigh} nocolor />
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>Avg unit cost</strong>
-            <span>{money(asset.avg_price, asset.meta.currency as Ccy)}</span>
+            <strong>52wk min</strong>
+            <Money value={asset.meta.fiftyTwoWeekLow} nocolor />
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>Total cost</strong>
-            <span>{money(asset.invested, asset.meta.currency as Ccy)}</span>
+            <strong>Range</strong>
+            <Money value={asset.volatilityRange} nocolor />
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>Realized gain</strong>
-            <span>
-              {money(asset.ccy.realizedGain, asset.meta.currency as Ccy)} (
-              {percent(asset.ccy.realizedGainPct)})
-            </span>
+            <strong>Volatility</strong>
+            <Percent value={asset.volatilityPct} nocolor />
           </ListGroup.Item>
         </ListGroup>
 
-        <ListGroup variant="flush" hidden={asset.domestic}>
+        <ListGroup variant="flush">
           <ListGroup.Item>
-            <strong>Unrealized FX impact</strong>
-            <span>{money(asset.base.fxImpact)}</span>
+            <strong>Holdings</strong>
+            <Decimal value={asset.holdings} />
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Avg unit cost</strong>
+            <Money value={asset.avg_price} ccy={assetCcy} nocolor />
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Total cost</strong>
+            <Money value={asset.invested} ccy={assetCcy} nocolor />
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Realized gain</strong>
+            <Money value={asset.realized_pnl} ccy={assetCcy} />
+          </ListGroup.Item>
+        </ListGroup>
+
+        <ListGroup variant="flush" hidden={asset.base.domestic}>
+          <ListGroup.Item>
+            <strong>FX impact</strong>
+            <Money value={asset.base.fxImpact} />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Avg unit cost (base)</strong>
-            <span>{money(asset.base.avgPrice)}</span>
+            <Money value={asset.base.avgPrice} nocolor />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Total cost (base)</strong>
-            <span>{money(asset.base.invested)}</span>
+            <Money value={asset.base.invested} nocolor />
           </ListGroup.Item>
           <ListGroup.Item>
             <strong>Realized gain (base)</strong>
-            <span>
-              {money(asset.base.realizedGain)} (
-              {percent(asset.base.realizedGainPct)})
-            </span>
+            <Money value={asset.base.realizedPnl} />
           </ListGroup.Item>
         </ListGroup>
       </HorizontalStack>

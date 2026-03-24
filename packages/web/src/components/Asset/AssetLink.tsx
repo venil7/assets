@@ -40,7 +40,7 @@ export const AssetLink = ({
     TE.map(onDelete)
   );
   const handleAddTx = pipe(
-    () => txModal(defaultBuyTx(), { asset }),
+    () => txModal(defaultBuyTx(), { asset, prepopulatePrice: true }),
     TE.map(onAddTx)
   );
   const handleMove = pipe(

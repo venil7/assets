@@ -1,8 +1,8 @@
 import {
   defaultPortfolio,
   type EnrichedPortfolio,
-  type PostPortfolio,
-  type Summary,
+  type EnrichedSummary,
+  type PostPortfolio
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { pipe } from "fp-ts/lib/function";
@@ -11,16 +11,18 @@ import { Stack } from "react-bootstrap";
 import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData, type WithNoData } from "../../decorators/nodata";
-import { RangeChart } from "../Charts/RangesChart";
+import { AssetChart } from "../Charts";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
+import { generateTabId, TabContent, Tabs } from "../Form/Tabs";
 import { HorizontalStack } from "../Layout/Stack";
+import { portfolioModal } from "../Portfolio/PortfolioFields";
+import { PortfolioLink } from "../Portfolio/PortfolioLink";
 import { Totals } from "../Totals/Totals";
-import { portfolioModal } from "./PortfolioFields";
-import { PortfolioLink } from "./PortfolioLink";
+import { SummaryDetails } from "./SummaryDetails";
 
-type PortfoliosProps = {
-  summary: Summary;
+type SummaryProps = {
+  summary: EnrichedSummary;
   portfolios: EnrichedPortfolio[];
   onRange: (r: ChartRange) => void;
   onAdd: (p: PostPortfolio) => void;
@@ -28,14 +30,15 @@ type PortfoliosProps = {
   onDelete: (pid: number) => void;
 };
 
-const RawPortfolios: React.FC<PortfoliosProps> = ({
+const RawSummary: React.FC<SummaryProps> = ({
   portfolios,
   summary,
   onAdd,
   onUpdate,
   onDelete,
-  onRange,
-}: PortfoliosProps) => {
+  onRange
+}: SummaryProps) => {
+  const tabId = generateTabId();
   const handleAdd = () =>
     pipe(() => portfolioModal(defaultPortfolio()), TE.map(onAdd))();
   const handleUpdate = (pid: number) => (p: PostPortfolio) => onUpdate(pid, p);
@@ -47,20 +50,27 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
         <AddBtn onClick={handleAdd} label="Portfolio" />
         <Totals
           totals={summary.totals}
-          change={summary.value}
+          change={summary.changes}
           range={summary.meta.range}
         />
       </HorizontalStack>
 
       <Info hidden={!!portfolios.length}>No portfolios yet</Info>
 
-      <RangeChart
-        onChange={onRange}
-        data={summary.chart}
-        range={summary.meta.range}
-        ranges={summary.meta.validRanges}
-        hidden={!portfolios.length}
-      />
+      <Tabs tabs={["Chart", "Details"]} hidden={!portfolios.length}>
+        <TabContent tab={tabId()}>
+          <AssetChart
+            onChange={onRange}
+            data={summary.chart}
+            range={summary.meta.range}
+            ranges={summary.meta.validRanges}
+            hidden={!portfolios.length}
+          />
+        </TabContent>
+        <TabContent tab={tabId()}>
+          <SummaryDetails summary={summary} />
+        </TabContent>
+      </Tabs>
 
       <Stack gap={3}>
         {portfolios.map((port) => (
@@ -76,10 +86,10 @@ const RawPortfolios: React.FC<PortfoliosProps> = ({
   );
 };
 
-export const Portfolios = pipe(
-  RawPortfolios,
-  withNoData<PortfoliosProps, "portfolios">((p) => p.portfolios?.length),
-  withNoData<PortfoliosProps, "summary">((p) => p.summary),
-  withError<WithNoData<PortfoliosProps, "summary">>,
+export const Summary = pipe(
+  RawSummary,
+  withNoData<SummaryProps, "portfolios">((p) => p.portfolios?.length),
+  withNoData<SummaryProps, "summary">((p) => p.summary),
+  withError<WithNoData<SummaryProps, "summary">>,
   withFetching
 );

@@ -5,6 +5,7 @@ import {
   EnrichedAssetsDecoder,
   EnrichedPortfolioDecoder,
   EnrichedPortfoliosDecoder,
+  EnrichedSummaryDecoder,
   EnrichedTxDecoder,
   EnrichedTxsDecoder,
   FxDecoder,
@@ -12,7 +13,6 @@ import {
   GetUsersDecoder,
   IdDecoder,
   PrefsDecoder,
-  SummaryDecoder,
   TokenDecoder,
   YahooTickerSearchResultDecoder,
   type Ccy,
@@ -23,6 +23,7 @@ import type {
   Credentials,
   EnrichedAsset,
   EnrichedPortfolio,
+  EnrichedSummary,
   EnrichedTx,
   Fx,
   GetUser,
@@ -36,7 +37,6 @@ import type {
   PostTxsUpload,
   PostUser,
   Prefs,
-  Summary,
   TickerSearchResult,
   Token,
   TxId,
@@ -102,7 +102,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     methods.get<Token>(REFRESH_TOKEN_URL, TokenDecoder);
 
   const getSummary = (range?: ChartRange) =>
-    methods.get<Summary>(SUMMARY_URL(range), SummaryDecoder);
+    methods.get<EnrichedSummary>(SUMMARY_URL(range), EnrichedSummaryDecoder);
 
   const createPortfolio = (portfolio: PostPortfolio) =>
     methods.post<EnrichedPortfolio, PostPortfolio>(

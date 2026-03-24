@@ -11,7 +11,7 @@ import {
   type PostTx,
   type Prefs,
   type Profile,
-  type TxType,
+  type TxType
 } from "@darkruby/assets-core";
 import faker from "faker";
 import { pipe } from "fp-ts/lib/function";
@@ -21,26 +21,26 @@ import * as TE from "fp-ts/lib/TaskEither";
 const BASE_URL = `http://${process.env.URL ?? "localhost:4020"}`;
 
 export const fakePrefs = (): Prefs => ({
-  base_ccy: faker.random.arrayElement(BASE_CCYS),
+  base_ccy: faker.random.arrayElement(BASE_CCYS)
 });
 
 export const fakeNewUser = (admin = false): NewUser => ({
   username: faker.internet.email(),
   password: faker.internet.password(),
   admin,
-  locked: false,
+  locked: false
 });
 
 export const fakePortfolio = (): PostPortfolio => ({
   name: faker.lorem.slug(2),
-  description: faker.lorem.slug(2),
+  description: faker.lorem.slug(2)
 });
 
 export const fakeAsset = (
   ticker: string = faker.random.arrayElement(["msft", "mcd", "aapl"])
 ): PostAsset => ({
   ticker,
-  name: faker.lorem.slug(2),
+  name: faker.lorem.slug(2)
 });
 
 export const fakeTx = (
@@ -52,7 +52,7 @@ export const fakeTx = (
   quantity,
   price,
   date: faker.date.past(),
-  comments: "",
+  comments: ""
 });
 
 export const fakeBuy = (
@@ -120,18 +120,19 @@ export const getExtendedApi = (api: Api) => {
     createPortfolioAsset: createPortfolioAsset(api),
     createPortfolioAssetTx: createPortfolioAssetTx(api),
     createPortfolioAssetTxs: createPortfolioAssetTxs(api),
-    deleteAllNonAdminUsers: deleteAllNonAdminUsers(api),
+    deleteAllNonAdminUsers: deleteAllNonAdminUsers(api)
   };
 };
 
-const defaultAdminCredentials: Credentials = {
+const DEFAULT_ADMIN_CREDENTIALS: Credentials = {
   username: "admin",
-  password: "admin",
+  password: "admin"
 };
 
-export const defaultLogin = (creds = defaultAdminCredentials) =>
+export const defaultLogin = (creds = DEFAULT_ADMIN_CREDENTIALS) =>
   login(BASE_URL)(creds);
-export const defaultApi = (creds = defaultAdminCredentials) =>
+
+export const defaultApi = (creds = DEFAULT_ADMIN_CREDENTIALS) =>
   pipe(defaultLogin(creds), TE.map(api(BASE_URL)), TE.map(getExtendedApi));
 
 export const nonAdminApi = () =>

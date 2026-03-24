@@ -6,28 +6,32 @@ import {
   endOfToday,
   format,
   fromUnixTime,
-  getUnixTime,
   startOfToday,
   startOfYear,
   sub
 } from "date-fns";
-import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import type { FxDecoder } from "../decoders";
-import type { YahooChartDataDecoder } from "../decoders/yahoo/chart";
-import type { ChartInterval, ChartRange } from "../decoders/yahoo/meta";
+import type { FxDecoder, FxRatesDecoder, FxRecordDecoder } from "../decoders";
+import type {
+  ChartDataDecoder,
+  ChartDataPointDecoder,
+  MultiChartDataDecoder,
+  YahooChartDataDecoder
+} from "../decoders/yahoo/chart";
+import type {
+  ChartInterval,
+  ChartMetaDecoder,
+  ChartRange
+} from "../decoders/yahoo/meta";
 import type {
   PeriodChangesDecoder,
-  TotalsDecoder,
-  UnixDateDecoder
+  TotalsDecoder
 } from "../decoders/yahoo/period";
 import type {
   YahooTickerDecoder,
   YahooTickerSearchResultDecoder
 } from "../decoders/yahoo/ticker";
-import { fuzzyIndexSearch } from "../utils/array";
 import { now } from "../utils/date";
-import type { ArrayItem, Optional } from "../utils/utils";
 import { EARLIEST_DATE } from "./tx";
 
 export type YahooTicker = t.TypeOf<typeof YahooTickerDecoder>;
@@ -39,11 +43,15 @@ export type Totals = t.TypeOf<typeof TotalsDecoder>;
 export type PeriodChanges = t.TypeOf<typeof PeriodChangesDecoder>;
 
 export type YahooChartData = t.TypeOf<typeof YahooChartDataDecoder>;
-export type ChartMeta = YahooChartData["meta"];
-export type ChartData = YahooChartData["chart"];
-export type ChartDataItem = ArrayItem<ChartData>;
-export type UnixDate = t.TypeOf<typeof UnixDateDecoder>;
+export type ChartMeta = t.TypeOf<typeof ChartMetaDecoder>;
+export type ChartDataPoint = t.TypeOf<typeof ChartDataPointDecoder>;
+
+export type ChartData = t.TypeOf<typeof ChartDataDecoder>;
+export type MultiChartData = t.TypeOf<typeof MultiChartDataDecoder>;
+
 export type Fx = t.TypeOf<typeof FxDecoder>;
+export type FxRecord = t.TypeOf<typeof FxRecordDecoder>;
+export type FxRates = t.TypeOf<typeof FxRatesDecoder>;
 
 export const intervalForRange = (range: ChartRange): ChartInterval => {
   switch (range) {
@@ -67,7 +75,7 @@ export const intervalForRange = (range: ChartRange): ChartInterval => {
   }
 };
 
-type TimeFormatter = (ts: ChartDataItem["timestamp"]) => string;
+type TimeFormatter = (ts: ChartDataPoint["timestamp"]) => string;
 export const tfForRange = (r: ChartRange): TimeFormatter => {
   const pattern = (() => {
     switch (r) {
@@ -147,20 +155,6 @@ export const rangeForDate = (date: Date): ChartRange => {
     default:
       return "max";
   }
-};
-
-export const priceForDate = (
-  data: YahooChartData,
-  date: Optional<Date>
-): number => {
-  // if no date supplied return Market price
-  if (!date) return data.meta.regularMarketPrice;
-  // else return best price approximation, by fuzzy searching in chart data
-  const fuzzyFindChartIndex = fuzzyIndexSearch<ChartDataItem>(
-    (item) => item.timestamp
-  );
-  const idx = pipe(data.chart, fuzzyFindChartIndex(getUnixTime(date)));
-  return data.chart[idx].price;
 };
 
 export const getToBase = (baseRate: number) => (n: number) => n / baseRate;

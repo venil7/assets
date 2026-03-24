@@ -1,9 +1,14 @@
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import { nonEmptyArray } from "io-ts-types";
-import { PostTxDecoder, PostTxsUploadDecoder } from "../decoders";
+import {
+  BooleanDecoder,
+  nonNegative,
+  PostTxDecoder,
+  PostTxsUploadDecoder
+} from "../decoders";
 import { nonFuture } from "../decoders/date";
-import { boolean, chainDecoder, nonNegative } from "../decoders/util";
+import { chainDecoder } from "../decoders/util";
 import type { PostTxsUpload } from "../domain";
 import { createValidator } from "./util";
 
@@ -32,7 +37,7 @@ export const txsUploadValidator = pipe(
           `List of transactions can not be empty`
         ).decode(txs)
       ),
-      E.apS("replace", boolean.decode(replace))
+      E.apS("replace", BooleanDecoder.decode(replace))
     )
   ),
   createValidator<PostTxsUpload>

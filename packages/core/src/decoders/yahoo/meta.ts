@@ -3,6 +3,7 @@ import { fromCompare, type Ord } from "fp-ts/lib/Ord";
 import { pipe } from "fp-ts/lib/function";
 import { Ord as NumOrd } from "fp-ts/lib/number";
 import * as t from "io-ts";
+import { UnixDateDecoder } from "../date";
 import { nullableDecoder } from "../util";
 
 const TradingPeriodDecoder = t.type({
@@ -80,7 +81,7 @@ export const ChartMetaDecoder = t.type({
   exchangeName: t.string,
   fullExchangeName: t.string,
   instrumentType: t.string,
-  regularMarketTime: t.number,
+  regularMarketTime: UnixDateDecoder,
   regularMarketPrice: t.number,
   fiftyTwoWeekHigh: t.number,
   fiftyTwoWeekLow: t.number,

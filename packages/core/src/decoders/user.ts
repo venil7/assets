@@ -1,7 +1,9 @@
 import { pipe } from "fp-ts/lib/function";
 import type { Refinement } from "fp-ts/lib/Refinement";
 import * as t from "io-ts";
-import { boolean, dateDecoder, nonEmptyString } from "./util";
+import { BooleanDecoder } from "./boolean";
+import { dateDecoder } from "./date";
+import { nonEmptyString } from "./string";
 
 export const UserIdDecoder = t.brand(
   t.number,
@@ -14,59 +16,59 @@ export const UserIdDecoder = t.brand(
 
 const credentialsTypes = {
   username: nonEmptyString,
-  password: nonEmptyString,
+  password: nonEmptyString
 };
 
 const passwordChangeTypes = {
   oldPassword: nonEmptyString,
   newPassword: nonEmptyString,
-  repeat: nonEmptyString,
+  repeat: nonEmptyString
 };
 
 const newUserTypes = {
-  admin: boolean,
+  admin: BooleanDecoder,
   username: t.string,
   password: t.string,
-  locked: boolean,
+  locked: BooleanDecoder
 };
 
 const profileTypes = {
   id: UserIdDecoder,
   username: t.string,
-  admin: boolean,
+  admin: BooleanDecoder
 };
 
 const getUserTypes = {
   id: UserIdDecoder,
   username: t.string,
-  admin: boolean,
+  admin: BooleanDecoder,
   login_attempts: t.number,
-  locked: boolean,
+  locked: BooleanDecoder,
   created: dateDecoder,
-  modified: dateDecoder,
+  modified: dateDecoder
 };
 
 const rawInUserTypes = {
   username: t.string,
-  admin: boolean,
+  admin: BooleanDecoder,
   login_attempts: t.number,
-  locked: boolean,
+  locked: BooleanDecoder,
   phash: t.string,
-  psalt: t.string,
+  psalt: t.string
 };
 
 const rawOutUserTypes = {
   id: UserIdDecoder,
   ...rawInUserTypes,
   created: dateDecoder,
-  modified: dateDecoder,
+  modified: dateDecoder
 };
 
 const postUserTypes = {
   username: t.string,
-  admin: boolean,
+  admin: BooleanDecoder,
   login_attempts: t.number,
-  locked: boolean,
+  locked: BooleanDecoder
 };
 
 export const CredenatialsDecoder = t.type(credentialsTypes);

@@ -1,9 +1,4 @@
-import type { EnrichedPortfolio } from "./portfolio";
-import type { ChartData, PeriodChanges, Totals } from "./yahoo";
+import * as t from "io-ts";
+import type { EnrichedSummaryDecoder } from "../decoders";
 
-export type Summary = {
-  chart: ChartData;
-  value: PeriodChanges;
-  totals: Totals;
-  meta: EnrichedPortfolio["meta"];
-};
+export type EnrichedSummary = t.TypeOf<typeof EnrichedSummaryDecoder>;

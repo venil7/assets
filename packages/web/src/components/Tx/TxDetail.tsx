@@ -2,10 +2,11 @@ import type { Ccy, EnrichedAsset, EnrichedTx } from "@darkruby/assets-core";
 import { defaultValidator } from "@darkruby/assets-core/src/validation/util";
 import { pipe } from "fp-ts/lib/function";
 import { ListGroup } from "react-bootstrap";
-import { useFormatters } from "../../hooks/prefs";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
 import type { FieldsProps } from "../Form/Form";
+import { Decimal, Money } from "../Formatting";
+import { Percent } from "../Formatting/Percent";
 import { HorizontalStack } from "../Layout/Stack";
 import { createModal } from "../Modals/Modal";
 
@@ -14,46 +15,41 @@ type TxDetailsProps = FieldsProps<EnrichedTx> & {
 };
 
 export const TxDetails: React.FC<TxDetailsProps> = ({ data: tx, asset }) => {
-  const { decimal, money, percent } = useFormatters();
   const ccy = asset.meta.currency as Ccy;
-  const domestic = asset.domestic;
+  const domestic = asset.base.domestic;
   return (
     <div className="asset-details-tab">
       <HorizontalStack>
         <ListGroup variant="flush">
           <ListGroup.Item>
-            <strong>
-              Holdings <em>(post-transaction)</em>
-            </strong>
-            <span>{decimal(tx.holdings)}</span>
+            <strong>Running asset holding</strong>
+            <Decimal value={tx.running_holding} />
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>
-              Avg unit cost <em>(post-transaction)</em>
-            </strong>
-            <span>{money(tx.avg_price, ccy)}</span>
+            <strong>Running unit cost</strong>
+            <Money value={tx.running_average_price} ccy={ccy} />
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>
-              Asset cost <em>(post-transaction)</em>
-            </strong>
-            <span>{money(tx.total_invested, ccy)}</span>
+            <strong>Running asset cost</strong>
+            <Money value={tx.running_cost} ccy={ccy} />
           </ListGroup.Item>
           <ListGroup.Item>
-            <strong>Asset contribution</strong>
-            <span>{percent(tx.contribution)}</span>
+            <strong>Running break even</strong>
+            <Money value={tx.running_break_even} ccy={ccy} />
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Running contribution</strong>
+            <Percent value={tx.running_contribution} />
+          </ListGroup.Item>
+          <ListGroup.Item>
+            <strong>Holding contribution</strong>
+            <Percent value={tx.contribution} />
           </ListGroup.Item>
         </ListGroup>
         <ListGroup variant="flush" hidden={domestic}>
           <ListGroup.Item>
-            <strong>Fx rate</strong>
-            <span>
-              {money(1)}={money(tx.base.fxRate, ccy)}
-            </span>
-          </ListGroup.Item>
-          <ListGroup.Item>
-            <strong>Fx impact</strong>
-            <span>{money(tx.base.fxImpact)}</span>
+            <strong>Comments</strong>
+            <pre>{tx.comments}</pre>
           </ListGroup.Item>
         </ListGroup>
       </HorizontalStack>

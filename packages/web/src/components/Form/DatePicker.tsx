@@ -4,6 +4,7 @@ import { forwardRef, useMemo } from "react";
 import DatePickerLib from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { DATE_FORMAT } from "../../util/date";
+import "./Form.scss";
 
 export type DatePickerProps = {
   date: Date;
@@ -49,7 +50,12 @@ type DateButtonProps = {
 
 const DatePickerButton = forwardRef<HTMLButtonElement, DateButtonProps>(
   ({ value, onClick }, ref) => (
-    <button type="button" className="btn btn-dark" onClick={onClick} ref={ref}>
+    <button
+      type="button"
+      className="btn btn-dark date-picker-btn"
+      onClick={onClick}
+      ref={ref}
+    >
       {value}
     </button>
   )

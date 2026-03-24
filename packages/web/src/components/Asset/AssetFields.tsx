@@ -1,7 +1,7 @@
 import {
   assetValidator,
   type PostAsset,
-  type Ticker,
+  type Ticker
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import { Form } from "react-bootstrap";
@@ -18,7 +18,7 @@ type AssetFieldsProps = FieldsProps<PostAsset>;
 const AssetFields: React.FC<AssetFieldsProps> = ({
   data,
   onChange,
-  disabled,
+  disabled
 }) => {
   const setField = usePartialChange(data, onChange);
 
@@ -28,7 +28,7 @@ const AssetFields: React.FC<AssetFieldsProps> = ({
   return (
     <Form>
       <Form.Group className="mb-3">
-        <Form.Label>Lookup</Form.Label>
+        <Form.Label>Asset lookup</Form.Label>
         <TickerLookup onSelect={handeSelect} disabled={disabled} />
       </Form.Group>
       <Form.Group className="mb-3">
@@ -40,7 +40,7 @@ const AssetFields: React.FC<AssetFieldsProps> = ({
         />
       </Form.Group>
       <Form.Group className="mb-3">
-        <Form.Label>ticker</Form.Label>
+        <Form.Label>Ticker (Symbol)</Form.Label>
         <FormEdit
           value={data.ticker}
           onChange={setField("ticker")}

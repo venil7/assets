@@ -43,6 +43,8 @@ export const RawNumberInput = ({
   disableFractional,
   ...props
 }: NumberInputProps) => {
+  const inputmode = { inputmode: "decimal" };
+
   const [valueString, setValueString] = useState(() =>
     numberToString(value, decimalPoints, "")
   );
@@ -68,7 +70,14 @@ export const RawNumberInput = ({
     } else onChange?.(null);
   };
 
-  return <FormEdit {...props} value={valueString} onChange={handleChange} />;
+  return (
+    <FormEdit
+      {...props}
+      {...inputmode}
+      value={valueString}
+      onChange={handleChange}
+    />
+  );
 };
 
 export const FormNumber = pipe(RawNumberInput, withVisibility());
