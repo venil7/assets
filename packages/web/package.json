@@ -29,7 +29,7 @@
     "react-dropzone": "^14.3.8",
     "react-router": "^7.3.0",
     "react-select": "^5.10.1",
-    "recharts": "^3.8.0"
+    "recharts": "3.8.0"
   },
   "devDependencies": {
     "sass-embedded": "^1.93.2",

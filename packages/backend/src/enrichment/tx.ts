@@ -9,7 +9,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { type YahooApi } from "../yahoo/client";
 
-export const getTxEnricher =
+const getTxEnricher =
   (yahooApi: YahooApi) =>
   (tx: GetTx): Action<EnrichedTx> => {
     return pipe(
@@ -32,12 +32,12 @@ export const getTxEnricher =
     );
   };
 
-export const getTxsEnricher =
+const getTxsEnricher =
   (yahooApi: YahooApi) =>
   (txs: GetTx[]): Action<EnrichedTx[]> => {
     const enrichTx = getTxEnricher(yahooApi);
-    // return pipe(txs, TE.traverseSeqArray(enrichTx)) as Action<EnrichedTx[]>; // <-- sequential to take advantage of yahoo cache
-    return pipe(txs, TE.traverseArray(enrichTx)) as Action<EnrichedTx[]>; // <-- sequential to take advantage of yahoo cache
+    return pipe(txs, TE.traverseSeqArray(enrichTx)) as Action<EnrichedTx[]>; // <-- sequential to take advantage of yahoo cache
+    // return pipe(txs, TE.traverseArray(enrichTx)) as Action<EnrichedTx[]>; // <-- sequential to take advantage of yahoo cache
   };
 
 export type TxEnricher = ReturnType<typeof createTxEnricher>;

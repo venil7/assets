@@ -12,7 +12,7 @@ export type Cache = LRUCache<Stringifiable, any>;
 const toKey = (...k: Stringifiable[]) =>
   createHash("md5").update(k.map(String).join("")).digest("hex");
 
-const log = createLogger("Memory-Cache");
+const log = createLogger("cache");
 
 const has = (cache: Cache) => (key: string) => cache.has(toKey(key));
 
@@ -40,10 +40,10 @@ const cachedAction =
     const get = getter(cache);
     const res = get(key);
     if (O.isSome(res)) {
-      log.debug(`hit for ${key}`);
+      log.debug(`HIT for ${key}`);
       return TE.of(res.value as T);
     }
-    log.debug(`miss for ${key}`);
+    log.debug(`MISS for ${key}`);
     const set = setter(cache);
 
     return pipe(

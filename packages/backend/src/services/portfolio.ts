@@ -11,79 +11,69 @@ import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import { pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
 import { mapWebError } from "../domain/error";
-import {
-  getOptionalPorfolioEnricher,
-  getPortfolioEnricher,
-  getPortfoliosEnricher
-} from "../enrichment";
+import { type PortfolioEnricher } from "../enrichment";
 import type { WebAction } from "../fp-express";
 import type { Repository } from "../repository";
-import type { YahooApi } from "../yahoo/client";
-// import { getTxs as enrichedTxsGetter } from "./tx";
 
 const portfolioDecoder = liftTE(PostPortfolioDecoder);
 
 export const getPortfolio =
-  (repo: Repository, yahooApi: YahooApi) =>
+  (repo: Repository, { enrichMaybe }: PortfolioEnricher) =>
   (
     portfolioId: PortfolioId,
     userId: UserId,
     range: ChartRange
   ): WebAction<Optional<EnrichedPortfolio>> => {
-    const enrichPortfolio = getOptionalPorfolioEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("portfolio", () => repo.portfolio.get(portfolioId, userId)),
-      TE.chain(({ portfolio }) => enrichPortfolio(portfolio, range)),
+      TE.chain(({ portfolio }) => enrichMaybe(portfolio, range)),
       mapWebError
     );
   };
 
 export const getPortfolios =
-  (repo: Repository, yahooApi: YahooApi) =>
+  (repo: Repository, { enrichMany }: PortfolioEnricher) =>
   (
     userId: UserId,
     range: ChartRange
   ): WebAction<readonly EnrichedPortfolio[]> => {
-    const enrichPortfolios = getPortfoliosEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("portfolios", () => repo.portfolio.getAll(userId)),
-      TE.chain(({ portfolios }) => enrichPortfolios(portfolios, range)),
+      TE.chain(({ portfolios }) => enrichMany(portfolios, range)),
       mapWebError
     );
   };
 
 export const createPortfolio =
-  (repo: Repository, yahooApi: YahooApi) =>
+  (repo: Repository, { enrich }: PortfolioEnricher) =>
   (userId: UserId, payload: unknown): WebAction<EnrichedPortfolio> => {
-    const enrichPortfolio = getPortfolioEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("portfolio", () => portfolioDecoder(payload)),
       TE.bind("created", ({ portfolio }) =>
         repo.portfolio.create(portfolio, userId)
       ),
-      TE.chain(({ created }) => enrichPortfolio(created)),
+      TE.chain(({ created }) => enrich(created)),
       mapWebError
     );
   };
 
 export const updatePortfolio =
-  (repo: Repository, yahooApi: YahooApi) =>
+  (repo: Repository, { enrich }: PortfolioEnricher) =>
   (
     portfolioId: PortfolioId,
     userId: UserId,
     payload: unknown
   ): WebAction<EnrichedPortfolio> => {
-    const enrichPortfolio = getPortfolioEnricher(repo, yahooApi);
     return pipe(
       TE.Do,
       TE.bind("portfolio", () => portfolioDecoder(payload)),
       TE.bind("updated", ({ portfolio }) =>
         repo.portfolio.update(portfolioId, portfolio, userId)
       ),
-      TE.chain(({ updated }) => enrichPortfolio(updated)),
+      TE.chain(({ updated }) => enrich(updated)),
       mapWebError
     );
   };

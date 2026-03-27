@@ -42,18 +42,18 @@ export const createWebService = (
       move: asset.moveAsset(repo)
     },
     portfolio: {
-      get: portfolio.getPortfolio(repo, yahooApi),
-      getMany: portfolio.getPortfolios(repo, yahooApi),
+      get: portfolio.getPortfolio(repo, enricher.portfolio),
+      getMany: portfolio.getPortfolios(repo, enricher.portfolio),
       delete: portfolio.deletePortfolio(repo),
-      create: portfolio.createPortfolio(repo, yahooApi),
-      update: portfolio.updatePortfolio(repo, yahooApi)
+      create: portfolio.createPortfolio(repo, enricher.portfolio),
+      update: portfolio.updatePortfolio(repo, enricher.portfolio)
     },
     tx: {
-      get: tx.getTx(repo, yahooApi),
-      getMany: tx.getTxs(repo, yahooApi),
+      get: tx.getTx(repo, enricher.tx),
+      getMany: tx.getTxs(repo, enricher.tx),
       delete: tx.deleteTx(repo),
-      create: tx.createTx(repo, yahooApi),
-      update: tx.updateTx(repo, yahooApi),
+      create: tx.createTx(repo, enricher.tx),
+      update: tx.updateTx(repo, enricher.tx),
       uploadAssetTxs: tx.uploadAssetTxs(repo),
       deleteAllAsset: tx.deleteAllAssetTxs(repo)
     },
