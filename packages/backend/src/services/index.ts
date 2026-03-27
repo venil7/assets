@@ -1,3 +1,4 @@
+import type { Enricher } from "../enrichment";
 import type { Repository } from "../repository";
 import type { YahooApi } from "../yahoo/client";
 import * as asset from "./asset";
@@ -9,7 +10,11 @@ import * as user from "./user";
 
 export type WebService = ReturnType<typeof createWebService>;
 
-export const createWebService = (repo: Repository, yahooApi: YahooApi) => {
+export const createWebService = (
+  repo: Repository,
+  yahooApi: YahooApi,
+  enricher: Enricher
+) => {
   return {
     auth: {
       createToken: auth.createToken,
@@ -29,11 +34,11 @@ export const createWebService = (repo: Repository, yahooApi: YahooApi) => {
       updateOwnPasswordOnly: user.updateOwnPasswordOnly(repo)
     },
     assets: {
-      get: asset.getAsset(repo, yahooApi),
-      getMany: asset.getAssets(repo, yahooApi),
+      get: asset.getAsset(repo, enricher.asset),
+      getMany: asset.getAssets(repo, enricher.asset),
       delete: asset.deleteAsset(repo),
-      create: asset.createAsset(repo, yahooApi),
-      update: asset.updateAsset(repo, yahooApi),
+      create: asset.createAsset(repo, yahooApi, enricher.asset),
+      update: asset.updateAsset(repo, yahooApi, enricher.asset),
       move: asset.moveAsset(repo)
     },
     portfolio: {

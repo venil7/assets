@@ -1,4 +1,4 @@
-import { type Action } from "@darkruby/assets-core";
+import { defined, type Action } from "@darkruby/assets-core";
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
@@ -12,7 +12,7 @@ export type Cache = LRUCache<Stringifiable, any>;
 const toKey = (...k: Stringifiable[]) =>
   createHash("md5").update(k.map(String).join("")).digest("hex");
 
-const log = createLogger("cache");
+const log = createLogger("Memory-Cache");
 
 const has = (cache: Cache) => (key: string) => cache.has(toKey(key));
 
@@ -21,7 +21,7 @@ const getter =
   <T>(key: string): O.Option<T> => {
     return pipe(
       O.tryCatch(() => cache.get(toKey(key))),
-      O.filter((x) => x !== null && x !== undefined)
+      O.filter(defined /*(x) => x !== null && x !== undefined*/)
     );
   };
 
@@ -29,8 +29,7 @@ const setter =
   (cache: Cache) =>
   <T>(key: string, val: T, ttl?: number): O.Option<T> => {
     return pipe(
-      O.of(val),
-      O.chain(() => O.tryCatch(() => cache.set(toKey(key), val, { ttl }))),
+      O.tryCatch(() => cache.set(toKey(key), val, { ttl })),
       O.map(() => val)
     );
   };
@@ -41,10 +40,10 @@ const cachedAction =
     const get = getter(cache);
     const res = get(key);
     if (O.isSome(res)) {
-      // log.debug(`hit for ${key}`);
+      log.debug(`hit for ${key}`);
       return TE.of(res.value as T);
     }
-    // log.debug(`miss for ${key}`);
+    log.debug(`miss for ${key}`);
     const set = setter(cache);
 
     return pipe(

@@ -6,14 +6,14 @@
   "dependencies": {
     "date-fns": "^4.1.0",
     "fp-ts": "^2.16.11",
-    "io-ts-types": "^0.5.19",
-    "ms": "^2.1.3",
-    "prettier": "^3.6.2"
+    "io-ts": "~2.2.21",
+    "io-ts-types": "^0.5.19"
   },
   "devDependencies": {
+    "prettier": "^3.6.2",
     "@types/bun": "1.3.11",
     "bun-types": "^1.3.11",
-    "typescript": "~5.9.3"
+    "typescript": "~6.0.2"
   },
   "scripts": {
     "web:dev": "cd packages/web && bun run dev",
@@ -23,9 +23,9 @@
     "backend:test": "cd packages/backend && bun test",
     "backend:check": "cd packages/backend && bun run check",
     "backend:build": "cd packages/backend && bun run build",
-    "assets-core:check": "cd packages/core && bun run check",
-    "assets-core:test": "cd packages/core && bun run test",
-    "check": "bun run assets-core:check && bun run backend:check && bun run web:check",
+    "core:check": "cd packages/core && bun run check",
+    "core:test": "cd packages/core && bun run test",
+    "check": "bun run core:check && bun run backend:check && bun run web:check",
     "build": "bun run web:build && bun run backend:build"
   },
   "workspaces": [

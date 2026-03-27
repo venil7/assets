@@ -7,6 +7,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { LRUCache } from "lru-cache";
 import { Server } from "node:http";
 import path from "node:path";
+import { createEnricher } from "./enrichment";
 import { createRequestHandler } from "./fp-express";
 import { createHandlers } from "./handlers";
 import type { Context } from "./handlers/context";
@@ -175,9 +176,12 @@ const app = () =>
         TE.Do,
         TE.bind("repo", () => repository(config)),
         TE.bind("cache", () => cache(config)),
-        TE.bind("yahooApi", ({ cache }) => TE.of(cachedYahooApi(cache))),
-        TE.bind("service", ({ repo, yahooApi }) =>
-          TE.of(createWebService(repo, yahooApi))
+        TE.let("yahooApi", ({ cache }) => cachedYahooApi(cache)),
+        TE.let("enricher", ({ repo, cache, yahooApi }) =>
+          createEnricher(repo, yahooApi, cache)
+        ),
+        TE.bind("service", ({ repo, yahooApi, enricher }) =>
+          TE.of(createWebService(repo, yahooApi, enricher))
         )
       )
     ),

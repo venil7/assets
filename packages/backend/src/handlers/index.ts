@@ -13,6 +13,7 @@ import * as user from "./user";
 import * as yahoo from "./yahoo";
 
 export type Handlers = ReturnType<typeof createHandlers>;
+
 export const createHandlers = (
   expressify: (task: HandlerTask<unknown, Context>) => express.RequestHandler
 ) => ({

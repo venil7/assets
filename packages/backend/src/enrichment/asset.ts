@@ -100,3 +100,14 @@ export const calcAssetWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
     })
   );
 };
+
+export type AssetEnricher = ReturnType<typeof createAssetEnricher>;
+
+export const createAssetEnricher = (repo: Repository, yahooApi: YahooApi) => {
+  return {
+    enrich: getAssetEnricher(repo, yahooApi),
+    enrichMany: getAssetsEnricher(repo, yahooApi),
+    enrichMaybe: getOptionalAssetEnricher(repo, yahooApi),
+    calcAssetWeights
+  };
+};

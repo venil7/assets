@@ -199,3 +199,17 @@ export const calcPortfolioWeights = (
     })
   );
 };
+
+export type PortfolioEnricher = ReturnType<typeof createPortfolioEnricher>;
+
+export const createPortfolioEnricher = (
+  repo: Repository,
+  yahooApi: YahooApi
+) => {
+  return {
+    enrich: getPortfolioEnricher(repo, yahooApi),
+    enrichMany: getPortfoliosEnricher(repo, yahooApi),
+    enrichMaybe: getOptionalPorfolioEnricher(repo, yahooApi),
+    calcPortfolioWeights
+  };
+};

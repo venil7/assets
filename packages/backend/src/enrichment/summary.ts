@@ -147,3 +147,8 @@ export const enrichSummary = (
     breakEven
   };
 };
+
+export type SummaryEnricher = ReturnType<typeof createSummaryEnricher>;
+export const createSummaryEnricher = () => {
+  return { enrich: enrichSummary };
+};
