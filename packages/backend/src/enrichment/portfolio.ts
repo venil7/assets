@@ -23,7 +23,11 @@ import * as Ord from "fp-ts/lib/Ord";
 import * as TE from "fp-ts/lib/TaskEither";
 import type { Repository } from "../repository";
 import type { AssetEnricher } from "./asset";
-import { combineAssetCharts, commonAssetRanges } from "./chart";
+import {
+  combineAssetCharts,
+  commonAssetRanges,
+  portfolioMultiChart
+} from "./chart";
 
 const sumInvested = sum<EnrichedAsset>(({ base }) => base.invested);
 const sumRealizedPnl = sum<EnrichedAsset>(({ base }) => base.realizedPnl);
@@ -132,6 +136,7 @@ const getPortfolioEnricher =
         const totals = portfolioTotals(assets);
         const changes = portfolioChanges(assets);
         const chart = combineAssetCharts(assets);
+        const multiChart = portfolioMultiChart(assets);
 
         return {
           ...portfolio,
@@ -142,6 +147,7 @@ const getPortfolioEnricher =
           domestic,
           changes,
           chart,
+          multiChart,
           invested,
           breakEven,
           totals,

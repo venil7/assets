@@ -29,9 +29,7 @@ const RawMultiAssetChart: React.FC<MultiAssetChartProps> = ({
   data,
   timeFormatter
 }: MultiAssetChartProps) => {
-  const { money } = useFormatters();
-  const tickFormatter = (n: number) => `${n.toFixed(1)}%`;
-
+  const { percent } = useFormatters();
   const names = R.keys(data);
   const timestamp = pipe(
     data,
@@ -94,7 +92,7 @@ const RawMultiAssetChart: React.FC<MultiAssetChartProps> = ({
           <YAxis
             hide
             yAxisId="price"
-            tickFormatter={tickFormatter}
+            tickFormatter={percent}
             domain={["dataMin", "dataMax"]}
             orientation="left"
           />
@@ -103,7 +101,7 @@ const RawMultiAssetChart: React.FC<MultiAssetChartProps> = ({
             labelFormatter={(t) => `Time: ${timeFormatter(t)}`}
             formatter={tooltipValueFormatter}
           />
-          {entries.map(([name, chart], idx) => (
+          {entries.map(([name], idx) => (
             <Area
               key={name}
               dot={false}

@@ -307,29 +307,16 @@ const combineMultiChart =
     );
   };
 
-export const combineAssetsMultiChart = combineMultiChart<EnrichedAsset>(
+export const portfolioMultiChart = combineMultiChart<EnrichedAsset>(
   ({ name: id, base }) => ({
     id,
     chart: base.chart
   })
 );
 
-export const combineSummaryMultiChart = combineMultiChart<EnrichedPortfolio>(
+export const summaryMultiChart = combineMultiChart<EnrichedPortfolio>(
   ({ name: id, chart }) => ({
     id,
     chart
   })
 );
-
-// export const flattenMultiChart = (chart: MultiChartData): ChartData => {
-//   return pipe(
-//     chart,
-//     R.toEntries,
-//     A.map(([, chart]) => readRecords(chart, { schema: ChartSchema })),
-//     (dfs) => concat(dfs)
-//   )
-//     .groupBy("timestamp")
-//     .agg(col("price").sum(), col("volume").sum())
-//     .sort("timestamp")
-//     .toRecords() as ChartData;
-// };
