@@ -63,3 +63,9 @@ export const createCache = (size: number, ttl: number) => {
     cachedAction: cachedAction(cache)
   };
 };
+
+// const aaa = (cache: AppCache) => {
+//   return function wrap<A extends readonly unknown[], B>(f: FunctionN<A, Action<B>>) {
+//     return (...a: A) => B;
+//   }
+// };
