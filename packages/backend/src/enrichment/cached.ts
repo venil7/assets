@@ -11,9 +11,14 @@ import type { Repository } from "../repository";
 import type { AppCache } from "../services/cache";
 import type { YahooApi } from "../yahoo/client";
 import { createAssetEnricher, type AssetEnricher } from "./asset";
+import { keys } from "./key";
 import { createPortfolioEnricher, type PortfolioEnricher } from "./portfolio";
 import { createSummaryEnricher, type SummaryEnricher } from "./summary";
 import { createTxEnricher, type TxEnricher } from "./tx";
+
+const txKey = keys<GetTx>("enrich-tx");
+const assetKey = keys<GetAsset>("enrich-asset");
+const portfolioKey = keys<GetPortfolio>("enrich-portfolio");
 
 export type Enricher = {
   tx: TxEnricher;
@@ -33,14 +38,12 @@ export const createEnricher = (
   const cachedTxEnricher = {
     ...txEnricher,
     enrich: (tx: GetTx) => {
-      const key = `enrich-tx-${tx.id}`;
       const action = () => txEnricher.enrich(tx);
-      return cache.cachedAction(key, action, ENRICH_TTL);
+      return cache.cachedAction(txKey.key(tx), action, ENRICH_TTL);
     },
     enrichMany: (txs: GetTx[]) => {
-      const key = `enrich-txs-${txs.map((tx) => tx.id).join("-")}`;
       const action = () => txEnricher.enrichMany(txs);
-      return cache.cachedAction(key, action, ENRICH_TTL);
+      return cache.cachedAction(txKey.multiKey(txs), action, ENRICH_TTL);
     }
   };
 
@@ -48,25 +51,22 @@ export const createEnricher = (
   const cachedAssetEnricher = {
     ...assetEnricher,
     enrich: (asset: GetAsset, range: ChartRange = DEFAULT_CHART_RANGE) => {
-      const key = `enrich-asset-${asset.id}-${range}`;
       const action = () => assetEnricher.enrich(asset, range);
-      return cache.cachedAction(key, action, ENRICH_TTL);
+      return cache.cachedAction(assetKey.key(asset), action, ENRICH_TTL);
     },
     enrichMaybe: (
       asset: Optional<GetAsset>,
       range: ChartRange = DEFAULT_CHART_RANGE
     ) => {
-      const key = `enrich-asset-${asset?.id}-${range}`;
       const action = () => assetEnricher.enrichMaybe(asset, range);
-      return cache.cachedAction(key, action, ENRICH_TTL);
+      return cache.cachedAction(assetKey.maybeKey(asset), action, ENRICH_TTL);
     },
     enrichMany: (
       assets: GetAsset[],
       range: ChartRange = DEFAULT_CHART_RANGE
     ) => {
-      const key = `enrich-assets-${assets.map((a) => a.id).join("-")}-${range}`;
       const action = () => assetEnricher.enrichMany(assets, range);
-      return cache.cachedAction(key, action, ENRICH_TTL);
+      return cache.cachedAction(assetKey.multiKey(assets), action, ENRICH_TTL);
     }
   };
 
@@ -77,25 +77,34 @@ export const createEnricher = (
       portfolio: GetPortfolio,
       range: ChartRange = DEFAULT_CHART_RANGE
     ) => {
-      const key = `enrich-asset-${portfolio.id}-${range}`;
       const action = () => portfolioEnricher.enrich(portfolio, range);
-      return cache.cachedAction(key, action, ENRICH_TTL);
+      return cache.cachedAction(
+        portfolioKey.key(portfolio),
+        action,
+        ENRICH_TTL
+      );
     },
     enrichMaybe: (
       portfolio: Optional<GetPortfolio>,
       range: ChartRange = DEFAULT_CHART_RANGE
     ) => {
-      const key = `enrich-asset-${portfolio?.id}-${range}`;
       const action = () => portfolioEnricher.enrichMaybe(portfolio, range);
-      return cache.cachedAction(key, action, ENRICH_TTL);
+      return cache.cachedAction(
+        portfolioKey.maybeKey(portfolio),
+        action,
+        ENRICH_TTL
+      );
     },
     enrichMany: (
       portfolios: GetPortfolio[],
       range: ChartRange = DEFAULT_CHART_RANGE
     ) => {
-      const key = `enrich-portfolio-${portfolios.map((p) => p.id).join("-")}-${range}`;
       const action = () => portfolioEnricher.enrichMany(portfolios, range);
-      return cache.cachedAction(key, action, ENRICH_TTL);
+      return cache.cachedAction(
+        portfolioKey.multiKey(portfolios),
+        action,
+        ENRICH_TTL
+      );
     }
   };
   const summaryEnricher = createSummaryEnricher();

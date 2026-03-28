@@ -2,7 +2,7 @@ import { defined, type Action } from "@darkruby/assets-core";
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { type LRUCache } from "lru-cache";
+import { LRUCache } from "lru-cache";
 import { createHash } from "node:crypto";
 import { createLogger } from "../fp-express";
 
@@ -40,10 +40,10 @@ const cachedAction =
     const get = getter(cache);
     const res = get(key);
     if (O.isSome(res)) {
-      log.debug(`HIT for ${key}`);
+      log.debug(`HIT for ${key.substring(0, 10)}`);
       return TE.of(res.value as T);
     }
-    log.debug(`MISS for ${key}`);
+    log.debug(`MISS for ${key.substring(0, 10)}`);
     const set = setter(cache);
 
     return pipe(
@@ -54,7 +54,8 @@ const cachedAction =
 
 export type AppCache = ReturnType<typeof createCache>;
 
-export const createCache = (cache: Cache) => {
+export const createCache = (size: number, ttl: number) => {
+  const cache = new LRUCache<Stringifiable, any>({ max: size, ttl });
   return {
     has: has(cache),
     getter: getter(cache),

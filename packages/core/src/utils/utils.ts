@@ -9,7 +9,7 @@ export type Replace<T, K extends keyof T, R> = Identity<
   Omit<T, K> & { [key in K]: R }
 >;
 
-export const defined = <T>(t: Optional<T>): t is T =>
+export const defined = <T>(t: Optional<T>): t is NonNullable<T> =>
   t !== null && t !== undefined;
 
 export type Result<T> = E.Either<AppError, T>;
