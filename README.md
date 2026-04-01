@@ -19,6 +19,7 @@ Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.c
 
 ---
 <img width="235" height="500" alt="screenshot1" src="https://github.com/user-attachments/assets/f5bceba8-cf8e-4dac-a531-ce896f9e7d4b" />
+<img width="235" height="500" alt="screenshot0" src="https://github.com/user-attachments/assets/7932f0ec-bdab-4987-90f6-0914e2852e29" />
 <img width="235" height="500" alt="screenshot2" src="https://github.com/user-attachments/assets/fb6e09d8-91f1-4053-8cdf-93d0d7fc7741" />
 <img width="235" height="500" alt="screenshot3" src="https://github.com/user-attachments/assets/e81ec8e2-919b-43d3-b919-34a39f108c6c" />
 
