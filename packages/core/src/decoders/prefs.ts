@@ -1,6 +1,7 @@
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
+import { JsonFromString, withFallback } from "io-ts-types";
 
 export const BASE_CCYS = [
   "USD",
@@ -32,11 +33,29 @@ export const CcyDecoder = pipe(
     )
 ) as t.Type<Ccy>;
 
+const additionqlPrefsTypes = {
+  altChart: withFallback(t.boolean, false)
+};
+
+export const AdditionalPrefsDecoder = t.type(additionqlPrefsTypes);
+export const defaultAdditionalPrefs = (): t.TypeOf<
+  typeof AdditionalPrefsDecoder
+> => ({
+  altChart: false
+});
+
 const prefsTypes = {
-  base_ccy: CcyDecoder
+  base_ccy: CcyDecoder,
+  additional: withFallback(AdditionalPrefsDecoder, defaultAdditionalPrefs())
+};
+
+const dbPrefsTypes = {
+  ...prefsTypes,
+  additional: t.string.pipe(JsonFromString).pipe(prefsTypes.additional)
 };
 
 export const PrefsDecoder = t.type(prefsTypes);
+export const DbPrefsDecoder = t.type(dbPrefsTypes);
 
 export const ccyToLocale = (ccy: Ccy): string => {
   switch (ccy) {
