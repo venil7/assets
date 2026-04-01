@@ -17,7 +17,7 @@ import { withFetching } from "../../decorators/fetching";
 import { withNoData } from "../../decorators/nodata";
 import { assetModal } from "../Asset/AssetFields";
 import { AssetLink } from "../Asset/AssetLink";
-import { AssetChart, MultiAssetChart } from "../Charts";
+import { AutoChart } from "../Charts/AutoChart";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
 import { generateTabId, TabContent, Tabs } from "../Form/Tabs";
@@ -78,23 +78,12 @@ const RawPortfolioDetails: React.FC<PortfolioProps> = ({
           This portfolio doesn have any assets yet
         </Info>
 
-        <Tabs
-          tabs={[`Chart`, `CHart2`, `Details`]}
-          hidden={!portfolio.num_assets}
-        >
+        <Tabs tabs={[`Chart`, `Details`]} hidden={!portfolio.num_assets}>
           <TabContent tab={tabId()}>
-            <MultiAssetChart
+            <AutoChart
               onChange={onRange}
-              data={portfolio.multiChart}
-              range={portfolio.meta.range}
-              ranges={portfolio.meta.validRanges}
-              hidden={!portfolio.num_assets}
-            />
-          </TabContent>
-          <TabContent tab={tabId()}>
-            <AssetChart
-              onChange={onRange}
-              data={portfolio.chart}
+              chart={portfolio.chart}
+              multiChart={portfolio.multiChart}
               range={portfolio.meta.range}
               ranges={portfolio.meta.validRanges}
               hidden={!portfolio.num_assets}

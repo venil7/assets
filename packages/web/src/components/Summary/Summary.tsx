@@ -11,7 +11,7 @@ import { Stack } from "react-bootstrap";
 import { withError } from "../../decorators/errors";
 import { withFetching } from "../../decorators/fetching";
 import { withNoData, type WithNoData } from "../../decorators/nodata";
-import { AssetChart, MultiAssetChart } from "../Charts";
+import { AutoChart } from "../Charts/AutoChart";
 import { Info } from "../Form/Alert";
 import { AddBtn } from "../Form/Button";
 import { generateTabId, TabContent, Tabs } from "../Form/Tabs";
@@ -57,23 +57,15 @@ const RawSummary: React.FC<SummaryProps> = ({
 
       <Info hidden={!!portfolios.length}>No portfolios yet</Info>
 
-      <Tabs tabs={[`Chart`, `Chart2`, `Details`]} hidden={!portfolios.length}>
+      <Tabs tabs={[`Chart`, `Details`]} hidden={!portfolios.length}>
         <TabContent tab={tabId()}>
-          <MultiAssetChart
+          <AutoChart
             onChange={onRange}
-            data={summary.multiChart}
+            chart={summary.chart}
+            multiChart={summary.multiChart}
             range={summary.meta.range}
             ranges={summary.meta.validRanges}
             hidden={!summary.numPortfolios}
-          />
-        </TabContent>
-        <TabContent tab={tabId()}>
-          <AssetChart
-            onChange={onRange}
-            data={summary.chart}
-            range={summary.meta.range}
-            ranges={summary.meta.validRanges}
-            hidden={!portfolios.length}
           />
         </TabContent>
         <TabContent tab={tabId()}>

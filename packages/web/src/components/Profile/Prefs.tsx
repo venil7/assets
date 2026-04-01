@@ -12,6 +12,7 @@ import { withProps } from "../../decorators/props";
 import { usePartialState } from "../../hooks/formData";
 import { PrimaryButton } from "../Form/FormControl";
 import { Select } from "../Form/Select";
+import { AdditionalFieldsPrefs } from "./AdditionalPrefs";
 
 export const CcySelect = pipe(
   Select<Ccy>,
@@ -21,20 +22,41 @@ export const CcySelect = pipe(
 type PrefsProps = {
   prefs: PrefsData;
   onUpdate: (p: PrefsData) => void;
+  disabled?: boolean;
 };
 
-const RawPrefs: React.FC<PrefsProps> = ({ prefs, onUpdate }) => {
+const RawPrefs: React.FC<PrefsProps> = ({ prefs, onUpdate, disabled }) => {
   const [prf, setField] = usePartialState<PrefsData>(prefs);
   const handleSubmit = () => onUpdate(prf);
   const handleBaseCcy = setField("base_ccy");
+  const handleAdditional = setField("additional");
   return (
     <>
       <Form>
         <Form.Group className="mb-3" controlId="formGroup1">
-          <Form.Label>Base currency</Form.Label>
-          <CcySelect value={prf.base_ccy} onSelect={handleBaseCcy} />
+          <Form.Label>
+            <strong>Base currency</strong>
+          </Form.Label>
+          <CcySelect
+            value={prf.base_ccy}
+            onSelect={handleBaseCcy}
+            disabled={disabled}
+          />
         </Form.Group>
-        <PrimaryButton onClick={handleSubmit}>Save</PrimaryButton>
+        <Form.Group className="mb-3" controlId="formGroup1">
+          <Form.Label>
+            <strong>Additional</strong>
+          </Form.Label>
+          <AdditionalFieldsPrefs
+            disabled={disabled}
+            data={prf.additional}
+            onChange={handleAdditional}
+          />
+        </Form.Group>
+
+        <PrimaryButton onClick={handleSubmit} disabled={disabled}>
+          Save
+        </PrimaryButton>
       </Form>
     </>
   );
