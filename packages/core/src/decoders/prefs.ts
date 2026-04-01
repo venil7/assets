@@ -14,6 +14,7 @@ export const BASE_CCYS = [
   "DKK",
   "NZD",
   "JPY",
+  "INR"
 ] as const;
 
 export type Ccy = (typeof BASE_CCYS)[number] | "GBp";
@@ -26,13 +27,13 @@ export const CcyDecoder = pipe(
       codecs as [
         t.LiteralC<string>,
         t.LiteralC<string>,
-        ...t.LiteralC<string>[],
+        ...t.LiteralC<string>[]
       ]
     )
 ) as t.Type<Ccy>;
 
 const prefsTypes = {
-  base_ccy: CcyDecoder,
+  base_ccy: CcyDecoder
 };
 
 export const PrefsDecoder = t.type(prefsTypes);
@@ -59,6 +60,8 @@ export const ccyToLocale = (ccy: Ccy): string => {
       return "en-NZ";
     case "JPY":
       return "ja-JP";
+    case "INR":
+      return "en-IN";
     case "USD":
     default:
       return "en-US";
