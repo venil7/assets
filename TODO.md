@@ -1,5 +1,12 @@
 # todo
 
+## 1.8.1
+- [x] multi asset layered chart for portfolios
+- [x] multi portfollio layered chart for home screen
+- [x] caching of enriched data
+- [x] INR
+- [-] mock yahoo api for tests
+
 ## 1.8
 
 - [x] chore: move assets-core to core
@@ -15,10 +22,6 @@
 - [x] enriched portfolio : break even
 - [x] chart merge in polars
 - [x] chart shows transactions
-- [ ] multi asset layered chart for portfolios
-- [ ] multi portfollio layered chart for home screen
-- [ ] INR
-- [ ] mock yahoo api for tests
 
 ## 1.7.1
 

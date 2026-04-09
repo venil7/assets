@@ -1,158 +1,254 @@
 # `Assets` — Personal Wealth Tracker
 
 [![CHECKS-AND-INTEGRATION-TESTS](https://github.com/venil7/assets/actions/workflows/build-and-test.yaml/badge.svg)](https://github.com/venil7/assets/actions/workflows/build-and-test.yaml)
-
 [![RELEASE-DOCKER-CONTAINER](https://github.com/venil7/assets/actions/workflows/build-docker-container.yaml/badge.svg)](https://github.com/venil7/assets/actions/workflows/build-docker-container.yaml)
 
-A self-hosted net worth and portfolio manager.
-Track multiple portfolios (ISA, General, Pension, Crypto, etc.) and monitor individual or total performance.
-Supports any asset available via the [Yahoo Finance API](https://finance.yahoo.com/).
+A self-hosted portfolio and wealth tracker for personal finance management. Consolidate your investments across brokers and accounts - ISA, 401k, IRA, Taxable, Crypto or custom portfolios - and monitor performance with complete privacy and data ownership. Built on real-time market data from [Yahoo Finance](https://finance.yahoo.com/).
 
-## Features
- - Multi user
- - Multi portfolio, total net worth
- - CSV import from your broker
- - All major currencies as base 
- - Foreign exchange return impact 
- - capital gains and unrealized return and 
- - Per transaction impact
+**Why self-host?** Keep your financial data private. No third-party tracking, no cloud constraints, no monthly subscriptions. Your wealth data stays on your servers.
+
+## Key Features
+
+- **Multi-user support** — Manage portfolios for multiple users on a single instance
+- **Multi-portfolio tracking** — ISA, 401k, IRA, Taxable, Pension, Crypto, or custom categories
+- **Portfolio performance analytics** — Total net worth, individual or aggregated performance
+- **Real-time market data** — Live prices for any publicly-traded asset via Yahoo Finance API
+- **Multi-currency support** — Track assets in any major currency with automatic FX conversion
+- **Return calculations** — Realized gains, unrealized returns, and FX impact analysis
+- **Transaction-level insights** — Per-transaction P&L, cost basis tracking
+- **CSV import** — Bulk import transactions from broker exports (most platforms supported)
+- **REST API** — Full-featured API for integration or headless operation
+- **Web dashboard** — Modern, responsive UI for desktop and mobile (built with React + TypeScript)
+
+## Ideal For
+
+- **Individual investors** tracking portfolios across multiple brokers or accounts
+- **Households** monitoring combined net worth and investment performance
+- **Privacy-conscious users** who want investment data on their own servers
+- **Power users** comfortable self-hosting and importing transaction data manually
+- **Integration scenarios** where REST API access to portfolio data is needed
 
 ---
 <img width="235" height="500" alt="screenshot1" src="https://github.com/user-attachments/assets/f5bceba8-cf8e-4dac-a531-ce896f9e7d4b" />
+<img width="235" height="500" alt="screenshot0" src="https://github.com/user-attachments/assets/7932f0ec-bdab-4987-90f6-0914e2852e29" />
 <img width="235" height="500" alt="screenshot2" src="https://github.com/user-attachments/assets/fb6e09d8-91f1-4053-8cdf-93d0d7fc7741" />
 <img width="235" height="500" alt="screenshot3" src="https://github.com/user-attachments/assets/e81ec8e2-919b-43d3-b919-34a39f108c6c" />
 
 ---
 
-## Quick Start (Docker)
+## Quick Start
 
-```sh
-docker pull ghcr.io/venil7/assets:latest && \
+### Docker (Fastest)
+
+Pull and run the latest image:
+
+```bash
+docker pull ghcr.io/venil7/assets:latest
 docker run \
-  -e ASSETS_JWT_SECRET=S0meSecretVa1ue \
+  -e ASSETS_JWT_SECRET=YourSecretKey123 \
   -e ASSETS_DB=/data/assets.db \
   -p 4020:4020 \
   -v ${PWD}:/data \
   ghcr.io/venil7/assets
 ```
 
-Then navigate to [localhost:4020](localhost:4020) and login using `admin` / `admin`
+Then open [http://localhost:4020](http://localhost:4020) and login with `admin` / `admin`
 
-## Docker Compose (Recommended)
+> **Note:** Change `ASSETS_JWT_SECRET` to a strong random value for production.
 
-- Create an `.env` with individual parameters, for example:
+### Docker Compose (Recommended for Production)
 
-```sh
-TAG=latest # or you can try feature branch
-ASSETS_CACHE_TTL=10m # how long to cache for , before hitting Yahoo Finance API
-ASSETS_JWT_SECRET=S0meSecretVa1ue # a unique key for JWT token
-ASSETS_JWT_EXPIRES_IN=1w # how long is JWT valid
-ASSETS_JWT_REFRESH_BEFORE=5d # when to refresh JWT, before expiry
+1. Create a `.env` file with required parameters:
+
+```bash
+TAG=latest
+ASSETS_JWT_SECRET=YourSecretKey123RandomString
+ASSETS_CACHE_TTL=10m
+ASSETS_JWT_EXPIRES_IN=1w
+ASSETS_JWT_REFRESH_BEFORE=5d
 ```
 
-- Copy this [docker-compose.yaml](docker-compose.yaml)
-- Run `docker compose up -d`
+2. Copy the [docker-compose.yaml](docker-compose.yaml) to your deployment directory
+3. Run: `docker compose up -d`
+4. Open [http://localhost:8084](http://localhost:8084) and login with `admin` / `admin`
 
-### Available `.env` Variables
+**Environment Variables Reference**
 
-| Variable                    | Description                    | Default           |
-| --------------------------- | ------------------------------ | ----------------- |
-| `ASSETS_DB`                 | Path to database               | `/data/assets.db` |
-| `ASSETS_APP`                | Path to public build           | `../dist/public`  |
-| `ASSETS_PORT`               | HTTP port                      | `4020`            |
-| `ASSETS_CACHE_SIZE`         | Cache size                     | `1000`            |
-| `ASSETS_CACHE_TTL`          | Cache TTL (`ms` or `1m`, etc.) | `1m`              |
-| `ASSETS_USERNAME`           | Admin username                 | `admin`           |
-| `ASSETS_PASSWORD`           | Admin password                 | `admin`           |
-| `ASSETS_JWT_SECRET`         | JWT secret                     | —                 |
-| `ASSETS_JWT_EXPIRES_IN`     | Token expiry                   | `24h`             |
-| `ASSETS_JWT_REFRESH_BEFORE` | Refresh before expiry          | `12h`             |
+| Variable | Purpose | Default | Notes |
+|----------|---------|---------|-------|
+| `ASSETS_JWT_SECRET` | Token signing key | *(none)* | **Required.** Use a strong random string. |
+| `ASSETS_JWT_EXPIRES_IN` | Token expiry duration | `24h` | Format: `24h`, `1w`, etc. |
+| `ASSETS_JWT_REFRESH_BEFORE` | Auto-refresh threshold | `12h` | Refresh token before this duration before expiry. |
+| `ASSETS_CACHE_TTL` | Market data cache duration | `1m` | How long to cache Yahoo Finance prices. |
+| `ASSETS_CACHE_SIZE` | Number of cached items | `1000` | Increase if tracking many assets. |
+| `ASSETS_DB` | Database file path | `/data/assets.db` | SQLite database location. |
+| `ASSETS_PORT` | Server port | `4020` | Internal container port. |
+| `ASSETS_USERNAME` | Default admin username | `admin` | Change after first login. |
+| `ASSETS_PASSWORD` | Default admin password | `admin` | Change after first login. |
 
-- Navigate to [localhost:8084](http://localhost:8084), login using `admin` / `admin`
+## Build & Run Locally
 
-## Build & Run Locally (Bun)
+**Requirements:** [Bun runtime](https://bun.sh) (1.0+)
 
-This software is written in TypeScript and assumes that it runs in [Bun](https://bun.sh).
-
-- Clone repository
-- Have a `.env` placed in repository root
-- The following commands are available
-
-```sh
-bun install # install all dependencies
-
-bun run check # checks the integrity of the code
-bun run web:dev # runs UI in dev mode
-bun run backend:dev # runs backend API in dev mode
-bun run build # runs the build for both backend and frontend
-
-bun test # runs unit and integartion tests , make sure to run backend in another terminal
+```bash
+# Clone and setup
+git clone https://github.com/venil7/assets.git
+cd assets
+cp .env.example .env  # Create config file
+bun install           # Install dependencies
 ```
 
-- To build a docker container locally `$ docker buildx build -t assets .`
+**Development servers** (run in separate terminals):
 
-## Development Notes
+```bash
+# Terminal 1: Backend API
+bun run backend:dev   # Runs on http://localhost:4020
 
-### build time `.env` parameters placed in `packages/web`
-
-```sh
-VITE_ASSETS_URL=http://localhost:4020 # base part of backend REST api url, this param required in VITE DEV mode, but defaults to empty '' in production
-VITE_ASSET_BASENAME=/app # the beginnig part of URL before any routing
+# Terminal 2: Frontend UI (Vite dev server)
+bun run web:dev       # Runs on http://localhost:5173, proxies API to :4020
 ```
 
-### sqlite database migration
+**Build for production:**
 
-- To install `migrate` tool run (requires `go`)
-
-```sh
-$ go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+```bash
+bun run build         # Builds both backend and frontend
 ```
 
-The following `migrate` commands are available
+**Testing:**
 
-```sh
+```bash
+# Run all tests (requires backend:dev running in another terminal)
+bun test
+
+# Run specific package tests
+cd packages/backend && bun test
+cd packages/core && bun test
+```
+
+**Code quality checks:**
+
+```bash
+bun run check         # Lint and type-check all packages
+```
+
+**Build Docker image locally:**
+
+```bash
+docker buildx build -t assets:local .
+```
+
+### TypeScript Monorepo Structure
+
+This project uses Bun workspaces with three packages:
+
+- **backend** — Express.js REST API, database queries, business logic
+- **core** — Shared types, utilities, validation, domain models
+- **web** — React + TypeScript frontend (Vite + SCSS)
+
+## Development
+
+### Environment Configuration
+
+**Vite build-time variables** (in `packages/web`):
+
+```bash
+VITE_ASSETS_URL=http://localhost:4020  # Backend base URL (required in dev; empty string in production)
+VITE_ASSET_BASENAME=/app               # URL path prefix for routing (default: /)
+```
+
+### Database Migrations
+
+Migrations are managed with [golang-migrate](https://github.com/golang-migrate/migrate). This is **optional**—the app creates the schema automatically on first run.
+
+If you want to manually manage migrations:
+
+```bash
+# Install migrate tool (requires Go)
+go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+# Create a new migration
 migrate create -ext sql -dir .migrations/ -seq -digits 3 <name>
+
+# Apply pending migrations
 migrate -path ./.migrations -database=sqlite3://assets.db up
+
+# Rollback migrations
 migrate -path ./.migrations -database=sqlite3://assets.db down <number>
-migrate -path ./.migrations -database=sqlite3://assets.db version
 ```
 
-### Running tests
+### Testing in Docker
 
-```sh
-# Build a test container
+To run the full test suite in an isolated container:
+
+```bash
+# Build test image
 docker buildx build -t assets-test -f ./Dockerfile.test .
-# Run tests in a container
+
+# Run tests
 docker run -it assets-test
 ```
 
-## API-First Design
+## API-First Architecture
 
-The UI is optional — the backend exposes a full REST API.
+The web UI is optional. The backend exposes a **complete REST API** for any frontend or integration:
 
-- [API Documentation](./API.md)
+- REST endpoint documentation: [API.md](./API.md)
+- Use in headless mode, CLI tools, or custom integrations
+- Full authentication and multi-tenant support
 
-## Upload External Transactions
+## Importing Transactions
 
-It is possible to upload transactions for individual assets using CSV files, which can usually be downloaded from most brokers and platforms. The CSV file should have the following columns:
+Assets supports bulk CSV import for transaction history. Most brokers and trading platforms allow you to export transaction history in CSV format.
 
-- _type_: The type of transaction, either "buy" or "sell" (case insensitive)
-- _quantity_: The number of shares (float)
-- _price_: The price per share (float)
-- _date_: The date of the transaction in ISO format
-- _comments_: Any comments related to the transaction (can be left blank)
+### CSV Format
 
-Example:
+Your CSV file should have these columns:
 
-```
+| Column |  Format | Example |
+|--------|--------|---------|
+| `type` | `buy` or `sell` (case-insensitive) | `buy` |
+| `quantity` | Decimal number | `65.5` |
+| `price` | Decimal number | `125.50` |
+| `date` | ISO 8601 datetime | `2025-05-11T06:56:39.379Z` |
+| `comments` | Text (optional) | `Dividend reinvestment` |
+
+### Example CSV
+
+```csv
 type,quantity,price,date,comments
-buy,65,1,2025-05-11T06:56:39.379Z,comment
-sell,18,2,2025-06-12T06:56:39.379Z,
+buy,65,1,2025-05-11T06:56:39.379Z,Initial investment
+sell,18,2,2025-06-12T06:56:39.379Z,Rebalancing
+buy,100,125.50,2025-07-01T10:30:00Z,Monthly investment
 ```
+
+> **Tip:** Export transaction history from your broker's web portal, clean it up to match this format, and upload via the UI.
 
 ## Contributing
 
-This codebase is 100% hand written, no AI slop. If you feel comfortable with TypeScript, [functional programming](https://amzn.eu/d/axUrvVz) and basic SQL - contributions are welcome. If you find a bug, kindly open a [Github Issue](https://github.com/venil7/assets/issues)
+This codebase is **hand-written, AI-free code**. 100% human.
+
+Contributions welcome if you're comfortable with:
+
+- **TypeScript** — Full-stack, strict type safety
+- **Functional programming** — Heavy use of fp-ts, category theory patterns
+- **SQL & SQLite** — Database queries and schema design
+- **React** — Modern TypeScript component patterns
+- **REST APIs** — Express.js, RESTful design
+
+### Getting Started
+
+1. [Build locally](#build--run-locally) with `bun install && bun run backend:dev`
+2. Run tests: `bun test` (backend must be running)
+3. Make changes, ensure `bun run check` passes (lint + type-check)
+4. Submit a PR with clear description of changes
+
+### Found a Bug?
+
+Open a [GitHub Issue](https://github.com/venil7/assets/issues) with:
+
+- Steps to reproduce
+- Expected vs. actual behavior
+- Your setup (Docker/local, OS, environment)
 
 ## Licence
 

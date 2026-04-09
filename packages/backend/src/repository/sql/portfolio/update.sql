@@ -1,6 +1,6 @@
 UPDATE portfolios
 SET name = $name,
   description = $description,
-  modified = CURRENT_TIMESTAMP
+  modified = datetime('subsec')
 WHERE id = $portfolioId
   AND user_id = $userId;

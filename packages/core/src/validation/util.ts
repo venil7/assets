@@ -1,7 +1,7 @@
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import { nonEmptyString } from "../decoders";
+import { nonEmptyString } from "../decoders/string";
 import { validationErr, withErrorMessage } from "../decoders/util";
 
 export type Validator = ReturnType<typeof createValidator>;

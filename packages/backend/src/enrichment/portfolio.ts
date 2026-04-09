@@ -22,9 +22,12 @@ import { pipe } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
 import * as TE from "fp-ts/lib/TaskEither";
 import type { Repository } from "../repository";
-import type { YahooApi } from "../yahoo/client";
-import { calcAssetWeights, getAssetsEnricher } from "./asset";
-import { combineAssetCharts, commonAssetRanges } from "./chart";
+import type { AssetEnricher } from "./asset";
+import {
+  combineAssetCharts,
+  commonAssetRanges,
+  portfolioMultiChart
+} from "./chart";
 
 const sumInvested = sum<EnrichedAsset>(({ base }) => base.invested);
 const sumRealizedPnl = sum<EnrichedAsset>(({ base }) => base.realizedPnl);
@@ -105,21 +108,19 @@ const portfolioTotals = (assets: EnrichedAsset[]): Totals => {
   return { returnValue, returnPct };
 };
 
-export const getPortfolioEnricher =
-  (repo: Repository, yahooApi: YahooApi) =>
+const getPortfolioEnricher =
+  (repo: Repository, { enrichMany, calcAssetWeights }: AssetEnricher) =>
   (
     portfolio: GetPortfolio,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedPortfolio> => {
-    const enrichAssets = getAssetsEnricher(repo, yahooApi);
-
     return pipe(
       TE.Do,
       TE.apS("portfolio", TE.of(portfolio)),
       TE.bind("assets", () =>
         pipe(
           repo.asset.getAll(portfolio.id, portfolio.user_id),
-          TE.chain((assets) => enrichAssets(assets, range)),
+          TE.chain((assets) => enrichMany(assets, range)),
           TE.map(A.filter((a) => Boolean(a.invested))),
           TE.map(calcAssetWeights)
         )
@@ -135,6 +136,7 @@ export const getPortfolioEnricher =
         const totals = portfolioTotals(assets);
         const changes = portfolioChanges(assets);
         const chart = combineAssetCharts(assets);
+        const multiChart = portfolioMultiChart(assets);
 
         return {
           ...portfolio,
@@ -145,6 +147,7 @@ export const getPortfolioEnricher =
           domestic,
           changes,
           chart,
+          multiChart,
           invested,
           breakEven,
           totals,
@@ -155,13 +158,13 @@ export const getPortfolioEnricher =
     );
   };
 
-export const getPortfoliosEnricher =
-  (repo: Repository, yahooApi: YahooApi) =>
+const getPortfoliosEnricher =
+  (repo: Repository, assetEnricher: AssetEnricher) =>
   (
     portfolios: GetPortfolio[],
     range?: ChartRange
   ): Action<EnrichedPortfolio[]> => {
-    const enrichPortfolio = getPortfolioEnricher(repo, yahooApi);
+    const enrichPortfolio = getPortfolioEnricher(repo, assetEnricher);
     return pipe(
       portfolios,
       TE.traverseArray((p) => enrichPortfolio(p, range)),
@@ -170,19 +173,19 @@ export const getPortfoliosEnricher =
   };
 
 export const getOptionalPorfolioEnricher =
-  (repo: Repository, yahooApi: YahooApi) =>
+  (repo: Repository, assetEnricher: AssetEnricher) =>
   (
     portfolio: Optional<GetPortfolio>,
     range?: ChartRange
   ): Action<Optional<EnrichedPortfolio>> => {
     if (portfolio) {
-      const enrichPortfolio = getPortfolioEnricher(repo, yahooApi);
+      const enrichPortfolio = getPortfolioEnricher(repo, assetEnricher);
       return enrichPortfolio(portfolio, range);
     }
     return TE.of(null);
   };
 
-export const calcPortfolioWeights = (
+const calcPortfolioWeights = (
   portfolios: EnrichedPortfolio[]
 ): EnrichedPortfolio[] => {
   const total = pipe(
@@ -198,4 +201,18 @@ export const calcPortfolioWeights = (
       return p;
     })
   );
+};
+
+export type PortfolioEnricher = ReturnType<typeof createPortfolioEnricher>;
+
+export const createPortfolioEnricher = (
+  repo: Repository,
+  assetEnricher: AssetEnricher
+) => {
+  return {
+    enrich: getPortfolioEnricher(repo, assetEnricher),
+    enrichMany: getPortfoliosEnricher(repo, assetEnricher),
+    enrichMaybe: getOptionalPorfolioEnricher(repo, assetEnricher),
+    calcPortfolioWeights
+  };
 };

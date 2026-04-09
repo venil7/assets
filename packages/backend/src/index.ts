@@ -4,20 +4,16 @@ import cors from "cors";
 import { default as express } from "express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import { LRUCache } from "lru-cache";
 import { Server } from "node:http";
 import path from "node:path";
+import { createEnricher } from "./enrichment";
 import { createRequestHandler } from "./fp-express";
 import { createHandlers } from "./handlers";
 import type { Context } from "./handlers/context";
 import { createRepository, type Repository } from "./repository";
 import { execute } from "./repository/database";
 import { createWebService } from "./services";
-import {
-  createCache,
-  type AppCache,
-  type Stringifiable
-} from "./services/cache";
+import { createCache, type AppCache } from "./services/cache";
 import { env, envDurationMsec, envNumber } from "./services/env";
 import { initializeApp } from "./services/init";
 import { cachedYahooApi } from "./yahoo/cached";
@@ -48,15 +44,7 @@ const repository = (c: Config): Action<Repository> =>
   );
 
 const cache = ({ cacheSize, cacheTtl }: Config): Action<AppCache> =>
-  pipe(
-    TE.of(
-      new LRUCache<Stringifiable, any>({
-        max: cacheSize,
-        ttl: cacheTtl
-      })
-    ),
-    TE.map(createCache)
-  );
+  pipe(TE.of(createCache(cacheSize, cacheTtl)));
 
 const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
   const expressify = createRequestHandler(ctx);
@@ -175,9 +163,12 @@ const app = () =>
         TE.Do,
         TE.bind("repo", () => repository(config)),
         TE.bind("cache", () => cache(config)),
-        TE.bind("yahooApi", ({ cache }) => TE.of(cachedYahooApi(cache))),
-        TE.bind("service", ({ repo, yahooApi }) =>
-          TE.of(createWebService(repo, yahooApi))
+        TE.let("yahooApi", ({ cache }) => cachedYahooApi(cache)),
+        TE.let("enricher", ({ repo, cache, yahooApi }) =>
+          createEnricher(repo, yahooApi, cache)
+        ),
+        TE.bind("service", ({ repo, yahooApi, enricher }) =>
+          TE.of(createWebService(repo, yahooApi, enricher))
         )
       )
     ),

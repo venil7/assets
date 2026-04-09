@@ -16,7 +16,11 @@ import {
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as Ord from "fp-ts/lib/Ord";
-import { combinePortfolioCharts, commonPortfolioRanges } from "./chart";
+import {
+  combinePortfolioCharts,
+  commonPortfolioRanges,
+  summaryMultiChart
+} from "./chart";
 
 const summaryMeta = (
   portfolios: EnrichedPortfolio[]
@@ -130,20 +134,27 @@ export const enrichSummary = (
   );
 
   const chart = combinePortfolioCharts(portfolios);
+  const multiChart = summaryMultiChart(portfolios);
 
   const meta = summaryMeta(portfolios);
   const changes = summaryChanges(portfolios);
   const totals = summaryTotals(portfolios);
 
   return {
-    numPortfolios,
-    chart,
     meta,
-    changes,
+    chart,
     totals,
+    changes,
     invested,
     fxImpact,
+    breakEven,
+    multiChart,
     realizedPnl,
-    breakEven
-  };
+    numPortfolios
+  } satisfies EnrichedSummary;
+};
+
+export type SummaryEnricher = ReturnType<typeof createSummaryEnricher>;
+export const createSummaryEnricher = () => {
+  return { enrich: enrichSummary };
 };

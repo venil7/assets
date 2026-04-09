@@ -14,20 +14,19 @@ import * as TE from "fp-ts/lib/TaskEither";
 import type { Repository } from "../repository";
 import { type YahooApi } from "../yahoo/client";
 import { $enrichedAssetBase, $enrichedAssetCcy, txsWithRates } from "./returns";
-import { getTxsEnricher } from "./tx";
+import type { TxEnricher } from "./tx";
 
-export const getAssetEnricher =
-  (repo: Repository, yahooApi: YahooApi) =>
+const getAssetEnricher =
+  (repo: Repository, yahooApi: YahooApi, { enrichMany }: TxEnricher) =>
   (
     asset: GetAsset,
     range: ChartRange = DEFAULT_CHART_RANGE
   ): Action<EnrichedAsset> => {
-    const enrichTxs = getTxsEnricher(yahooApi);
     return pipe(
       TE.Do,
       TE.bind("chart", () => yahooApi.chart(asset.ticker, range)),
       TE.bind("txs", () => repo.tx.getAll(asset.id, asset.user_id, false)),
-      TE.bind("enrichedTxs", ({ txs }) => enrichTxs(txs)),
+      TE.bind("enrichedTxs", ({ txs }) => enrichMany(txs)),
       TE.bind("fxRates", ({ chart }) =>
         yahooApi.fxRates(chart.meta.currency, asset.base_ccy)
       ),
@@ -61,10 +60,10 @@ export const getAssetEnricher =
     );
   };
 
-export const getAssetsEnricher =
-  (repo: Repository, yahooApi: YahooApi) =>
+const getAssetsEnricher =
+  (repo: Repository, yahooApi: YahooApi, txEnricher: TxEnricher) =>
   (assets: GetAsset[], range?: ChartRange): Action<EnrichedAsset[]> => {
-    const enrichAsset = getAssetEnricher(repo, yahooApi);
+    const enrichAsset = getAssetEnricher(repo, yahooApi, txEnricher);
     return pipe(
       assets,
       TE.traverseArray((asset) => enrichAsset(asset, range)),
@@ -72,20 +71,20 @@ export const getAssetsEnricher =
     ) as Action<EnrichedAsset[]>;
   };
 
-export const getOptionalAssetEnricher =
-  (repo: Repository, yahooApi: YahooApi) =>
+const getOptionalAssetEnricher =
+  (repo: Repository, yahooApi: YahooApi, txEnricher: TxEnricher) =>
   (
     asset: Optional<GetAsset>,
     range?: ChartRange
   ): Action<Optional<EnrichedAsset>> => {
     if (asset) {
-      const enrichAsset = getAssetEnricher(repo, yahooApi);
+      const enrichAsset = getAssetEnricher(repo, yahooApi, txEnricher);
       return enrichAsset(asset, range);
     }
     return TE.of(null);
   };
 
-export const calcAssetWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
+const calcAssetWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
   const total = pipe(
     assets,
     sum(({ base }) => base.invested)
@@ -99,4 +98,19 @@ export const calcAssetWeights = (assets: EnrichedAsset[]): EnrichedAsset[] => {
       return asset;
     })
   );
+};
+
+export type AssetEnricher = ReturnType<typeof createAssetEnricher>;
+
+export const createAssetEnricher = (
+  repo: Repository,
+  yahooApi: YahooApi,
+  txEnricher: TxEnricher
+) => {
+  return {
+    enrich: getAssetEnricher(repo, yahooApi, txEnricher),
+    enrichMany: getAssetsEnricher(repo, yahooApi, txEnricher),
+    enrichMaybe: getOptionalAssetEnricher(repo, yahooApi, txEnricher),
+    calcAssetWeights
+  };
 };

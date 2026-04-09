@@ -33,6 +33,9 @@ test("Create portfolio", async () => {
 });
 
 test("Get multiple portfolios", async () => {
+  for (let _ in [1, 2, 3]) {
+    await run(api.portfolio.create(fakePortfolio()));
+  }
   const portfolios = await run(api.portfolio.getMany());
   expect(portfolios).toSatisfy((a) => Array.isArray(a) && a.length > 0);
 });

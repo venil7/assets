@@ -43,7 +43,7 @@ export const updatePassword: HandlerTask<GetUser, Context> = ({
 
 export const deleteProfile: HandlerTask<Optional<Id>, Context> = ({
   params: [, res],
-  context: { repo, service }
+  context: { service }
 }) =>
   pipe(
     TE.Do,

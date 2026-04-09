@@ -40,6 +40,10 @@ export const byDateAsc = pipe(
 export const isBuy = <T extends { type: TxType }>({ type }: T) => type == "buy";
 export const isSell = <T extends { type: TxType }>(tx: T) => !isBuy(tx);
 
+export const toKey = <T extends GetTx>(tx: T) =>
+  `tx-${tx.id}-${tx.modified.getTime()}`;
+export const toKeys = <T extends GetTx>(tx: T[]) => tx.map(toKey).join(`-`);
+
 export const cloneTx = ({
   type,
   quantity,

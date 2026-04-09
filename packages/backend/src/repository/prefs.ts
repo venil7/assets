@@ -1,8 +1,8 @@
 import {
+  DbPrefsDecoder,
   handleError,
-  PrefsDecoder,
   type Action,
-  type Prefs,
+  type Prefs
 } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import type { UserId } from "@darkruby/assets-core/src/domain/user";
@@ -16,8 +16,8 @@ import { getPrefsSql, updatePrefsSql } from "./sql" with { type: "macro" };
 const sql = {
   prefs: {
     get: TE.of(getPrefsSql()),
-    update: TE.of(updatePrefsSql()),
-  },
+    update: TE.of(updatePrefsSql())
+  }
 };
 
 export const getPrefs =
@@ -27,14 +27,15 @@ export const getPrefs =
       queryOne({ userId }),
       ID.ap(sql.prefs.get),
       ID.ap(db),
-      TE.chain(liftTE(PrefsDecoder))
+      TE.chain(liftTE(DbPrefsDecoder))
     );
 
 export const updatePrefs =
   (db: Database) =>
   (userId: UserId, prefs: Prefs): Action<Prefs> => {
+    const dbPrefs = DbPrefsDecoder.encode(prefs);
     return pipe(
-      execute({ ...prefs, userId }),
+      execute({ ...dbPrefs, userId }),
       ID.ap(sql.prefs.update),
       ID.ap(db),
       TE.chain(() => getPrefs(db)(userId)),

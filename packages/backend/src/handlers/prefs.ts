@@ -13,7 +13,7 @@ export const getPrefs: HandlerTask<Prefs, Context> = ({
 
 export const updatePrefs: HandlerTask<Prefs, Context> = ({
   params: [req, res],
-  context: { repo, service }
+  context: { service }
 }) =>
   pipe(
     service.auth.requireUserId(res),

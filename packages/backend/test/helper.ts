@@ -21,7 +21,8 @@ import * as TE from "fp-ts/lib/TaskEither";
 const BASE_URL = `http://${process.env.URL ?? "localhost:4020"}`;
 
 export const fakePrefs = (): Prefs => ({
-  base_ccy: faker.random.arrayElement(BASE_CCYS)
+  base_ccy: faker.random.arrayElement(BASE_CCYS),
+  additional: { altChart: false }
 });
 
 export const fakeNewUser = (admin = false): NewUser => ({

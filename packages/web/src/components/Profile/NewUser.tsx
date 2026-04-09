@@ -15,7 +15,7 @@ type NewUserFieldsProps = FieldsProps<NewUser>;
 export const NewUserFields: React.FC<NewUserFieldsProps> = ({
   data,
   onChange,
-  disabled,
+  disabled
 }: NewUserFieldsProps) => {
   const setField = usePartialChange(data, onChange);
   return (
@@ -37,20 +37,21 @@ export const NewUserFields: React.FC<NewUserFieldsProps> = ({
         />
       </Form.Group>
       <Form.Group className="mb-3">
-        <Form.Label>Admin &nbsp;</Form.Label>
         <CheckBox
           inline
           checked={!!data.admin}
           disabled={disabled}
           onChange={setField("admin")}
         />
-        <Form.Label>Locked &nbsp;</Form.Label>
+        <Form.Label>Admin</Form.Label>
+
         <CheckBox
           inline
           checked={!!data.locked}
           disabled={disabled}
           onChange={setField("locked")}
         />
+        <Form.Label>Locked &nbsp;</Form.Label>
       </Form.Group>
     </Form>
   );

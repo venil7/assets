@@ -1,9 +1,9 @@
 import { pipe } from "fp-ts/lib/function";
 import type { Refinement } from "fp-ts/lib/Refinement";
 import * as t from "io-ts";
+import { nonEmptyField } from "../validation/util";
 import { BooleanDecoder } from "./boolean";
 import { dateDecoder } from "./date";
-import { nonEmptyString } from "./string";
 
 export const UserIdDecoder = t.brand(
   t.number,
@@ -15,14 +15,14 @@ export const UserIdDecoder = t.brand(
 );
 
 const credentialsTypes = {
-  username: nonEmptyString,
-  password: nonEmptyString
+  username: nonEmptyField("username"),
+  password: nonEmptyField("password")
 };
 
 const passwordChangeTypes = {
-  oldPassword: nonEmptyString,
-  newPassword: nonEmptyString,
-  repeat: nonEmptyString
+  oldPassword: nonEmptyField("old password"),
+  newPassword: nonEmptyField("new password"),
+  repeat: nonEmptyField("repeat password")
 };
 
 const newUserTypes = {

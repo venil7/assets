@@ -4,7 +4,7 @@ import type {
   UnixDate
 } from "@darkruby/assets-core";
 import { expect, test } from "bun:test";
-import { combineAssetsMultiChart } from "../src/enrichment/chart";
+import { portfolioMultiChart } from "../src/enrichment/chart";
 
 const createMockChartPoint = (
   timestamp: number,
@@ -24,14 +24,14 @@ const createMockAsset = (name: string, ts: number[]): EnrichedAsset => {
   } as unknown as EnrichedAsset;
 };
 
-test.failing("combineMultiChart with asset containers", () => {
+test.failing("portfolioMultiChart with asset containers", () => {
   const assets = [
     createMockAsset("aapl", [1, 3, 5]),
     createMockAsset("googl", [2, 4, 6]),
     createMockAsset("msft", [1, 4, 5])
   ] as EnrichedAsset[];
 
-  const { aapl, googl, msft } = combineAssetsMultiChart(assets);
+  const { aapl, googl, msft } = portfolioMultiChart(assets);
 
   expect(aapl.length).toBe(googl.length);
   expect(googl.length).toBe(msft.length);

@@ -4,6 +4,6 @@ SET type = $type,
   price = $price,
   comments = $comments,
   date = $date,
-  modified = CURRENT_TIMESTAMP
+  modified = datetime('subsec')
 WHERE id = $txId
   and asset_id = $assetId;

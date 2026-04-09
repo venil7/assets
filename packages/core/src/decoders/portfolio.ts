@@ -2,7 +2,7 @@ import * as t from "io-ts";
 import { dateDecoder } from "./date";
 import { UserIdDecoder } from "./user";
 import { nullableDecoder } from "./util";
-import { ChartDataDecoder } from "./yahoo/chart";
+import { ChartDataDecoder, MultiChartDataDecoder } from "./yahoo/chart";
 import { RangeDecoder } from "./yahoo/meta";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
@@ -42,7 +42,7 @@ export const EnrichedPortfolioDecoder = t.type({
   weight: nullableDecoder(t.number),
   domestic: t.boolean,
   chart: ChartDataDecoder,
-  // multiChart: MultiChartDataDecoder,
+  multiChart: MultiChartDataDecoder,
   changes: PeriodChangesDecoder,
   totals: TotalsDecoder,
   invested: t.number,

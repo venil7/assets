@@ -45,7 +45,7 @@ export const getAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
 
 export const createAsset: HandlerTask<Optional<EnrichedAsset>, Context> = ({
   params: [req, res],
-  context: { repo, yahooApi, service }
+  context: { service }
 }) =>
   pipe(
     TE.Do,

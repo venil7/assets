@@ -1,6 +1,6 @@
 UPDATE assets
 SET name = $name,
   ticker = $ticker,
-  modified = CURRENT_TIMESTAMP
+  modified = datetime('subsec')
 WHERE id = $assetId
   and portfolio_id = $portfolioId
