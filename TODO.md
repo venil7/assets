@@ -1,10 +1,11 @@
 # todo
 
 ## 1.8.1
-- [ ] multi asset layered chart for portfolios
-- [ ] multi portfollio layered chart for home screen
-- [ ] INR
-- [ ] mock yahoo api for tests
+- [x] multi asset layered chart for portfolios
+- [x] multi portfollio layered chart for home screen
+- [x] caching of enriched data
+- [x] INR
+- [-] mock yahoo api for tests
 
 ## 1.8
 
