@@ -21,11 +21,13 @@
     }
     background-color: $dropdown-dark-bg;
   }
+
   .ticker-lookup__option {
     background-color: $dropdown-dark-bg;
+    color: $dropdown-dark-color;
+
     &:hover {
       background-color: lighten($dropdown-dark-bg, 15%);
     }
-    color: $dropdown-dark-color;
   }
 }

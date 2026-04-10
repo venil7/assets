@@ -1,5 +1,10 @@
 # todo
 
+## 1.9
+ - [ ] portfolio reports, cap gains
+ - [ ] asset also in..
+ - [ ] tx modal diff view for buy/sell (cap gains, limit on sales)
+
 ## 1.8.1
 - [x] multi asset layered chart for portfolios
 - [x] multi portfollio layered chart for home screen

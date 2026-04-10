@@ -8,6 +8,7 @@ import { Login } from "../components/Auth/Login";
 import { routes } from "../components/Router";
 import { Error } from "../decorators/errors";
 import { useStore } from "../hooks/store";
+import "./Login.scss";
 
 const RawLoginScreen: React.FC = () => {
   useSignals();
@@ -27,16 +28,18 @@ const RawLoginScreen: React.FC = () => {
   useHead({ title: `Assets - Login` });
 
   return (
-    <>
-      <Row>
-        <Col md={{ span: 4, offset: 4 }}>
+    <div className="login-container">
+      <Row className="w-100">
+        <Col
+          md={{ span: 4, offset: 4 }}
+          sm={12}
+          className="d-flex flex-column gap-3"
+        >
           <Error error={auth.error.value} />
-        </Col>
-        <Col md={{ span: 4, offset: 4 }}>
           <Login onLogin={handleLogin} />
         </Col>
       </Row>
-    </>
+    </div>
   );
 };
 
