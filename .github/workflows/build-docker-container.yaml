@@ -50,6 +50,7 @@ jobs:
         with:
           push: true
           tags: |
+            ghcr.io/venil7/assets:nightly
             ghcr.io/venil7/assets:${{ env.BUILD_TAG }}
 
       # builds release image, pushes under version and latest tags

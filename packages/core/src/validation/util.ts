@@ -1,6 +1,7 @@
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
+import { nonNegative } from "../decoders";
 import { nonEmptyString } from "../decoders/string";
 import { validationErr, withErrorMessage } from "../decoders/util";
 
@@ -50,3 +51,6 @@ export const alphaNumOnly = (str: string) =>
 
 export const nonEmptyField = (fieldName: string) =>
   pipe(nonEmptyString, withErrorMessage(`${fieldName} can't be empty`));
+
+export const nonNegativeField = (fieldName: string) =>
+  pipe(nonNegative, withErrorMessage(`${fieldName} can't be zero or less`));

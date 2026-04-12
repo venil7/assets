@@ -111,7 +111,11 @@ const RawTestScreen: React.FC = () => {
 
   return (
     <>
-      <Tabs tabs={["Modals", "Menus", "Formatting"]}>
+      <Tabs
+        init={1}
+        tabs={["Modals", "Menus", "Formatting"]}
+        onTabChange={console.log}
+      >
         <TabContent tab={tabId()}>
           <TabModals />
         </TabContent>

@@ -1,7 +1,7 @@
 import {
   defined,
-  isBuy,
-  isSell,
+  txBuy,
+  txSell,
   type ChartData,
   type ChartDataPoint
 } from "@darkruby/assets-core";
@@ -130,13 +130,13 @@ const EventDot = ({ cx, cy, payload }: DotItemDotProps) => {
   const size = 2;
 
   switch (true) {
-    case isBuy(tx):
+    case txBuy(tx):
       return (
         <g>
           <circle cx={cx} cy={cy} r={size} fill="green" stroke="#00FA9A" />
         </g>
       );
-    case isSell(tx):
+    case txSell(tx):
       return (
         <g>
           <circle cx={cx} cy={cy} r={size} fill="red" stroke="#FF4500" />

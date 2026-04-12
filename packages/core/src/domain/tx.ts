@@ -36,9 +36,11 @@ export const byDateAsc = pipe(
   DateOrd,
   contramap<Date, PostTx>((tx) => tx.date)
 );
+export const isBuy = (type: TxType) => type === "buy";
+export const isSell = (type: TxType) => !isBuy(type);
 
-export const isBuy = <T extends { type: TxType }>({ type }: T) => type == "buy";
-export const isSell = <T extends { type: TxType }>(tx: T) => !isBuy(tx);
+export const txBuy = <T extends { type: TxType }>({ type }: T) => isBuy(type);
+export const txSell = <T extends { type: TxType }>(tx: T) => !txBuy(tx);
 
 export const toKey = <T extends GetTx>(tx: T) =>
   `tx-${tx.id}-${tx.modified.getTime()}`;

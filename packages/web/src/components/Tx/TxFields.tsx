@@ -1,6 +1,8 @@
 import {
   defined,
   getToBase,
+  isBuy,
+  txBuy,
   txValidator,
   type Ccy,
   type EnrichedAsset,
@@ -29,6 +31,7 @@ import type { PropsOf } from "../../util/props";
 import { DatePicker } from "../Form/DatePicker";
 import { createForm, type FieldsProps } from "../Form/Form";
 import { TextArea } from "../Form/FormControl";
+import { MoneyField } from "../Form/MoneyEdit";
 import { FormNumber } from "../Form/NumberEdit";
 import { createModal } from "../Modals/Modal";
 
@@ -47,12 +50,17 @@ export const TxFields: React.FC<TxFieldsProps> = ({
   disabled
 }) => {
   const setField = usePartialChange(tx, onChange);
+  const setType = setField("type");
   const setPrice = setField("price") as (n: Nullable<number>) => void;
   const setQty = setField("quantity") as (n: Nullable<number>) => void;
   const setDate = (d: Nullable<Date>) => setField("date")(d ?? new Date());
   const { money } = useFormatters();
+  const assetCcy = asset.meta.currency as Ccy;
 
-  const [spend, setSpend] = useState<Nullable<number>>(tx.price * tx.quantity);
+  const [total, setTotal] = useState<Nullable<number>>(tx.price * tx.quantity);
+
+  const buy = txBuy(tx);
+  const valueLbl = buy ? "Total Cost" : "Value";
 
   const [rate, setRate] = useState(asset.base.fxRate);
   const toBase = getToBase(rate);
@@ -65,83 +73,116 @@ export const TxFields: React.FC<TxFieldsProps> = ({
     )();
 
   useEffect(() => {
+    getRate(asset.base_ccy, assetCcy, tx.date).then(setRate);
+  }, [tx.date]);
+
+  useEffect(() => {
     if (prepopulatePrice) {
       setPrice(asset.meta.regularMarketPrice);
     }
   }, [prepopulatePrice]);
 
-  useEffect(() => {
-    getRate(asset.base_ccy, asset.meta.currency, tx.date).then(setRate);
-  }, [tx.date]);
-
-  const handlePrice = (price: Nullable<number>) => {
-    if (defined(price)) {
-      if (defined(spend)) {
-        onChange({ ...tx, quantity: spend / price, price });
-      } else if (defined(tx.quantity)) {
-        setPrice(price);
-        setSpend(tx.quantity / price);
+  const handlePrice = (p: Nullable<number>) => {
+    if (defined(p)) {
+      setPrice(p);
+      if (defined(tx.quantity)) {
+        const newTotal = p * tx.quantity;
+        setTotal(newTotal);
       }
+    } else {
+      setPrice(0);
     }
   };
 
   const handleQty = (qty: Nullable<number>) => {
     if (defined(qty)) {
-      setSpend(tx.price * qty);
       setQty(qty);
+      if (defined(tx.price)) {
+        const newSpend = tx.price * qty;
+        setTotal(newSpend);
+      }
+    } else {
+      setQty(0);
     }
   };
 
-  const handleSpend = (total: Nullable<number>) => {
-    if (defined(total) && tx.price > 0) {
-      setQty(total / tx.price);
-      setSpend(total);
-      return;
+  const handleTotal = (total: Nullable<number>) => {
+    setTotal(total);
+    if (defined(total)) {
+      if (tx.price > 0) {
+        const quantity = total / tx.price;
+        setQty(quantity);
+      }
     }
-    setQty(0);
   };
+
+  const handleSellAll = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    handleQty(asset.holdings);
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const capGain = defined(total)
+    ? (tx.price - asset.avg_price) * tx.quantity
+    : null;
 
   return (
     <Form>
       <Form.Group className="mb-3">
-        <TxTypeSwitch
-          value={tx.type}
-          onChange={setField("type")}
-          disabled={disabled}
-        />
+        <TxTypeSwitch value={tx.type} onChange={setType} disabled={disabled} />
       </Form.Group>
       <Form.Group className="mb-3">
-        <Form.Label>Price (per unit)</Form.Label>
         <Row>
-          <Col>
+          <Col lg={6}>
+            <Form.Label>Price (per unit)</Form.Label>
+            <MoneyField
+              currency={assetCcy}
+              toBase={toBase}
+              disableNegative
+              value={tx.price}
+              onChange={handlePrice}
+              disabled={disabled}
+            />
+          </Col>
+          <Col lg={6}>
+            <Form.Label>Quantity</Form.Label>
             <InputGroup>
-              <InputGroup.Text>{asset.meta.currency}</InputGroup.Text>
               <FormNumber
-                value={tx.price}
-                onChange={handlePrice}
+                disableNegative
+                value={tx.quantity}
+                onChange={handleQty}
                 disabled={disabled}
               />
-              <InputGroup.Text>{money(toBase(tx.price))}</InputGroup.Text>
+              <InputGroup.Text hidden={buy} className="px-1">
+                <a href="" onClick={handleSellAll}>
+                  All
+                </a>
+              </InputGroup.Text>
             </InputGroup>
           </Col>
         </Row>
       </Form.Group>
       <Form.Group className="mb-3">
         <Row>
-          <Col>
-            <Form.Label>Quantity</Form.Label>
-            <FormNumber
-              value={tx.quantity}
-              onChange={handleQty}
+          <Col lg={6}>
+            <Form.Label>{valueLbl}</Form.Label>
+            <MoneyField
+              value={total}
+              toBase={toBase}
+              disableNegative
+              currency={assetCcy}
+              onChange={handleTotal}
               disabled={disabled}
             />
           </Col>
-          <Col>
-            <Form.Label>Cost / Value</Form.Label>
-            <FormNumber
-              value={spend}
-              onChange={handleSpend}
-              disabled={disabled}
+          <Col lg={6} hidden={buy}>
+            <Form.Label>Cap gain</Form.Label>
+            <MoneyField
+              value={capGain}
+              toBase={toBase}
+              currency={assetCcy}
+              onChange={setTotal}
+              disabled
             />
           </Col>
         </Row>
@@ -155,8 +196,7 @@ export const TxFields: React.FC<TxFieldsProps> = ({
           </Col>
           <Col hidden={asset.base.domestic}>
             <InputGroup.Text>
-              {money(1, asset.base_ccy)}≈
-              {money(rate, asset.meta.currency as Ccy)}
+              {money(1, asset.base_ccy)}≈{money(rate, assetCcy)}
             </InputGroup.Text>
           </Col>
         </Row>
@@ -178,7 +218,7 @@ export const TxTypeSwitch: React.FC<{
   value: TxType;
   disabled?: boolean;
 }> = ({ onChange, value, disabled }) => {
-  const buy = value === "buy";
+  const buy = isBuy(value);
   const sell = !buy;
   return (
     <ButtonGroup>
