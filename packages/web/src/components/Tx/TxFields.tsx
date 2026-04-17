@@ -9,8 +9,7 @@ import {
   type Identity,
   type Nullable,
   type PostTx,
-  type TxType,
-  type UnixDate
+  type TxType
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -25,7 +24,7 @@ import {
 } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
 import { useFormatters } from "../../hooks/prefs";
-import { fxRate } from "../../services/ticker";
+import { fxRate, quote } from "../../services/ticker";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
 import { DatePicker } from "../Form/DatePicker";
@@ -65,15 +64,25 @@ export const TxFields: React.FC<TxFieldsProps> = ({
   const [rate, setRate] = useState(asset.base.fxRate);
   const toBase = getToBase(rate);
 
-  const getRate = (base: Ccy, ccy: string, date: Date | UnixDate) =>
+  const getRate = (date: Date) =>
     pipe(
-      fxRate(base, ccy, date),
+      fxRate(asset.base_ccy, assetCcy, date),
       TE.map((fx) => fx.rate),
       TE.getOrElse(() => () => Promise.resolve<number>(asset.base.fxRate))
     )();
 
+  const getQuote = (date: Date) =>
+    pipe(
+      quote(asset.ticker, date),
+      TE.map(({ price }) => price),
+      TE.getOrElse(
+        () => () => Promise.resolve<number>(asset.meta.regularMarketPrice)
+      )
+    )();
+
   useEffect(() => {
-    getRate(asset.base_ccy, assetCcy, tx.date).then(setRate);
+    getRate(tx.date).then(setRate);
+    getQuote(tx.date).then(handlePrice);
   }, [tx.date]);
 
   useEffect(() => {

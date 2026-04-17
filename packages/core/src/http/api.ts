@@ -1,6 +1,7 @@
 import { formatISO } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
 import {
+  ChartDataPointDecoder,
   EnrichedAssetDecoder,
   EnrichedAssetsDecoder,
   EnrichedPortfolioDecoder,
@@ -20,6 +21,7 @@ import {
 } from "../decoders";
 import type {
   AssetId,
+  ChartDataPoint,
   Credentials,
   EnrichedAsset,
   EnrichedPortfolio,
@@ -89,6 +91,10 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   };
   const FX_URL = (base: Ccy, ccy: string, date: Optional<Date | UnixDate>) => {
     const url = `${API_URL}/lookup/fx/${base}/${ccy}`;
+    return date ? `${url}/${formatISO(date)}` : url;
+  };
+  const QUOTE_URL = (ticker: string, date: Optional<Date | UnixDate>) => {
+    const url = `${API_URL}/lookup/quote/${ticker}`;
     return date ? `${url}/${formatISO(date)}` : url;
   };
   const TXS_URL = (portfolioId: PortfolioId, assetId: AssetId) =>
@@ -234,9 +240,10 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       TICKER_URL(ticker),
       YahooTickerSearchResultDecoder
     );
-
   const fxRate = (base: Ccy, ccy: string, date: Optional<Date | UnixDate>) =>
     methods.get<Fx>(FX_URL(base, ccy, date), FxDecoder);
+  const quote = (ticker: string, date: Optional<Date | UnixDate>) =>
+    methods.get<ChartDataPoint>(QUOTE_URL(ticker, date), ChartDataPointDecoder);
 
   return {
     user: {
@@ -287,6 +294,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       refreshToken: getRefreshToken
     },
     yahoo: {
+      quote,
       lookupTicker,
       fxRate
     }

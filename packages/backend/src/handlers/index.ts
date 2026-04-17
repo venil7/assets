@@ -67,7 +67,8 @@ export const createHandlers = (
   },
   yahoo: {
     search: pipe(yahoo.search, expressify),
-    fxRate: pipe(yahoo.fxRate, expressify)
+    fxRate: pipe(yahoo.fxRate, expressify),
+    quote: pipe(yahoo.quote, expressify)
   },
   middleware: {
     authenticate: pipe(auth.verifyToken, expressify)
