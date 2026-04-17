@@ -189,6 +189,7 @@ const $breakEven = ($finalStretchTxsWithRate: DataFrame): number => {
 const $applyRates = ($finalStretchTxsWithRate: DataFrame): EnrichedTx[] => {
   return $finalStretchTxsWithRate
     .withColumns(
+      col("price").divideBy(col("rate")).alias("price"),
       col("cost").divideBy(col("rate")).alias("cost"),
       col("value").divideBy(col("latest_rate")).alias("value")
     )
