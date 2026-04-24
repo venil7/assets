@@ -4,10 +4,10 @@
   "version": "1.8.2",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "tsc -b && vite build",
+    "dev": "bunx --bun vite --host 0.0.0.0",
+    "build": "tsc -b && bunx --bun vite build",
     "check": "tsc -noEmit",
-    "preview": "vite preview"
+    "preview": "bunx --bun vite preview"
   },
   "dependencies": {
     "@darkruby/assets-core": "workspace:*",

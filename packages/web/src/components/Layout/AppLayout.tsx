@@ -12,7 +12,7 @@ export const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
       </Container>
       <footer className="footer">
         <span>
-          version: {VERSION}, built: {BUILD_DATE}
+          Assets v{APP_VERSION}, built {BUILD_DATE}, runtime v{BUN_VERSION}
         </span>
       </footer>
     </>
