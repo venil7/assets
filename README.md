@@ -134,6 +134,7 @@ bun run check         # Lint and type-check all packages
 **Build Docker image locally:**
 
 ```bash
+# export DOCKER_API_VERSION=1.43
 docker buildx build -t assets:local .
 ```
 
