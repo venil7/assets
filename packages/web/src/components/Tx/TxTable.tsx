@@ -55,7 +55,7 @@ const TxTableRow = (
       TE.map((tx) => onEdit(txid, tx))
     );
   const handleClone = (tx: PostTx) =>
-    pipe(() => txModal(tx, { asset }), TE.map(cloneTx), TE.map(onClone));
+    pipe(() => txModal(cloneTx(tx), { asset }), TE.map(onClone));
   const handleDelete = (txid: number) =>
     pipe(
       () => confirmationModal(`Delete transaction?`),

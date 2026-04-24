@@ -46,12 +46,7 @@ export const toKey = <T extends GetTx>(tx: T) =>
   `tx-${tx.id}-${tx.modified.getTime()}`;
 export const toKeys = <T extends GetTx>(tx: T[]) => tx.map(toKey).join(`-`);
 
-export const cloneTx = ({
-  type,
-  quantity,
-  price,
-  comments
-}: PostTx): PostTx => ({ type, date: new Date(), quantity, price, comments });
+export const cloneTx = (tx: PostTx): PostTx => ({ ...tx, date: new Date() });
 
 export const byDateDesc = pipe(byDateAsc, reverse);
 

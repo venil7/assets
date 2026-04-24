@@ -1,3 +1,13 @@
+.asset-details {
+  // overriding bootstrap table-respinsive to extend id on the bottom
+  // to allow the menu to be visible
+  .table-responsive {
+    overflow-x: auto;
+    overflow-y: visible;
+    padding-bottom: 200px;
+  }
+}
+
 .fixed-table {
   width: 100%;
   th,
