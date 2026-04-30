@@ -1,10 +1,12 @@
 # API Documentation
 
+All API endpoints are prefixed with `/api/v1/`. The prefix is omitted in the endpoint tables below for brevity.
+
 ## Authentication Endpoints
 
 | Method | Endpoint                   | Description                              | Request Body | Response Body |
 | ------ | -------------------------- | ---------------------------------------- | ------------ | ------------- |
-| POST   | `/login`                   | Authenticate and get a bearer token      | See below    | See below     |
+| POST   | `/auth/login`             | Authenticate and get a bearer token      | See below    | See below     |
 | GET    | `/auth/refresh_token`      | Gets a new token with extended expiry    | -            | See below     |
 
 ### Login
@@ -233,7 +235,7 @@ Retrieve aggregated summary data across all portfolios, including total invested
 **Query Parameters (optional):**
 - `range`: Time range for chart data. Valid values: `1d`, `5d`, `1mo`, `3mo`, `6mo`, `1y`, `2y`, `5y`, `10y`, `ytd`, `max`. Default: `1d`
 
-**Example:** `GET /summary?range=1y`
+**Example:** `GET /api/v1/summary?range=1y`
 
 **Response:**
 ```json
@@ -360,7 +362,7 @@ Retrieve all portfolios for the current user.
 **Query Parameters (optional):**
 - `range`: Time range for chart data. Valid values: `1d`, `5d`, `1mo`, `3mo`, `6mo`, `1y`, `2y`, `5y`, `10y`, `ytd`, `max`. Default: `1d`
 
-**Example:** `GET /portfolios?range=1y`
+**Example:** `GET /api/v1/portfolios?range=1y`
 
 **Response:**
 ```json
@@ -414,7 +416,7 @@ Retrieve a specific portfolio by ID.
 **Query Parameters (optional):**
 - `range`: Time range for chart data. Valid values: `1d`, `5d`, `1mo`, `3mo`, `6mo`, `1y`, `2y`, `5y`, `10y`, `ytd`, `max`. Default: `1d`
 
-**Example:** `GET /portfolios/1733?range=1y`
+**Example:** `GET /api/v1/portfolios/1733?range=1y`
 
 **Response:** (same structure as single portfolio in List All Portfolios)
 
@@ -541,7 +543,7 @@ Retrieve all assets in a portfolio.
 **Query Parameters (optional):**
 - `range`: Time range for chart data. Valid values: `1d`, `5d`, `1mo`, `3mo`, `6mo`, `1y`, `2y`, `5y`, `10y`, `ytd`, `max`. Default: `1d`
 
-**Example:** `GET /portfolios/1733/assets?range=1y`
+**Example:** `GET /api/v1/portfolios/1733/assets?range=1y`
 
 **Response:**
 ```json
@@ -579,7 +581,7 @@ Retrieve details for a specific asset.
 **Query Parameters (optional):**
 - `range`: Time range for chart data. Valid values: `1d`, `5d`, `1mo`, `3mo`, `6mo`, `1y`, `2y`, `5y`, `10y`, `ytd`, `max`. Default: `1d`
 
-**Example:** `GET /portfolios/1733/assets/1?range=1y`
+**Example:** `GET /api/v1/portfolios/1733/assets/1?range=1y`
 
 **Response:** (same as single asset in List Assets)
 
@@ -799,7 +801,7 @@ Delete all transactions for a specific asset.
 | Method | Endpoint                           | Description                              | Request/Query | Response Body |
 | ------ | ---------------------------------- | ---------------------------------------- | ------------- | ------------- |
 | GET    | `/lookup/ticker`                   | Search for ticker details                | `term` (query param) | See below |
-| GET    | `/lookup/quote/{base}/{date?}`     | Get quote for a ticker (with optional date) | Path params | See below |
+| GET    | `/lookup/quote/{ticker}/{date?}`     | Get quote for a ticker (with optional date) | Path params | See below |
 | GET    | `/lookup/fx/{base}/{ccy}/{date?}`  | Get FX rates for base/currency pair (with optional date) | Path params | See below |
 
 ### Search Tickers
@@ -808,7 +810,7 @@ Search for ticker symbols and company names. Returns matching results from Yahoo
 **Query Parameters:**
 - `term` (required): Search term (ticker symbol or company name, e.g., "AAPL" or "Apple")
 
-**Example:** `GET /lookup/ticker?term=apple`
+**Example:** `GET /api/v1/lookup/ticker?term=apple`
 
 **Response:**
 ```json
@@ -843,10 +845,10 @@ Search for ticker symbols and company names. Returns matching results from Yahoo
 Retrieve the current or historical quote for a ticker symbol.
 
 **Path Parameters:**
-- `base` (required): Ticker symbol (e.g., "AAPL")
+- `ticker` (required): Ticker symbol (e.g., "AAPL")
 - `date` (optional): ISO 8601 date string (e.g., "2023-10-15"). If omitted, returns latest quote.
 
-**Example:** `GET /lookup/quote/AAPL/2023-10-15`
+**Example:** `GET /api/v1/lookup/quote/AAPL/2023-10-15`
 
 **Response:**
 ```json
@@ -866,7 +868,7 @@ Retrieve foreign exchange rate for a currency pair.
 - `ccy` (required): Target currency (e.g., "EUR")
 - `date` (optional): ISO 8601 date string. If omitted, returns latest rate.
 
-**Example:** `GET /lookup/fx/USD/EUR/2023-10-15`
+**Example:** `GET /api/v1/lookup/fx/USD/EUR/2023-10-15`
 
 **Response:**
 ```json
@@ -934,10 +936,10 @@ All endpoints return error responses in the following format:
 
 ## Authentication
 
-All endpoints except `/login` and `/lookup/*` require authentication via bearer token:
+All endpoints except `/auth/login` and `/lookup/*` require authentication via bearer token:
 
 ```
 Authorization: Bearer eyJhbGc...
 ```
 
-Obtain a token by calling `/login` with credentials, then include it in the `Authorization` header for subsequent requests.
+Obtain a token by calling `/auth/login` with credentials, then include it in the `Authorization` header for subsequent requests.

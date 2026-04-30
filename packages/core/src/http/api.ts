@@ -48,8 +48,10 @@ import type {
 import type { Action, Optional } from "../utils/utils";
 import * as rest from "./rest";
 
+const API_V1_URL = (baseUrl: string) => `${baseUrl}/api/v1`;
+
 const getApi = (baseUrl: string) => (methods: rest.Methods) => {
-  const API_URL = `${baseUrl}/api/v1`;
+  const API_URL = API_V1_URL(baseUrl);
   const USERS_URL = `${API_URL}/users`;
   const USER_URL = (uid: UserId) => `${USERS_URL}/${uid}`;
   const SUMMARY_URL = (range?: ChartRange) => {
@@ -304,7 +306,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
 export const login =
   (baseUrl: string) =>
   (creds: Credentials): Action<Token> => {
-    const LOGIN_URL = `${baseUrl}/login`;
+    const LOGIN_URL = `${API_V1_URL(baseUrl)}/auth/login`;
     return rest.methods().post<Token>(LOGIN_URL, creds, TokenDecoder);
   };
 

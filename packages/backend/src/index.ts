@@ -64,12 +64,11 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
         res.sendFile(path.join(process.cwd(), app, "index.html"))
       );
 
-      exp.post("/login", handlers.auth.login);
-
       const api = express();
       api.use(handlers.middleware.authenticate);
 
       const auth = express();
+      auth.post("/login", handlers.auth.login);
       auth.get("/refresh_token", handlers.auth.refreshToken);
       api.use("/auth", auth);
 

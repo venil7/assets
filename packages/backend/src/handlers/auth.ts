@@ -43,8 +43,11 @@ export const refreshToken: HandlerTask<Token, Context> = ({
 export const verifyToken: HandlerTask<void, Context> = ({
   params: [req, res],
   context: { repo }
-}) =>
-  pipe(
+}) => {
+  const skip = new Set<string>(["/auth/login"]);
+  if (skip.has(req.path)) return TE.left(next());
+
+  return pipe(
     TE.Do,
     TE.bind("jwt", () => verifyBearer(req.header("authorization"))),
     TE.bind("payload", ({ jwt }) => pipe(jwt.payload, liftTE(ProfileDecoder))),
@@ -59,3 +62,4 @@ export const verifyToken: HandlerTask<void, Context> = ({
       return TE.left(next());
     })
   );
+};
