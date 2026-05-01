@@ -50,7 +50,7 @@ export const TxList: React.FC<TxListProps> = ({
   };
 
   return (
-    <>
+    <div className="tx-table">
       <HorizontalStack className="top-toolbar spread-container">
         <TxButton
           onAdd={handleAdd}
@@ -59,6 +59,6 @@ export const TxList: React.FC<TxListProps> = ({
         />
       </HorizontalStack>
       <TxTable {...props} />
-    </>
+    </div>
   );
 };

@@ -1,5 +1,6 @@
 import {
   defaultBuyTx,
+  type Ccy,
   type EnrichedAsset,
   type GetPortfolio,
   type PortfolioId,
@@ -10,6 +11,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { Card, Stack } from "react-bootstrap";
 import { Link } from "react-router";
+import { useFormatters } from "../../hooks/prefs";
 import { HoldingsIndicator, TxCount, WeightIndicator } from "../Badge/Badges";
 import { confirmationModal } from "../Modals/Confirmation";
 import { portfoliosSelectModal } from "../Portfolio/PortfoliosSelect";
@@ -34,6 +36,7 @@ export const AssetLink = ({
   onAddTx,
   onMove
 }: AssetLinkProps) => {
+  const { money } = useFormatters();
   const handleUpdate = pipe(() => assetModal(asset), TE.map(onUpdate));
   const handleDelete = pipe(
     () => confirmationModal(`Delete '${asset.name}'?`),
@@ -67,7 +70,10 @@ export const AssetLink = ({
               </div>
             </Stack>
           </Card.Title>
-          <Card.Subtitle className="description">{asset.ticker}</Card.Subtitle>
+          <Card.Subtitle className="description">
+            {asset.ticker}&nbsp;
+            {money(asset.meta.regularMarketPrice, asset.meta.currency as Ccy)}
+          </Card.Subtitle>
         </Link>
       </Card.Body>
       <Card.Footer className="spread-container">

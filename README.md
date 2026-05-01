@@ -157,6 +157,14 @@ VITE_ASSETS_URL=http://localhost:4020  # Backend base URL (required in dev; empt
 VITE_ASSET_BASENAME=/app               # URL path prefix for routing (default: /)
 ```
 
+### Fill Demo User With Testing Data
+
+```sh
+rm assets.db && \
+migrate -path ./.migrations -database=sqlite3://assets.db up && \
+sqlite3 assets.db < prefill.sql
+```
+
 ### Database Migrations
 
 Migrations are managed with [golang-migrate](https://github.com/golang-migrate/migrate). This is **optional**—the app creates the schema automatically on first run.

@@ -47,7 +47,6 @@ const TxTableRow = (
   _idx: number,
   { disabled, asset, onDelete, onEdit, onClone }: TxTableProps
 ) => {
-  const domestic = asset.base.domestic;
   const handleView = (tx: EnrichedTx) => () => txDetailsModal(tx, { asset });
   const handleEdit = (txid: number, tx: PostTx) =>
     pipe(
