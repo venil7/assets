@@ -1,10 +1,10 @@
 # todo
 
-## 1.9
- - [x] tx modal diff view for buy/sell (cap gains, limit on sales)
- - [ ] asset price on specific date
- - [ ] portfolio reports, cap gains
- - [ ] asset also in..
+## 1.8.2
+- [x] tx modal diff view for buy/sell (cap gains, limit on sales)
+- [x] asset price on specific date
+- [x] mobile client
+- [x] bugfixes
 
 ## 1.8.1
 - [x] multi asset layered chart for portfolios

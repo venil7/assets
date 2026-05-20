@@ -35,6 +35,11 @@ A self-hosted portfolio and wealth tracker for personal finance management. Cons
 <img width="235" height="500" alt="screenshot3" src="https://github.com/user-attachments/assets/e81ec8e2-919b-43d3-b919-34a39f108c6c" />
 
 ---
+## Mobile Client
+
+A mobile client written in Flutter can be connected to `assets`, and has its own repository [here](https://github.com/venil7/assets_client)
+
+---
 
 ## Quick Start
 
