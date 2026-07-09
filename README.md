@@ -35,6 +35,11 @@ A self-hosted portfolio and wealth tracker for personal finance management. Cons
 <img width="235" height="500" alt="screenshot3" src="https://github.com/user-attachments/assets/e81ec8e2-919b-43d3-b919-34a39f108c6c" />
 
 ---
+## Mobile Client
+
+A mobile client written in Flutter can be connected to `assets`, and has its own repository [here](https://github.com/venil7/assets_client)
+
+---
 
 ## Quick Start
 
@@ -134,6 +139,7 @@ bun run check         # Lint and type-check all packages
 **Build Docker image locally:**
 
 ```bash
+# export DOCKER_API_VERSION=1.43
 docker buildx build -t assets:local .
 ```
 
@@ -154,6 +160,14 @@ This project uses Bun workspaces with three packages:
 ```bash
 VITE_ASSETS_URL=http://localhost:4020  # Backend base URL (required in dev; empty string in production)
 VITE_ASSET_BASENAME=/app               # URL path prefix for routing (default: /)
+```
+
+### Fill Demo User With Testing Data
+
+```sh
+rm assets.db && \
+migrate -path ./.migrations -database=sqlite3://assets.db up && \
+sqlite3 assets.db < prefill.sql
 ```
 
 ### Database Migrations

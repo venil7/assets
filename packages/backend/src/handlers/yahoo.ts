@@ -1,4 +1,10 @@
-import { type Fx, type YahooTickerSearchResult } from "@darkruby/assets-core";
+import {
+  type ChartDataPoint,
+  type Fx,
+  type UnixDate,
+  type YahooTickerSearchResult
+} from "@darkruby/assets-core";
+import { getUnixTime } from "date-fns";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { ccyFromUrl, optDateFromUrl, stringFromUrl } from "../decoders/params";
@@ -21,6 +27,26 @@ export const fxRate: HandlerTask<Fx, Context> = ({
     TE.bind("ccy", () => stringFromUrl(req.params.ccy)),
     TE.bind("base", () => ccyFromUrl(req.params.base)),
     TE.bind("date", () => optDateFromUrl(req.params.date)),
-    TE.chain(({ ccy, base, date }) => yahooApi.fxRate(ccy, base, date)),
+    TE.chain(({ ccy, base, date }) =>
+      yahooApi.fxRate(
+        ccy,
+        base,
+        date ? (getUnixTime(date) as UnixDate) : undefined
+      )
+    ),
+    mapWebError
+  );
+
+export const quote: HandlerTask<ChartDataPoint, Context> = ({
+  params: [req],
+  context: { yahooApi }
+}) =>
+  pipe(
+    TE.Do,
+    TE.bind("ticker", () => stringFromUrl(req.params.ticker)),
+    TE.bind("date", () => optDateFromUrl(req.params.date)),
+    TE.chain(({ ticker, date }) =>
+      yahooApi.quote(ticker, date ? (getUnixTime(date) as UnixDate) : undefined)
+    ),
     mapWebError
   );

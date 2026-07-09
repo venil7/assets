@@ -47,7 +47,6 @@ const TxTableRow = (
   _idx: number,
   { disabled, asset, onDelete, onEdit, onClone }: TxTableProps
 ) => {
-  const domestic = asset.base.domestic;
   const handleView = (tx: EnrichedTx) => () => txDetailsModal(tx, { asset });
   const handleEdit = (txid: number, tx: PostTx) =>
     pipe(
@@ -55,7 +54,7 @@ const TxTableRow = (
       TE.map((tx) => onEdit(txid, tx))
     );
   const handleClone = (tx: PostTx) =>
-    pipe(() => txModal(tx, { asset }), TE.map(cloneTx), TE.map(onClone));
+    pipe(() => txModal(cloneTx(tx), { asset }), TE.map(onClone));
   const handleDelete = (txid: number) =>
     pipe(
       () => confirmationModal(`Delete transaction?`),

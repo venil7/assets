@@ -4,6 +4,11 @@ RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@
 FROM oven/bun:1.3 AS builder
 WORKDIR /app
 COPY . .
+RUN apt-get update  \
+    && apt-get install -y \
+      git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 RUN bun install
 RUN bun run check
 RUN bun run build

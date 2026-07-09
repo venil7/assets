@@ -28,6 +28,7 @@ const RawUsersScreen: React.FC = () => {
       onDelete={users.delete}
       users={users.data.value}
       error={users.error.value}
+      onErrorDismiss={users.load}
       fetching={users.fetching.value}
     />
   );

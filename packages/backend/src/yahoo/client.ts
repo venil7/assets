@@ -1,16 +1,17 @@
 import {
   DEFAULT_CHART_RANGE,
-  fuzzyIndexSearch,
+  fuzzyItemSearch,
   handleError,
   intervalForRange,
   methods,
-  now,
+  unixNow,
   unixTimestamp,
   validationError,
   YahooChartDataDecoder,
   YahooTickerSearchResultDecoder,
   type Action,
   type Ccy,
+  type ChartDataPoint,
   type ChartMeta,
   type ChartRange,
   type Fx,
@@ -22,11 +23,15 @@ import {
   type YahooChartData,
   type YahooTickerSearchResult
 } from "@darkruby/assets-core";
-import { getUnixTime } from "date-fns";
 import * as A from "fp-ts/lib/Array";
 import { identity, pipe } from "fp-ts/lib/function";
 import * as NEA from "fp-ts/lib/NonEmptyArray";
 import * as TE from "fp-ts/lib/TaskEither";
+
+const fuzzyFindFxRecord = fuzzyItemSearch<FxRecord>((item) => item.timestamp);
+const fuzzyFindChartDataPoint = fuzzyItemSearch<ChartDataPoint>(
+  (item) => item.timestamp
+);
 
 export const getYahooApi = (methods: Methods) => {
   const SEARCH_URL = (term: string) =>
@@ -121,8 +126,9 @@ export const getYahooApi = (methods: Methods) => {
   const fxRate = (
     ccy: string,
     base: Ccy,
-    date: Optional<Date> = undefined /**no date means latest market rate */
+    ts: Optional<UnixDate>
   ): Action<Fx> => {
+    ts ??= unixNow();
     return pipe(
       fxRates(ccy, base),
       TE.map(({ rates }) => {
@@ -131,21 +137,12 @@ export const getYahooApi = (methods: Methods) => {
             ccy,
             base,
             rate: rates[0].rate,
-            timestamp: getUnixTime(date ?? now()) as UnixDate
+            timestamp: ts
           };
         }
 
-        const fuzzyFindIndex = fuzzyIndexSearch<FxRecord>(
-          (item) => item.timestamp
-        );
-
-        const idx = pipe(rates, fuzzyFindIndex(getUnixTime(date ?? now())));
-        return {
-          ccy,
-          base,
-          rate: rates[idx].rate,
-          timestamp: rates[idx].timestamp
-        };
+        const { rate, timestamp } = pipe(rates, fuzzyFindFxRecord(ts));
+        return { ccy, base, rate, timestamp };
       })
     );
   };
@@ -164,9 +161,22 @@ export const getYahooApi = (methods: Methods) => {
     );
   };
 
+  const quote = (
+    ticker: string,
+    ts: Optional<UnixDate>
+  ): Action<ChartDataPoint> => {
+    ts ??= unixNow();
+    const findDataPoint = fuzzyFindChartDataPoint(ts);
+    return pipe(
+      chart(ticker, "max"),
+      TE.map(({ chart }) => findDataPoint(chart))
+    );
+  };
+
   return {
     meta,
     chart,
+    quote,
     search,
     fxRate,
     fxRates,

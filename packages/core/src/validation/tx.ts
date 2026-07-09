@@ -3,22 +3,21 @@ import { pipe } from "fp-ts/lib/function";
 import { nonEmptyArray } from "io-ts-types";
 import {
   BooleanDecoder,
-  nonNegative,
   PostTxDecoder,
   PostTxsUploadDecoder
 } from "../decoders";
 import { nonFuture } from "../decoders/date";
 import { chainDecoder } from "../decoders/util";
 import type { PostTxsUpload } from "../domain";
-import { createValidator } from "./util";
+import { createValidator, nonNegativeField } from "./util";
 
 export const txValidator = pipe(
   PostTxDecoder,
   chainDecoder(({ price, quantity, date }) =>
     pipe(
       E.Do,
-      E.apS("price", nonNegative.decode(price)),
-      E.apS("quantity", nonNegative.decode(quantity)),
+      E.apS("price", nonNegativeField("Price").decode(price)),
+      E.apS("quantity", nonNegativeField("Quantity").decode(quantity)),
       E.apS("date", nonFuture.decode(date))
     )
   ),

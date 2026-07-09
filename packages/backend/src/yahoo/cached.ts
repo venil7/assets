@@ -1,4 +1,4 @@
-import { type Ccy, type Optional } from "@darkruby/assets-core";
+import { type Ccy, type Optional, type UnixDate } from "@darkruby/assets-core";
 import {
   DEFAULT_CHART_RANGE,
   type ChartRange
@@ -37,10 +37,17 @@ export const cachedYahooApi = (cache: AppCache): YahooApi => {
       HOUR_1
     );
 
-  const fxRate = (ccy: string, base: Ccy, date?: Optional<Date>) =>
+  const fxRate = (ccy: string, base: Ccy, ts: Optional<UnixDate>) =>
     cache.cachedAction(
-      `yahoo-ccy-lookup-${ccy}-${base}-${date?.getTime() ?? "latest"}`,
-      () => rawYahooApi.fxRate(ccy, base, date),
+      `yahoo-ccy-lookup-${ccy}-${base}-${ts ?? "latest"}`,
+      () => rawYahooApi.fxRate(ccy, base, ts),
+      HOUR_1
+    );
+
+  const quote = (ticker: string, ts: Optional<UnixDate>) =>
+    cache.cachedAction(
+      `yahoo-quote-lookup-${ticker}-${ts ?? "latest"}`,
+      () => rawYahooApi.quote(ticker, ts),
       HOUR_1
     );
 
@@ -60,6 +67,7 @@ export const cachedYahooApi = (cache: AppCache): YahooApi => {
 
   return {
     meta,
+    quote,
     chart,
     search,
     fxRate,

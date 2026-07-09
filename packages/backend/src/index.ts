@@ -64,12 +64,11 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
         res.sendFile(path.join(process.cwd(), app, "index.html"))
       );
 
-      exp.post("/login", handlers.auth.login);
-
       const api = express();
       api.use(handlers.middleware.authenticate);
 
       const auth = express();
+      auth.post("/login", handlers.auth.login);
       auth.get("/refresh_token", handlers.auth.refreshToken);
       api.use("/auth", auth);
 
@@ -138,7 +137,8 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
 
       const lookup = express();
       lookup.get("/ticker", handlers.yahoo.search);
-      lookup.get("/fx/:base/:ccy/:date", handlers.yahoo.fxRate);
+      lookup.get("/fx/:base/:ccy/:date?", handlers.yahoo.fxRate);
+      lookup.get("/quote/:ticker/:date?", handlers.yahoo.quote);
       api.use("/lookup", lookup);
 
       exp.use("/api/v1", api);

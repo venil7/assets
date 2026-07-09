@@ -196,7 +196,7 @@ const calcPortfolioWeights = (
     portfolios,
     A.map((p: EnrichedPortfolio) => {
       if (total > 0) {
-        p.weight = p.changes.endPrice / total;
+        p.weight = p.invested / total;
       }
       return p;
     })

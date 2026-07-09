@@ -1,6 +1,7 @@
 import { formatISO } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
 import {
+  ChartDataPointDecoder,
   EnrichedAssetDecoder,
   EnrichedAssetsDecoder,
   EnrichedPortfolioDecoder,
@@ -20,6 +21,7 @@ import {
 } from "../decoders";
 import type {
   AssetId,
+  ChartDataPoint,
   Credentials,
   EnrichedAsset,
   EnrichedPortfolio,
@@ -46,8 +48,10 @@ import type {
 import type { Action, Optional } from "../utils/utils";
 import * as rest from "./rest";
 
+const API_V1_URL = (baseUrl: string) => `${baseUrl}/api/v1`;
+
 const getApi = (baseUrl: string) => (methods: rest.Methods) => {
-  const API_URL = `${baseUrl}/api/v1`;
+  const API_URL = API_V1_URL(baseUrl);
   const USERS_URL = `${API_URL}/users`;
   const USER_URL = (uid: UserId) => `${USERS_URL}/${uid}`;
   const SUMMARY_URL = (range?: ChartRange) => {
@@ -89,6 +93,10 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
   };
   const FX_URL = (base: Ccy, ccy: string, date: Optional<Date | UnixDate>) => {
     const url = `${API_URL}/lookup/fx/${base}/${ccy}`;
+    return date ? `${url}/${formatISO(date)}` : url;
+  };
+  const QUOTE_URL = (ticker: string, date: Optional<Date | UnixDate>) => {
+    const url = `${API_URL}/lookup/quote/${ticker}`;
     return date ? `${url}/${formatISO(date)}` : url;
   };
   const TXS_URL = (portfolioId: PortfolioId, assetId: AssetId) =>
@@ -234,9 +242,10 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       TICKER_URL(ticker),
       YahooTickerSearchResultDecoder
     );
-
   const fxRate = (base: Ccy, ccy: string, date: Optional<Date | UnixDate>) =>
     methods.get<Fx>(FX_URL(base, ccy, date), FxDecoder);
+  const quote = (ticker: string, date: Optional<Date | UnixDate>) =>
+    methods.get<ChartDataPoint>(QUOTE_URL(ticker, date), ChartDataPointDecoder);
 
   return {
     user: {
@@ -287,6 +296,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       refreshToken: getRefreshToken
     },
     yahoo: {
+      quote,
       lookupTicker,
       fxRate
     }
@@ -296,7 +306,7 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
 export const login =
   (baseUrl: string) =>
   (creds: Credentials): Action<Token> => {
-    const LOGIN_URL = `${baseUrl}/login`;
+    const LOGIN_URL = `${API_V1_URL(baseUrl)}/auth/login`;
     return rest.methods().post<Token>(LOGIN_URL, creds, TokenDecoder);
   };
 

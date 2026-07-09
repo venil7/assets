@@ -1,6 +1,7 @@
 import type {
   Action,
   Ccy,
+  ChartDataPoint,
   Fx,
   Optional,
   TickerSearchResult,
@@ -25,5 +26,15 @@ export const fxRate = (
   return pipe(
     apiFromToken,
     TE.chain(({ yahoo }) => yahoo.fxRate(base, ccy, date))
+  );
+};
+
+export const quote = (
+  ticker: string,
+  date: Optional<Date | UnixDate>
+): Action<ChartDataPoint> => {
+  return pipe(
+    apiFromToken,
+    TE.chain(({ yahoo }) => yahoo.quote(ticker, date))
   );
 };
