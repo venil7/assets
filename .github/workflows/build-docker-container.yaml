@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: CHECK-OUT
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - run: git branch --show-current
 
       - name: CHECK RELEASE or FEATURE
@@ -31,23 +31,24 @@ jobs:
           cmd: "jq .version package.json -r"
 
       - name: LOGIN TO GITHUB DOCKER
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: venil7
           password: ${{ secrets.GTHB_CR_TOKEN }}
 
-      # - name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
 
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
 
       # builds feature image, pushes under feature tag
       - name: BUILD FEATURE DOCKER-IMAGE
         if: ${{ env.RELEASE == 'false' }}
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/venil7/assets:nightly
@@ -56,9 +57,9 @@ jobs:
       # builds release image, pushes under version and latest tags
       - name: BUILD RELEASE DOCKER-IMAGE
         if: ${{ env.RELEASE == 'true' }}
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
-          # platforms: linux/arm64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/venil7/assets:latest
