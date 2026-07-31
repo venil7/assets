@@ -46,8 +46,10 @@ export const special = (pwd: string) =>
   filter(() => /\W/.test(pwd), `Special characters missing`);
 export const noWhiteSpace = (pwd: string) =>
   filter(() => !/\s/.test(pwd), `No whitespace`);
+export const startsWithLetter = (str: string) =>
+  filter(() => /^[a-zA-Z]/.test(str), `Should start with a letter`);
 export const alphaNumOnly = (str: string) =>
-  filter(() => /^[a-zA-Z0-9]*$/.test(str), `Alpa numeric only`);
+  filter(() => /^[a-zA-Z0-9]*$/.test(str), `Alpha numeric characters only`);
 
 export const nonEmptyField = (fieldName: string) =>
   pipe(nonEmptyString, withErrorMessage(`${fieldName} can't be empty`));

@@ -3,7 +3,7 @@ import { flow, pipe } from "fp-ts/lib/function";
 import {
   NewUserDecoder,
   PasswordChangeDecoder,
-  PostUserDecoder,
+  PostUserDecoder
 } from "../decoders/user";
 import { chainDecoder } from "../decoders/util";
 import {
@@ -12,15 +12,22 @@ import {
   length,
   match,
   noWhiteSpace,
+  startsWithLetter
 } from "../validation/util";
 
-const length5 = length(5);
+const atLeast3 = length(3);
+const atLeast5 = length(5);
 
 export const shortPassword = (pwd: string) =>
-  flow(length5(pwd), noWhiteSpace(pwd));
+  flow(atLeast5(pwd), noWhiteSpace(pwd));
 
-export const shortUsername = (pwd: string) =>
-  flow(length5(pwd), alphaNumOnly(pwd), noWhiteSpace(pwd));
+export const shortUsername = (username: string) =>
+  flow(
+    atLeast3(username),
+    startsWithLetter(username),
+    alphaNumOnly(username),
+    noWhiteSpace(username)
+  );
 
 export const postUserValidator = pipe(
   PostUserDecoder,
