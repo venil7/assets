@@ -5,20 +5,20 @@ import {
   postUserValidator,
   type NewUser,
   type PasswordChange,
-  type PostUser,
+  type PostUser
 } from "../../src";
 
 const validNewUser: NewUser = {
   admin: false,
   locked: false,
   username: "abc123",
-  password: "abc123",
+  password: "abc123"
 };
 
 const validPwdChange: PasswordChange = {
   oldPassword: "abc123",
   newPassword: "mickey",
-  repeat: "mickey",
+  repeat: "mickey"
 };
 
 test("passes NewUser validation", () => {
@@ -29,7 +29,7 @@ test("passes NewUser validation", () => {
 test("fails NewUser username validation", () => {
   const newUser: NewUser = {
     ...validNewUser,
-    username: "abc",
+    username: "_bc"
   };
   const { valid } = newUserValidator(newUser);
   expect(valid).toBeFalse();
@@ -39,7 +39,7 @@ test("fails PostUser username validation", () => {
   const postUser: PostUser = {
     ...validNewUser,
     username: "123",
-    login_attempts: 0,
+    login_attempts: 0
   };
   const { valid } = postUserValidator(postUser);
   expect(valid).toBeFalse();
@@ -53,7 +53,7 @@ test("passes change-password", () => {
 test("fails change-password different passwords", () => {
   const pwdChange: PasswordChange = {
     ...validPwdChange,
-    repeat: "mouse",
+    repeat: "mouse"
   };
   const { valid } = passwordChangeValidator(pwdChange);
   expect(valid).toBeFalse();

@@ -13,7 +13,7 @@ import {
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Button,
   ButtonGroup,
@@ -48,6 +48,8 @@ export const TxFields: React.FC<TxFieldsProps> = ({
   prepopulatePrice = false,
   disabled
 }) => {
+  const firstRender = useRef(true);
+
   const setField = usePartialChange(tx, onChange);
   const setType = setField("type");
   const setPrice = setField("price") as (n: Nullable<number>) => void;
@@ -81,6 +83,10 @@ export const TxFields: React.FC<TxFieldsProps> = ({
     )();
 
   useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
     getRate(tx.date).then(setRate);
     getQuote(tx.date).then(handlePrice);
   }, [tx.date]);
