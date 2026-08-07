@@ -13,8 +13,8 @@ type SelectOption<T> = {
 };
 
 const toOptions = (ticker: Ticker): SelectOption<Ticker> => ({
-  label: `(${ticker.symbol}) ${ticker.shortname} - ${ticker.quoteType} - ${ticker.exchange}`,
-  value: ticker,
+  label: `(${ticker.symbol}) ${ticker.shortname ?? ticker.longname} - ${ticker.quoteType} - ${ticker.exchange}`,
+  value: ticker
 });
 
 const lookup = (s: string) =>
@@ -31,7 +31,7 @@ export type TickerLookupProps = {
 
 export const TickerLookup: React.FC<TickerLookupProps> = ({
   onSelect,
-  disabled,
+  disabled
 }) => {
   return (
     <AsyncSelect

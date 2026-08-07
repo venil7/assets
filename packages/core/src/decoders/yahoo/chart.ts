@@ -15,11 +15,11 @@ import { ChartMetaDecoder } from "./meta";
 import { type PeriodChangesDecoder } from "./period";
 
 const QuoteDecoder = t.type({
-  open: t.array(nullableDecoder(t.number)),
-  low: t.array(nullableDecoder(t.number)),
-  high: t.array(nullableDecoder(t.number)),
-  close: t.array(nullableDecoder(t.number)),
-  volume: t.array(nullableDecoder(t.number))
+  open: withFallback(t.array(nullableDecoder(t.number)), []),
+  low: withFallback(t.array(nullableDecoder(t.number)), []),
+  high: withFallback(t.array(nullableDecoder(t.number)), []),
+  close: withFallback(t.array(nullableDecoder(t.number)), []),
+  volume: withFallback(t.array(nullableDecoder(t.number)), [])
 });
 
 const IndicatorsDecoder = t.type({

@@ -85,7 +85,7 @@ export const ChartMetaDecoder = t.type({
   regularMarketPrice: t.number,
   fiftyTwoWeekHigh: t.number,
   fiftyTwoWeekLow: t.number,
-  shortName: t.string,
+  shortName: nullableDecoder(t.string),
   longName: nullableDecoder(t.string),
   previousClose: nullableDecoder(t.number),
   chartPreviousClose: t.number,
