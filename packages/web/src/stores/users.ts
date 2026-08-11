@@ -3,18 +3,14 @@ import type {
   GetUser,
   Identity,
   NewUser,
+  PasswordChange,
   PostUser,
-  UserId,
+  UserId
 } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import {
-  createUser,
-  deleteUser,
-  getUsers,
-  updateUser,
-} from "../services/users";
+import { users } from "../services/users";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type UsersStore = Identity<
@@ -22,6 +18,7 @@ export type UsersStore = Identity<
     load: () => ActionResult<GetUser[]>;
     create: (creds: NewUser) => ActionResult<GetUser[]>;
     update: (uid: UserId, credes: PostUser) => ActionResult<GetUser[]>;
+    password: (uid: UserId, credes: PasswordChange) => ActionResult<GetUser[]>;
     delete: (uid: UserId) => ActionResult<GetUser[]>;
   }
 >;
@@ -32,27 +29,34 @@ export const createUsersStore = (): UsersStore => {
 
   return {
     ...storeBase,
-    load: () => storeBase.run(getUsers()),
+    load: () => storeBase.run(users.getMany()),
     create: (creds: NewUser) =>
       storeBase.run(
         pipe(
-          createUser(creds),
-          TE.chain(() => getUsers())
+          users.create(creds),
+          TE.chain(() => users.getMany())
         )
       ),
     update: (uid: UserId, creds: PostUser) =>
       storeBase.run(
         pipe(
-          updateUser(uid, creds),
-          TE.chain(() => getUsers())
+          users.update(uid, creds),
+          TE.chain(() => users.getMany())
+        )
+      ),
+    password: (uid: UserId, pwd: PasswordChange) =>
+      storeBase.run(
+        pipe(
+          users.password(uid, pwd),
+          TE.chain(() => users.getMany())
         )
       ),
     delete: (uid: UserId) =>
       storeBase.run(
         pipe(
-          deleteUser(uid),
-          TE.chain(() => getUsers())
+          users.delete(uid),
+          TE.chain(() => users.getMany())
         )
-      ),
+      )
   };
 };

@@ -9,13 +9,13 @@ import { createForm, type FieldsProps } from "../Form/Form";
 import { CheckBox, FormEdit } from "../Form/FormControl";
 import { createModal } from "../Modals/Modal";
 
-type UserFieldsProps = FieldsProps<PostUser>;
+type UserProfileFieldsProps = FieldsProps<PostUser>;
 
-export const UserFields: React.FC<UserFieldsProps> = ({
+export const UserProfileFields: React.FC<UserProfileFieldsProps> = ({
   data,
   onChange,
-  disabled,
-}: UserFieldsProps) => {
+  disabled
+}: UserProfileFieldsProps) => {
   const setField = usePartialChange(data, onChange);
   return (
     <Form>
@@ -47,13 +47,19 @@ export const UserFields: React.FC<UserFieldsProps> = ({
   );
 };
 
-export const UserForm = createForm<PostUser>(UserFields, postUserValidator);
-
-export const UserModal = createModal<PostUser>(
-  UserFields,
-  postUserValidator,
-  "User"
+export const UserProfileForm = createForm<PostUser>(
+  UserProfileFields,
+  postUserValidator
 );
 
-export const userModal = (value: PostUser) =>
-  pipe({ value }, createDialog<PostUser, PropsOf<typeof UserModal>>(UserModal));
+export const UserProfileModal = createModal<PostUser>(
+  UserProfileFields,
+  postUserValidator,
+  "User profile"
+);
+
+export const userProfileModal = (value: PostUser) =>
+  pipe(
+    { value },
+    createDialog<PostUser, PropsOf<typeof UserProfileModal>>(UserProfileModal)
+  );

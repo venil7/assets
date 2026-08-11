@@ -14,6 +14,7 @@ export const TxMenu: React.FC<TxMenuProps> = ({
 }: TxMenuProps) => {
   return (
     <DropdownButton variant="outline-primary" size="sm" title={<></>}>
+      <Dropdown.Header>Tx actions</Dropdown.Header>
       <Dropdown.Item onClick={onEdit} eventKey="1">
         Edit
       </Dropdown.Item>

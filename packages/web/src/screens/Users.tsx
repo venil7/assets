@@ -30,6 +30,7 @@ const RawUsersScreen: React.FC = () => {
       error={users.error.value}
       onErrorDismiss={users.load}
       fetching={users.fetching.value}
+      onPasswordChange={users.password}
     />
   );
 };

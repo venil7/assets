@@ -16,6 +16,7 @@ export const AssetMenu: React.FC<AssetMenuProps> = ({
 }: AssetMenuProps) => {
   return (
     <DropdownButton variant="outline-primary" size="sm" title={<></>}>
+      <Dropdown.Header>Asset actions</Dropdown.Header>
       <Dropdown.Item onClick={onEdit} eventKey="1">
         Edit
       </Dropdown.Item>

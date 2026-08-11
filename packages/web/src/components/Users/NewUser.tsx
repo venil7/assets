@@ -61,7 +61,7 @@ export const NewUserForm = createForm<NewUser>(NewUserFields, newUserValidator);
 export const NewUserModal = createModal<NewUser>(
   NewUserFields,
   newUserValidator,
-  "User"
+  "New user"
 );
 
 export const newUserModal = (value: NewUser) =>

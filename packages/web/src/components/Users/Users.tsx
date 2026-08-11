@@ -1,9 +1,11 @@
 import {
+  adminPasswordChange,
   defaultNewUser,
   type GetUser,
   type NewUser,
+  type PasswordChange,
   type PostUser,
-  type UserId,
+  type UserId
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -16,14 +18,16 @@ import { yesNo } from "../../util/yesno";
 import { AddBtn } from "../Form/Button";
 import { HorizontalStack } from "../Layout/Stack";
 import { confirmationModal } from "../Modals/Confirmation";
-import { PortfolioMenu } from "../Portfolio/Menu";
-import { newUserModal } from "../Profile/NewUser";
-import { userModal } from "../Profile/UserForm";
+import { passwordChangeModal } from "../Profile/PasswordChange";
+import { UserMenu } from "./Menu";
+import { newUserModal } from "./NewUser";
+import { userProfileModal } from "./UserProfile";
 
 type UsersProps = {
   users: GetUser[];
   onAdd: (p: NewUser) => void;
   onUpdate: (uid: UserId, p: PostUser) => void;
+  onPasswordChange: (uid: UserId, p: PasswordChange) => void;
   onDelete: (uid: UserId) => void;
   disabled?: boolean;
 };
@@ -32,18 +36,26 @@ const RawUsers: React.FC<UsersProps> = ({
   users,
   onAdd,
   onUpdate,
+  onPasswordChange,
   onDelete,
-  disabled,
+  disabled
 }: UsersProps) => {
-  const handleUpdate = (user: GetUser) =>
+  const handleProfileUpdate = (user: GetUser) =>
     pipe(
-      () => userModal(user),
+      () => userProfileModal(user),
       TE.map((updated) => onUpdate(user.id, updated))
     );
-  const handleDelete = (uid: UserId) =>
+
+  const handlePasswordUpdate = (user: GetUser) =>
     pipe(
-      () => confirmationModal(`Delete user?`),
-      TE.chainIOK(() => () => onDelete(uid))
+      () => passwordChangeModal(adminPasswordChange()),
+      TE.map((password) => onPasswordChange(user.id, password))
+    );
+
+  const handleDelete = ({ id, username }: GetUser) =>
+    pipe(
+      () => confirmationModal(`Delete user '${username}'?`),
+      TE.chainIOK(() => () => onDelete(id))
     );
 
   const handleAdd = pipe(() => newUserModal(defaultNewUser()), TE.map(onAdd));
@@ -71,9 +83,10 @@ const RawUsers: React.FC<UsersProps> = ({
               <td>{yesNo(user.admin)}</td>
               <td>{yesNo(user.login_attempts > 3 || user.locked)}</td>
               <td>
-                <PortfolioMenu
-                  onDelete={handleDelete(user.id)}
-                  onEdit={handleUpdate(user)}
+                <UserMenu
+                  onDelete={handleDelete(user)}
+                  onEditProfile={handleProfileUpdate(user)}
+                  onChangePassword={handlePasswordUpdate(user)}
                 />
               </td>
             </tr>

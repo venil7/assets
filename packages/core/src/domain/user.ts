@@ -8,7 +8,7 @@ import type {
   ProfileDecoder,
   RawInUserDecoder,
   RawOutUserDecoder,
-  UserIdDecoder,
+  UserIdDecoder
 } from "../decoders/user";
 
 export type Credentials = t.TypeOf<typeof CredenatialsDecoder>;
@@ -24,22 +24,27 @@ export type UserId = t.TypeOf<typeof UserIdDecoder>;
 export const profile = ({ id, username, admin }: GetUser): Profile => ({
   id,
   username,
-  admin,
+  admin
 });
 
 export const defaultCredentials = (): Credentials => ({
   username: "",
-  password: "",
+  password: ""
 });
 
 export const defaultNewUser = (): NewUser => ({
   ...defaultCredentials(),
   admin: false,
-  locked: false,
+  locked: false
 });
 
 export const defaultPasswordChange = (): PasswordChange => ({
   oldPassword: "",
   newPassword: "",
-  repeat: "",
+  repeat: ""
+});
+
+export const adminPasswordChange = (): PasswordChange => ({
+  ...defaultPasswordChange(),
+  oldPassword: `oldpassword`
 });
