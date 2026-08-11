@@ -6,19 +6,12 @@ import type {
   PortfolioId,
   PostTx,
   PostTxsUpload,
-  TxId,
+  TxId
 } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import {
-  createTx,
-  deleteAllAssetTx,
-  deleteTx,
-  getTxs,
-  updateTx,
-  uploadTxs,
-} from "../services/txs";
+import { txs } from "../services/txs";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type TxsStore = Identity<
@@ -58,36 +51,37 @@ export const createTxsStore = (): TxsStore => {
 
   return {
     ...storeBase,
-    load: (pid: PortfolioId, aid: AssetId) => storeBase.run(getTxs(pid, aid)),
+    load: (pid: PortfolioId, aid: AssetId) =>
+      storeBase.run(txs.getMany(pid, aid)),
     create: (pid: PortfolioId, aid: AssetId, p: PostTx) =>
       storeBase.run(
         pipe(
-          createTx(pid, aid, p),
-          TE.chain(() => getTxs(pid, aid))
+          txs.create(pid, aid, p),
+          TE.chain(() => txs.getMany(pid, aid))
         )
       ),
     update: (pid: PortfolioId, aid: AssetId, tid: number, p: PostTx) =>
       storeBase.run(
         pipe(
-          updateTx(pid, aid, tid, p),
-          TE.chain(() => getTxs(pid, aid))
+          txs.update(pid, aid, tid, p),
+          TE.chain(() => txs.getMany(pid, aid))
         )
       ),
     delete: (pid: PortfolioId, aid: AssetId, tid: number) =>
       storeBase.run(
         pipe(
-          deleteTx(pid, aid, tid),
-          TE.chain(() => getTxs(pid, aid))
+          txs.delete(pid, aid, tid),
+          TE.chain(() => txs.getMany(pid, aid))
         )
       ),
     deleteAllAsset: (pid: PortfolioId, aid: AssetId) =>
       storeBase.run(
         pipe(
-          deleteAllAssetTx(pid, aid),
-          TE.chain(() => getTxs(pid, aid))
+          txs.deleteAllAsset(pid, aid),
+          TE.chain(() => txs.getMany(pid, aid))
         )
       ),
     upload: (pid: PortfolioId, aid: AssetId, data: PostTxsUpload) =>
-      storeBase.run(uploadTxs(pid, aid, data)),
+      storeBase.run(txs.upload(pid, aid, data))
   };
 };

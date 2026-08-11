@@ -6,12 +6,12 @@ import type {
   Nullable,
   PortfolioId,
   PostTx,
-  TxId,
+  TxId
 } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { createTx, deleteTx, getTx, updateTx } from "../services/txs";
+import { txs } from "../services/txs";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type TxStore = Identity<
@@ -47,17 +47,17 @@ export const createTxStore = (): TxStore => {
   return {
     ...storeBase,
     load: (pid: PortfolioId, aid: AssetId, tid: TxId) =>
-      storeBase.run(getTx(pid, aid, tid)),
+      storeBase.run(txs.get(pid, aid, tid)),
     create: (pid: PortfolioId, aid: AssetId, t: PostTx) =>
-      storeBase.run(createTx(pid, aid, t)),
+      storeBase.run(txs.create(pid, aid, t)),
     update: (pid: PortfolioId, aid: AssetId, tid: TxId, t: PostTx) =>
-      storeBase.run(updateTx(pid, aid, tid, t)),
+      storeBase.run(txs.update(pid, aid, tid, t)),
     delete: (pid: PortfolioId, aid: AssetId, tid: TxId) =>
       storeBase.run(
         pipe(
-          deleteTx(pid, aid, tid),
+          txs.delete(pid, aid, tid),
           TE.map(() => null)
         )
-      ),
+      )
   };
 };

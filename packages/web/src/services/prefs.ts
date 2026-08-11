@@ -3,16 +3,21 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
 
-export const getPrefs = (): Action<Prefs> => {
+const get = (): Action<Prefs> => {
   return pipe(
     apiFromToken,
     TE.chain(({ prefs }) => prefs.get())
   );
 };
 
-export const updatePrefs = (p: Prefs): Action<Prefs> => {
+const update = (p: Prefs): Action<Prefs> => {
   return pipe(
     apiFromToken,
     TE.chain(({ prefs }) => prefs.update(p))
   );
+};
+
+export const prefs = {
+  get,
+  update
 };

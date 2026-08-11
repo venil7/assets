@@ -4,7 +4,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as React from "react";
 import AsyncSelect from "react-select/async";
-import { lookupTicker } from "../../services/ticker";
+import { ticker } from "../../services/ticker";
 import "./TickerLookup.scss";
 
 type SelectOption<T> = {
@@ -19,7 +19,7 @@ const toOptions = (ticker: Ticker): SelectOption<Ticker> => ({
 
 const lookup = (s: string) =>
   pipe(
-    lookupTicker(s),
+    ticker.lookup(s),
     TE.map((x) => A.map(toOptions)(x.quotes)),
     TE.getOrElse(() => () => Promise.resolve<SelectOption<Ticker>[]>([]))
   )();

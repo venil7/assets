@@ -14,21 +14,14 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
 
-export const getTx = (
-  pid: PortfolioId,
-  aid: AssetId,
-  tid: TxId
-): Action<EnrichedTx> => {
+const get = (pid: PortfolioId, aid: AssetId, tid: TxId): Action<EnrichedTx> => {
   return pipe(
     apiFromToken,
     TE.chain(({ tx }) => tx.get(pid, aid, tid))
   );
 };
 
-export const getTxs = (
-  pid: PortfolioId,
-  aid: AssetId
-): Action<EnrichedTx[]> => {
+const getMany = (pid: PortfolioId, aid: AssetId): Action<EnrichedTx[]> => {
   return pipe(
     apiFromToken,
     TE.chain(({ tx }) => tx.getMany(pid, aid)),
@@ -36,7 +29,7 @@ export const getTxs = (
   );
 };
 
-export const createTx = (
+const create = (
   pid: PortfolioId,
   aid: AssetId,
   t: PostTx
@@ -47,7 +40,7 @@ export const createTx = (
   );
 };
 
-export const updateTx = (
+const update = (
   pid: PortfolioId,
   aid: AssetId,
   tid: TxId,
@@ -59,28 +52,21 @@ export const updateTx = (
   );
 };
 
-export const deleteTx = (
-  pid: PortfolioId,
-  aid: AssetId,
-  txId: TxId
-): Action<Id> => {
+const delete1 = (pid: PortfolioId, aid: AssetId, txId: TxId): Action<Id> => {
   return pipe(
     apiFromToken,
     TE.chain(({ tx }) => tx.delete(pid, aid, txId))
   );
 };
 
-export const deleteAllAssetTx = (
-  pid: PortfolioId,
-  aid: AssetId
-): Action<Id> => {
+const deleteAllAsset = (pid: PortfolioId, aid: AssetId): Action<Id> => {
   return pipe(
     apiFromToken,
     TE.chain(({ tx }) => tx.deleteAllAsset(pid, aid))
   );
 };
 
-export const uploadTxs = (
+const upload = (
   pid: PortfolioId,
   aid: AssetId,
   payload: PostTxsUpload
@@ -90,4 +76,14 @@ export const uploadTxs = (
     TE.chain(({ tx }) => tx.uploadAsset(pid, aid, payload)),
     TE.map(A.sort(byDateDesc))
   );
+};
+
+export const txs = {
+  get,
+  getMany,
+  create,
+  update,
+  delete: delete1,
+  deleteAllAsset,
+  upload
 };
