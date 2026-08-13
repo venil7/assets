@@ -23,9 +23,7 @@ export const updateProfile: HandlerTask<GetUser, Context> = ({
     TE.Do,
     TE.bind("userId", () => service.auth.requireUserId(res)),
     mapWebError,
-    TE.chain(({ userId }) =>
-      service.user.updateOwnProfileOnly(userId, req.body)
-    )
+    TE.chain(({ userId }) => service.profile.updateOwn(userId, req.body))
   );
 
 export const updatePassword: HandlerTask<GetUser, Context> = ({
@@ -37,7 +35,7 @@ export const updatePassword: HandlerTask<GetUser, Context> = ({
     TE.bind("profile", () => service.auth.requireProfile(res)),
     mapWebError,
     TE.chain(({ profile }) =>
-      service.user.updateOwnPasswordOnly(profile, req.body)
+      service.profile.updateOwnPassword(profile, req.body)
     )
   );
 

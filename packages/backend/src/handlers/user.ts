@@ -56,5 +56,16 @@ export const updateUser: HandlerTask<GetUser, Context> = ({
     service.auth.requireAdminProfile(res),
     TE.chain(() => urlUserId(req)),
     mapWebError,
-    TE.chain((id) => service.user.updateProfileOnly(id, req.body))
+    TE.chain((id) => service.profile.update(id, req.body))
+  );
+
+export const updatePassword: HandlerTask<GetUser, Context> = ({
+  params: [req, res],
+  context: { service }
+}) =>
+  pipe(
+    service.auth.requireAdminProfile(res),
+    TE.chain(() => urlUserId(req)),
+    mapWebError,
+    TE.chain((userId) => service.profile.updatePassword(userId, req.body))
   );

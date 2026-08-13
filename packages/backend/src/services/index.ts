@@ -5,6 +5,7 @@ import * as asset from "./asset";
 import * as auth from "./auth";
 import * as portfolio from "./portfolio";
 import * as prefs from "./prefs";
+import * as profile from "./profile";
 import * as tx from "./tx";
 import * as user from "./user";
 
@@ -24,14 +25,17 @@ export const createWebService = (
       requireProfile: auth.requireProfile,
       requireAdminProfile: auth.requireAdminProfile
     },
+    profile: {
+      update: profile.updateProfile(repo),
+      updateOwn: profile.updateOwnProfile(repo),
+      updatePassword: profile.updatePassword(repo),
+      updateOwnPassword: profile.updateOwnPassword(repo)
+    },
     user: {
       get: user.getUser(repo),
       getMany: user.getUsers(repo),
       create: user.createUser(repo),
-      delete: user.deleteUser(repo),
-      updateProfileOnly: user.updateProfileOnly(repo),
-      updateOwnProfileOnly: user.updateOwnProfileOnly(repo),
-      updateOwnPasswordOnly: user.updateOwnPasswordOnly(repo)
+      delete: user.deleteUser(repo)
     },
     assets: {
       get: asset.getAsset(repo, enricher.asset),
