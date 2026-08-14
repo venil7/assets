@@ -2,7 +2,12 @@ import { run, type UserId } from "@darkruby/assets-core";
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import faker from "faker";
 import * as E from "fp-ts/Either";
-import { defaultApi, fakeNewUser, type TestApi } from "./helper";
+import {
+  defaultApi,
+  fakeNePassword,
+  fakeNewUser,
+  type TestApi
+} from "./helper";
 
 let api: TestApi;
 beforeAll(async () => {
@@ -57,4 +62,21 @@ test("Create user, login and check profile & prefs", async () => {
   const prefs = await run(userApi.prefs.get());
   expect(username).toBe(creds.username);
   expect(prefs.base_ccy).toBe("USD");
+});
+
+test("Create user, change their password, then login and get prefs", async () => {
+  const creds = fakeNewUser();
+  const user = await run(api.user.create(creds));
+
+  const passwordChange = fakeNePassword();
+  await run(api.user.password(user.id, passwordChange));
+
+  const userApi = await run(
+    defaultApi({
+      username: user.username,
+      password: passwordChange.newPassword
+    })
+  );
+  const profile = await run(userApi.profile.get());
+  expect(user.username).toBe(profile.username);
 });

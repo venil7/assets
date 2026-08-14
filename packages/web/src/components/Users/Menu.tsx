@@ -19,7 +19,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
         Edit profile
       </Dropdown.Item>
       <Dropdown.Item onClick={onChangePassword} eventKey="2">
-        Update password
+        Change password
       </Dropdown.Item>
       <Dropdown.Divider />
       <Dropdown.Item onClick={onDelete} eventKey="3">

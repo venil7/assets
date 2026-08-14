@@ -6,6 +6,7 @@ import {
   type Api,
   type Credentials,
   type NewUser,
+  type PasswordChange,
   type PostAsset,
   type PostPortfolio,
   type PostTx,
@@ -31,6 +32,15 @@ export const fakeNewUser = (admin = false): NewUser => ({
   admin,
   locked: false
 });
+
+export const fakeNePassword = (oldPassword: string = "-"): PasswordChange => {
+  const newPassword = faker.internet.password();
+  return {
+    oldPassword,
+    newPassword,
+    repeat: newPassword
+  };
+};
 
 export const fakePortfolio = (): PostPortfolio => ({
   name: faker.lorem.slug(2),

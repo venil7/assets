@@ -1,7 +1,7 @@
 import {
   defaultPasswordChange,
   passwordChangeValidator,
-  type PasswordChange as PasswordChangeData,
+  type PasswordChange as PasswordChangeData
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
@@ -15,17 +15,20 @@ import { createForm, type FieldsProps } from "../Form/Form";
 import { PasswordEdit } from "../Form/Password";
 import { createModal } from "../Modals/Modal";
 
-type PasswordChangeFieldsProps = FieldsProps<PasswordChangeData>;
+type PasswordChangeFieldsProps = FieldsProps<PasswordChangeData> & {
+  ignoreOldPassword?: boolean;
+};
 
 export const PasswordChangeFields: React.FC<PasswordChangeFieldsProps> = ({
   data,
   onChange,
   disabled,
+  ignoreOldPassword = false
 }: PasswordChangeFieldsProps) => {
   const setField = usePartialChange(data, onChange);
   return (
     <Form>
-      <Form.Group className="mb-3">
+      <Form.Group className="mb-3" hidden={ignoreOldPassword}>
         <Form.Label>Old password</Form.Label>
         <PasswordEdit
           disabled={disabled}
@@ -61,12 +64,13 @@ export const PasswordChange = pipe(
 
 export const PasswordChangeModal = createModal<PasswordChangeData>(
   PasswordChangeFields,
-  passwordChangeValidator
+  passwordChangeValidator,
+  "Change password"
 );
 
 export const passwordChangeModal = (value: PasswordChangeData) =>
   pipe(
-    { value },
+    { value, ignoreOldPassword: true },
     createDialog<PasswordChangeData, PropsOf<typeof PasswordChangeModal>>(
       PasswordChangeModal
     )
