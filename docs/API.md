@@ -2,6 +2,10 @@
 
 All API endpoints are prefixed with `/api/v1/`. The prefix is omitted in the endpoint tables below for brevity.
 
+**Authentication:** all endpoints except `POST /auth/login` require a bearer token (see [Authentication](#authentication)).
+
+**Status codes:** successful `POST` requests return `201 Created`; all other successful requests return `200 OK`. Errors are described in [Error Responses](#error-responses).
+
 ## Authentication Endpoints
 
 | Method | Endpoint                   | Description                              | Request Body | Response Body |
@@ -10,7 +14,7 @@ All API endpoints are prefixed with `/api/v1/`. The prefix is omitted in the end
 | GET    | `/auth/refresh_token`      | Gets a new token with extended expiry    | -            | See below     |
 
 ### Login
-Authenticate with username and password to receive a JWT bearer token.
+Authenticate with username and password to receive a JWT bearer token. Returns `201 Created` on success; invalid credentials return `403` with `type: "Auth"`.
 
 **Request:**
 ```json
@@ -82,7 +86,7 @@ Update the current user's profile information (username, admin status, etc.).
 **Response:** (same as Get Profile)
 
 ### Change Password
-Update the current user's password.
+Update the current user's password. The `oldPassword` **is verified** — a wrong value returns `400 BadRequest`.
 
 **Request:**
 ```json
@@ -154,6 +158,7 @@ Update the current user's preferences.
 | GET    | `/users`             | Get all users (admin only)        | -            | See below     |
 | GET    | `/users/{user_id}`   | Get user by ID (admin only)       | -            | See below     |
 | DELETE | `/users/{user_id}`   | Delete user by ID (admin only)    | -            | See below     |
+| PATCH  | `/users/{user_id}`   | Reset user password (admin only)  | See below    | See below     |
 | POST   | `/users`             | Create new user (admin only)      | See below    | See below     |
 | PUT    | `/users/{user_id}`   | Update user (admin only)          | See below    | See below     |
 
@@ -197,6 +202,23 @@ Create a new user account. **Requires admin privileges.**
 {
   "username": "jane_smith",
   "admin": false,
+  "password": "s3cret",
+  "locked": false
+}
+```
+
+- `password` is **required**. `login_attempts` is managed internally and cannot be set (the validator is exact and rejects unknown fields).
+
+**Response:** (same as Get User)
+
+### Update User
+Update an existing user's information (username, admin flag, lock state). **Requires admin privileges.** Does **not** change the password — see Reset Password below.
+
+**Request:**
+```json
+{
+  "username": "jane_smith",
+  "admin": false,
   "login_attempts": 0,
   "locked": false
 }
@@ -204,10 +226,17 @@ Create a new user account. **Requires admin privileges.**
 
 **Response:** (same as Get User)
 
-### Update User
-Update an existing user's information. **Requires admin privileges.**
+### Reset Password (Admin)
+Force-reset a user's password without knowing the current one. **Requires admin privileges.** `oldPassword` must be present in the body but is **not verified** for admin resets.
 
-**Request:** (same as Create User)
+**Request:**
+```json
+{
+  "oldPassword": "ignored",
+  "newPassword": "new-s3cret",
+  "repeat": "new-s3cret"
+}
+```
 
 **Response:** (same as Get User)
 
@@ -487,12 +516,25 @@ Add a new asset (stock, ETF, etc.) to a portfolio.
   "created": "2026-04-21T16:55:49.000Z",
   "modified": "2026-04-21T16:55:49.000Z",
   "meta": {
-    "range": "1d",
-    "validRanges": ["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"],
-    "volatilityRange": 0,
-    "volatilityPct": 0,
-    "fiftyTwoWeekLow": 0,
-    "fiftyTwoWeekHigh": 0
+    "currency": "USD",
+    "symbol": "AAPL",
+    "exchangeName": "NMS",
+    "fullExchangeName": "NasdaqGS",
+    "instrumentType": "EQUITY",
+    "regularMarketTime": 1776794146,
+    "regularMarketPrice": 266.29,
+    "fiftyTwoWeekHigh": 288.62,
+    "fiftyTwoWeekLow": 193.25,
+    "shortName": "Apple Inc.",
+    "longName": "Apple Inc.",
+    "previousClose": 265.1,
+    "chartPreviousClose": 265.1,
+    "scale": null,
+    "currentTradingPeriod": null,
+    "tradingPeriods": null,
+    "dataGranularity": "1m",
+    "validRanges": ["1d", "5d", "1mo", "3mo", "6mo", "ytd", "1y", "2y", "5y", "10y", "max"],
+    "range": "1d"
   },
   "weight": null,
   "volatilityRange": 0,
@@ -659,9 +701,9 @@ Record a buy or sell transaction for an asset.
   "quantity_ext": 10,
   "stretch": 1,
   "final_stretch": false,
-  "value": null,
-  "pnl": null,
-  "pnl_pct": null,
+  "value": 2660,
+  "pnl": 610,
+  "pnl_pct": 0.2976,
   "realized_pnl": 0,
   "cost": 2050,
   "cost_basis": 2050,
@@ -772,17 +814,7 @@ Upload multiple transactions at once (e.g., from CSV file).
 
 - **`replace`**: If `true`, deletes all existing transactions and inserts the provided ones. If `false`, appends to existing transactions.
 
-**Response:**
-```json
-[
-  {
-    "id": 47
-  },
-  {
-    "id": 48
-  }
-]
-```
+**Response:** the full (enriched) list of all transactions for the asset after the upload — same structure as [List Transactions](#list-transactions).
 
 ### Delete All Transactions
 Delete all transactions for a specific asset.
@@ -790,9 +822,11 @@ Delete all transactions for a specific asset.
 **Response:**
 ```json
 {
-  "id": 10
+  "id": 4
 }
 ```
+
+`id` is the **number of transactions deleted**.
 
 ---
 
@@ -884,59 +918,62 @@ Retrieve foreign exchange rate for a currency pair.
 
 ## Error Responses
 
-All endpoints return error responses in the following format:
+All endpoints return errors as JSON with a `type` and a `message`. The HTTP status code is determined by the error type:
+
+| HTTP Status | `type`       | Description |
+| ----------- | ------------ | ----------- |
+| 400         | `BadRequest` | Validation failed — the request body or parameters do not match the expected schema |
+| 403         | `Auth`       | Authentication or authorization failure — missing/invalid token, restricted (locked) user, admin privileges required, wrong credentials or password |
+| 404         | `NotFound`   | Resource not found (e.g. an unknown ID) |
+| 500         | `General`    | Internal server error |
 
 **HTTP 400 Bad Request:**
 ```json
 {
-  "status": 400,
-  "message": "Validation failed",
-  "errors": [
-    {
-      "field": "username",
-      "message": "Username is required"
-    }
-  ]
+  "type": "BadRequest",
+  "message": "Invalid value undefined supplied to /username: string"
 }
 ```
 
-**HTTP 401 Unauthorized:**
+**HTTP 403 Auth (e.g. missing token):**
 ```json
 {
-  "status": 401,
-  "message": "Authentication failed"
+  "type": "Auth",
+  "message": "no token"
 }
 ```
 
-**HTTP 403 Forbidden:**
+**HTTP 403 Auth (admin-only endpoint):**
 ```json
 {
-  "status": 403,
-  "message": "Admin privileges required"
+  "type": "Auth",
+  "message": "Requires admin role."
 }
 ```
 
 **HTTP 404 Not Found:**
 ```json
 {
-  "status": 404,
-  "message": "Resource not found"
+  "type": "NotFound",
+  "message": "Not Found"
 }
 ```
 
-**HTTP 500 Internal Server Error:**
+**HTTP 500 General:**
 ```json
 {
-  "status": 500,
+  "type": "General",
   "message": "Internal server error"
 }
 ```
+
+> The `message` strings above are illustrative — exact wording is produced by the validation and error internals. Unmatched routes return a plain-text `404` body (`route <url> does not exist`).
 
 ---
 
 ## Authentication
 
-All endpoints except `/auth/login` and `/lookup/*` require authentication via bearer token:
+All endpoints except `POST /auth/login` require authentication via bearer token — this includes `/auth/refresh_token` and all `/lookup/*` endpoints:
 
 ```
 Authorization: Bearer eyJhbGc...

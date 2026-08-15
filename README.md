@@ -206,7 +206,7 @@ docker run -it assets-test
 
 The web UI is optional. The backend exposes a **complete REST API** for any frontend or integration:
 
-- REST endpoint documentation: [API.md](./API.md)
+- REST endpoint documentation: [API.md](./docs/API.md)
 - Use in headless mode, CLI tools, or custom integrations
 - Full authentication and multi-tenant support
 
