@@ -19,7 +19,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as A from "fp-ts/lib/ReadonlyArray";
 import * as TE from "fp-ts/lib/TaskEither";
 
-const BASE_URL = `http://${process.env.URL ?? "localhost:4020"}`;
+export const BASE_URL = `http://${process.env.URL ?? "localhost:4020"}`;
 
 export const fakePrefs = (): Prefs => ({
   base_ccy: faker.random.arrayElement(BASE_CCYS),
@@ -47,6 +47,8 @@ export const fakePortfolio = (): PostPortfolio => ({
   description: faker.lorem.slug(2)
 });
 
+export const D = (s: string) => new Date(s);
+
 export const fakeAsset = (
   ticker: string = faker.random.arrayElement(["msft", "mcd", "aapl"])
 ): PostAsset => ({
@@ -57,24 +59,27 @@ export const fakeAsset = (
 export const fakeTx = (
   type: TxType,
   quantity = faker.datatype.number(100),
-  price = faker.datatype.number(100)
+  price = faker.datatype.number(100),
+  date: Date = faker.date.past()
 ): PostTx => ({
   type,
   quantity,
   price,
-  date: faker.date.past(),
+  date,
   comments: ""
 });
 
 export const fakeBuy = (
   quantity = faker.datatype.number(100),
-  price = faker.datatype.number(100)
-) => fakeTx("buy", quantity, price);
+  price = faker.datatype.number(100),
+  date?: Date
+) => fakeTx("buy", quantity, price, date);
 
 export const fakeSell = (
   quantity = faker.datatype.number(100),
-  price = faker.datatype.number(100)
-) => fakeTx("sell", quantity, price);
+  price = faker.datatype.number(100),
+  date?: Date
+) => fakeTx("sell", quantity, price, date);
 
 const createPortfolioAsset =
   (api: Api) =>

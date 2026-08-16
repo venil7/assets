@@ -34,11 +34,11 @@ const summaryMeta = (
 
   const fiftyTwoWeekLow = pipe(
     portfolios,
-    sum((p) => p.meta.fiftyTwoWeekHigh)
+    sum((p) => p.meta.fiftyTwoWeekLow)
   );
   const fiftyTwoWeekHigh = pipe(
     portfolios,
-    sum((p) => p.meta.fiftyTwoWeekLow)
+    sum((p) => p.meta.fiftyTwoWeekHigh)
   );
   const [volatilityRange, volatilityPct] = volatility(
     fiftyTwoWeekLow,
