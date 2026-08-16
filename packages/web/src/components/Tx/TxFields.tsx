@@ -24,7 +24,7 @@ import {
 } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
 import { useFormatters } from "../../hooks/prefs";
-import { fxRate, quote } from "../../services/ticker";
+import { ticker } from "../../services/ticker";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
 import { DatePicker } from "../Form/DatePicker";
@@ -68,14 +68,14 @@ export const TxFields: React.FC<TxFieldsProps> = ({
 
   const getRate = (date: Date) =>
     pipe(
-      fxRate(asset.base_ccy, assetCcy, date),
+      ticker.fx(asset.base_ccy, assetCcy, date),
       TE.map((fx) => fx.rate),
       TE.getOrElse(() => () => Promise.resolve<number>(asset.base.fxRate))
     )();
 
   const getQuote = (date: Date) =>
     pipe(
-      quote(asset.ticker, date),
+      ticker.quote(asset.ticker, date),
       TE.map(({ price }) => price),
       TE.getOrElse(
         () => () => Promise.resolve<number>(asset.meta.regularMarketPrice)

@@ -93,6 +93,7 @@ const server = ({ port, app }: Config, ctx: Context): Action<Server> => {
       user.get("/", handlers.user.getMany);
       user.get("/:user_id", handlers.user.get);
       user.put("/:user_id", handlers.user.update);
+      user.patch("/:user_id", handlers.user.password);
       user.delete("/:user_id", handlers.user.delete);
       api.use("/users", user);
 

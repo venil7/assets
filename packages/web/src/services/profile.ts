@@ -3,36 +3,43 @@ import type {
   GetUser,
   Id,
   PasswordChange,
-  PostUser,
+  PostUser
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
 
-export const getProfile = (): Action<GetUser> => {
+const get = (): Action<GetUser> => {
   return pipe(
     apiFromToken,
     TE.chain(({ profile }) => profile.get())
   );
 };
 
-export const deleteProfile = (): Action<Id> => {
+const delete1 = (): Action<Id> => {
   return pipe(
     apiFromToken,
     TE.chain(({ profile }) => profile.delete())
   );
 };
 
-export const updateProfile = (usr: PostUser): Action<GetUser> => {
+const update = (usr: PostUser): Action<GetUser> => {
   return pipe(
     apiFromToken,
     TE.chain(({ profile }) => profile.update(usr))
   );
 };
 
-export const updatePassword = (c: PasswordChange): Action<GetUser> => {
+const password = (c: PasswordChange): Action<GetUser> => {
   return pipe(
     apiFromToken,
     TE.chain(({ profile }) => profile.password(c))
   );
+};
+
+export const profile = {
+  get,
+  update,
+  delete: delete1,
+  password
 };

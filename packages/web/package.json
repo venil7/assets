@@ -7,7 +7,8 @@
     "dev": "bunx --bun vite --host 0.0.0.0",
     "build": "tsc -b && bunx --bun vite build",
     "check": "tsc -noEmit",
-    "preview": "bunx --bun vite preview"
+    "preview": "bunx --bun vite preview",
+    "test": "bun test"
   },
   "dependencies": {
     "@darkruby/assets-core": "workspace:*",

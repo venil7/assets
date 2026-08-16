@@ -46,6 +46,7 @@ export const createHandlers = (
     getMany: pipe(user.getUsers, expressify),
     create: pipe(user.createUser, expressify),
     update: pipe(user.updateUser, expressify),
+    password: pipe(user.updatePassword, expressify),
     delete: pipe(user.deleteUser, expressify)
   },
   prefs: {

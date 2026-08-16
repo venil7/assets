@@ -3,45 +3,62 @@ import type {
   GetUser,
   Id,
   NewUser,
+  PasswordChange,
   PostUser,
   Profile,
-  UserId,
+  UserId
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
 
-export const getUsers = (): Action<GetUser[]> => {
+const getMany = (): Action<GetUser[]> => {
   return pipe(
     apiFromToken,
     TE.chain(({ user }) => user.getMany())
   );
 };
 
-export const getUser = (uid: UserId): Action<GetUser> => {
+const get = (uid: UserId): Action<GetUser> => {
   return pipe(
     apiFromToken,
     TE.chain(({ user }) => user.get(uid))
   );
 };
 
-export const createUser = (creds: NewUser): Action<GetUser> => {
+const create = (creds: NewUser): Action<GetUser> => {
   return pipe(
     apiFromToken,
     TE.chain(({ user }) => user.create(creds))
   );
 };
 
-export const updateUser = (uid: UserId, creds: PostUser): Action<Profile> => {
+const update = (uid: UserId, creds: PostUser): Action<Profile> => {
   return pipe(
     apiFromToken,
     TE.chain(({ user }) => user.update(uid, creds))
   );
 };
 
-export const deleteUser = (uid: UserId): Action<Id> => {
+const password = (uid: UserId, pwd: PasswordChange): Action<Profile> => {
+  return pipe(
+    apiFromToken,
+    TE.chain(({ user }) => user.password(uid, pwd))
+  );
+};
+
+const delete1 = (uid: UserId): Action<Id> => {
   return pipe(
     apiFromToken,
     TE.chain(({ user }) => user.delete(uid))
   );
+};
+
+export const users = {
+  get,
+  getMany,
+  create,
+  update,
+  delete: delete1,
+  password
 };

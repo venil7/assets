@@ -1,0 +1,69 @@
+{
+  "chart": {
+    "result": [
+      {
+        "meta": {
+          "currency": "CAD",
+          "symbol": "OBNRX",
+          "exchangeName": "NAS",
+          "fullExchangeName": "Nasdaq",
+          "instrumentType": "MUTUALFUND",
+          "regularMarketPrice": 10.78,
+          "firstTradeDate": 1769697000,
+          "regularMarketTime": 1786018765,
+          "hasPrePostMarketData": false,
+          "gmtoffset": -14400,
+          "timezone": "EDT",
+          "exchangeTimezoneName": "America/New_York",
+          "fiftyTwoWeekHigh": 11.0389,
+          "fiftyTwoWeekLow": 10.6822,
+          "longName": "RBC Canadian Government Bond Index Fund Series DZ NL (1973A3)",
+          "chartPreviousClose": 10.7788,
+          "priceHint": 2,
+          "currentTradingPeriod": {
+            "pre": {
+              "timezone": "EDT",
+              "end": 1786023000,
+              "start": 1786003200,
+              "gmtoffset": -14400
+            },
+            "regular": {
+              "timezone": "EDT",
+              "end": 1786046400,
+              "start": 1786023000,
+              "gmtoffset": -14400
+            },
+            "post": {
+              "timezone": "EDT",
+              "end": 1786060800,
+              "start": 1786046400,
+              "gmtoffset": -14400
+            }
+          },
+          "dataGranularity": "1d",
+          "range": "1d",
+          "validRanges": [
+            "1mo",
+            "3mo",
+            "6mo",
+            "ytd",
+            "1y",
+            "2y",
+            "5y",
+            "10y",
+            "max"
+          ]
+        },
+        "indicators": {
+          "quote": [
+            {}
+          ],
+          "adjclose": [
+            {}
+          ]
+        }
+      }
+    ],
+    "error": null
+  }
+}

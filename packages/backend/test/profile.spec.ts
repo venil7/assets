@@ -2,7 +2,13 @@ import { run, type UserId } from "@darkruby/assets-core";
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import faker from "faker";
 import * as E from "fp-ts/Either";
-import { defaultApi, fakeNewUser, nonAdminApi, type TestApi } from "./helper";
+import {
+  defaultApi,
+  fakeNePassword,
+  fakeNewUser,
+  nonAdminApi,
+  type TestApi
+} from "./helper";
 
 let api: TestApi;
 beforeAll(async () => {
@@ -36,15 +42,13 @@ test("Update own password", async () => {
   // login as that user
   const api = await run(defaultApi(user1));
   // generate new password and change it
-  const { password: newPassword } = fakeNewUser();
-  const changePassword = {
-    oldPassword: user1.password,
-    newPassword,
-    repeat: newPassword,
-  };
-  await run(api.profile.password(changePassword));
+  const passwordChange = fakeNePassword(user1.password);
+
+  await run(api.profile.password(passwordChange));
   // login with new password
-  const api1 = await run(defaultApi({ ...user1, password: newPassword }));
+  const api1 = await run(
+    defaultApi({ ...user1, password: passwordChange.newPassword })
+  );
   expect(api1).toBeTruthy();
 });
 

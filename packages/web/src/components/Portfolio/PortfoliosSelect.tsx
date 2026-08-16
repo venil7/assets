@@ -5,7 +5,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { useEffect, useState } from "react";
 import { Form } from "react-bootstrap";
 import { withProps } from "../../decorators/props";
-import { getPortfolios } from "../../services/portfolios";
+import { portfolios as portfoliosSvc } from "../../services/portfolios";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
 import { createForm, type FieldsProps } from "../Form/Form";
@@ -30,7 +30,7 @@ export const PortfoliosSelectFields: React.FC<PortfoliosSelectFieldsProps> = ({
 }) => {
   const [portfolios, setPortfolios] = useState<GetPortfolio[]>([]);
   useEffect(() => {
-    pipe(getPortfolios(), TE.map(setPortfolios))();
+    pipe(portfoliosSvc.getMany(), TE.map(setPortfolios))();
   }, []);
 
   return (

@@ -3,19 +3,14 @@ import type {
   EnrichedPortfolio,
   Identity,
   Nullable,
-  PostPortfolio,
+  PostPortfolio
 } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
 import { pipe } from "fp-ts/lib/function";
 
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import * as TE from "fp-ts/lib/TaskEither";
-import {
-  createPortfolio,
-  deletePortfolio,
-  getPortfolio,
-  updatePortfolio,
-} from "../services/portfolios";
+import { portfolios } from "../services/portfolios";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type PortfolioStore = Identity<
@@ -40,17 +35,17 @@ export const createPortfolioStore = (): PortfolioStore => {
   return {
     ...storeBase,
     load: (portfolioId: number, range?: ChartRange) =>
-      storeBase.run(getPortfolio(portfolioId, range)),
+      storeBase.run(portfolios.get(portfolioId, range)),
     update: (pid: number, p: PostPortfolio) =>
-      storeBase.run(updatePortfolio(pid, p)),
-    create: (p: PostPortfolio) => storeBase.run(createPortfolio(p)),
+      storeBase.run(portfolios.update(pid, p)),
+    create: (p: PostPortfolio) => storeBase.run(portfolios.create(p)),
 
     delete: (pid: number) =>
       storeBase.run(
         pipe(
-          deletePortfolio(pid),
+          portfolios.delete(pid),
           TE.map(() => null)
         )
-      ),
+      )
   };
 };

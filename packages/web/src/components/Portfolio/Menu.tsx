@@ -8,10 +8,11 @@ type PortfolioMenuProps = {
 
 export const PortfolioMenu: React.FC<PortfolioMenuProps> = ({
   onDelete,
-  onEdit,
+  onEdit
 }: PortfolioMenuProps) => {
   return (
     <DropdownButton variant="outline-primary" size="sm" title={<></>}>
+      <Dropdown.Header>Portfolio actions</Dropdown.Header>
       <Dropdown.Item onClick={onEdit} eventKey="1">
         Edit
       </Dropdown.Item>

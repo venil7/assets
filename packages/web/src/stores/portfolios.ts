@@ -2,18 +2,13 @@ import type {
   ActionResult,
   EnrichedPortfolio,
   Identity,
-  PostPortfolio,
+  PostPortfolio
 } from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { signal } from "@preact/signals-react";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import {
-  createPortfolio,
-  deletePortfolio,
-  getPortfolios,
-  updatePortfolio,
-} from "../services/portfolios";
+import { portfolios } from "../services/portfolios";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type PortfoliosStore = Identity<
@@ -34,27 +29,27 @@ export const createPortfoliosStore = (): PortfoliosStore => {
 
   return {
     ...storeBase,
-    load: (range?: ChartRange) => storeBase.run(getPortfolios(range)),
+    load: (range?: ChartRange) => storeBase.run(portfolios.getMany(range)),
     create: (p: PostPortfolio) =>
       storeBase.run(
         pipe(
-          createPortfolio(p),
-          TE.chain(() => getPortfolios())
+          portfolios.create(p),
+          TE.chain(() => portfolios.getMany())
         )
       ),
     update: (pid: number, p: PostPortfolio) =>
       storeBase.run(
         pipe(
-          updatePortfolio(pid, p),
-          TE.chain(() => getPortfolios())
+          portfolios.update(pid, p),
+          TE.chain(() => portfolios.getMany())
         )
       ),
     delete: (pid: number) =>
       storeBase.run(
         pipe(
-          deletePortfolio(pid),
-          TE.chain(() => getPortfolios())
+          portfolios.delete(pid),
+          TE.chain(() => portfolios.getMany())
         )
-      ),
+      )
   };
 };

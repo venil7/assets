@@ -236,6 +236,8 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
     methods.get<GetUser>(USER_URL(uid), GetUserDecoder);
   const deleteUser = (uid: UserId) =>
     methods.delete<Id>(USER_URL(uid), IdDecoder);
+  const passwordUser = (uid: UserId, body: PasswordChange) =>
+    methods.patch<GetUser, PasswordChange>(USER_URL(uid), body, GetUserDecoder);
 
   const lookupTicker = (ticker: string) =>
     methods.get<TickerSearchResult>(
@@ -253,7 +255,8 @@ const getApi = (baseUrl: string) => (methods: rest.Methods) => {
       getMany: getUsers,
       update: updateUser,
       create: createUser,
-      delete: deleteUser
+      delete: deleteUser,
+      password: passwordUser
     },
     profile: {
       get: getProfile,

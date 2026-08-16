@@ -4,17 +4,12 @@ import type {
   Identity,
   Nullable,
   PasswordChange,
-  PostUser,
+  PostUser
 } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import {
-  deleteProfile,
-  getProfile,
-  updatePassword,
-  updateProfile,
-} from "../services/profile";
+import { profile } from "../services/profile";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type ProfileStore = Identity<
@@ -32,15 +27,15 @@ export const createProfileStore = (): ProfileStore => {
 
   return {
     ...storeBase,
-    load: () => storeBase.run(getProfile()),
-    update: (c: PostUser) => storeBase.run(updateProfile(c)),
-    password: (c: PasswordChange) => storeBase.run(updatePassword(c)),
+    load: () => storeBase.run(profile.get()),
+    update: (c: PostUser) => storeBase.run(profile.update(c)),
+    password: (c: PasswordChange) => storeBase.run(profile.password(c)),
     delete: () =>
       storeBase.run(
         pipe(
-          deleteProfile(),
+          profile.delete(),
           TE.map(() => null)
         )
-      ),
+      )
   };
 };

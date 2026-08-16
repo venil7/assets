@@ -2,10 +2,10 @@ import type {
   ActionResult,
   Identity,
   Nullable,
-  Prefs,
+  Prefs
 } from "@darkruby/assets-core";
 import { signal } from "@preact/signals-react";
-import { getPrefs, updatePrefs } from "../services/prefs";
+import { prefs } from "../services/prefs";
 import { type StoreBase, createStoreBase } from "./base";
 
 export type PrefsStore = Identity<
@@ -21,7 +21,7 @@ export const createPrefsStore = (): PrefsStore => {
 
   return {
     ...storeBase,
-    load: () => storeBase.run(getPrefs()),
-    update: (p: Prefs) => storeBase.run(updatePrefs(p)),
+    load: () => storeBase.run(prefs.get()),
+    update: (p: Prefs) => storeBase.run(prefs.update(p))
   };
 };

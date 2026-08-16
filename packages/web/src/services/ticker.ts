@@ -11,14 +11,14 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { apiFromToken } from "./api";
 
-export const lookupTicker = (term: string): Action<TickerSearchResult> => {
+const lookup = (term: string): Action<TickerSearchResult> => {
   return pipe(
     apiFromToken,
     TE.chain(({ yahoo }) => yahoo.lookupTicker(term))
   );
 };
 
-export const fxRate = (
+const fx = (
   base: Ccy,
   ccy: string,
   date: Optional<Date | UnixDate>
@@ -29,7 +29,7 @@ export const fxRate = (
   );
 };
 
-export const quote = (
+const quote = (
   ticker: string,
   date: Optional<Date | UnixDate>
 ): Action<ChartDataPoint> => {
@@ -37,4 +37,10 @@ export const quote = (
     apiFromToken,
     TE.chain(({ yahoo }) => yahoo.quote(ticker, date))
   );
+};
+
+export const ticker = {
+  lookup,
+  fx,
+  quote
 };
