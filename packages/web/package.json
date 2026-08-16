@@ -1,7 +1,7 @@
 {
   "name": "@darkruby/assets-web",
   "private": true,
-  "version": "1.8.3",
+  "version": "1.8.4",
   "type": "module",
   "scripts": {
     "dev": "bunx --bun vite --host 0.0.0.0",
