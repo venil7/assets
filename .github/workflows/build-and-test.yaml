@@ -1,11 +1,14 @@
 name: CHECKS-AND-INTEGRATION-TESTS
 run-name: Run tests for ${{ github.ref_name }}
 on:
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
   push:
     branches:
       - master
-      - feature/*
+      # - 'feature/**'
+  workflow_dispatch:
 
 jobs:
   checks-and-integration-tests:
