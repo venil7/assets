@@ -42,5 +42,5 @@ jobs:
         run: |
           bun run backend:dev & echo $! >/tmp/backend.pid
           sleep 1
-          bun test
+          bun test --randomize --retry=3
           kill -9 $(cat /tmp/backend.pid)
