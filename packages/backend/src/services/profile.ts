@@ -58,7 +58,6 @@ export const updateOwnPassword =
   (profile: Profile, payload: unknown): WebAction<GetUser> =>
     pipe(
       TE.Do,
-      // TE.tap(() => repo.user.resetAttempts(profile.username)), // likely not needed
       TE.bind("user", () => repo.user.loginAttempt(profile.username)),
       TE.bind("passwordChange", () =>
         pipe(payload, liftTE(PasswordChangeDecoder))
@@ -98,16 +97,9 @@ export const updatePassword =
       TE.bind("user", ({ profile }) =>
         repo.user.loginAttempt(profile.username)
       ),
-      // TE.tap(({ user }) => repo.user.resetAttempts(user!.username)),
       TE.bind("passwordChange", () =>
         pipe(payload, liftTE(PasswordChangeDecoder))
       ),
-      // TE.tap(({ user, passwordChange }) =>
-      //   pipe(
-      //     verifyPassword(user.phash, passwordChange.oldPassword),
-      //     TE.mapLeft(() => validationError("Wrong old password"))
-      //   )
-      // ),
       TE.chain(({ user, passwordChange }) =>
         toRawInUser({
           username: user.username,

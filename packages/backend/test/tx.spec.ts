@@ -1,7 +1,7 @@
 import type { AppError, PostTx } from "@darkruby/assets-core";
 import { defaultTxsUpload, run } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -90,24 +90,94 @@ test("Update buy tx", async () => {
   expect(price).toBe(updateTx.price);
 });
 
-test("Insufficient holdings when selling more than own", async () => {
-  const { asset, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
-  const error = await pipe(
-    api.tx.create(portfolio.id, asset.id, fakeSell(11, 1)),
-    TE.orElseW(TE.of),
-    run
-  );
-  expect((error as AppError).message).toContain("Insufficient holdings");
-});
+describe("Transaction invariant violation", () => {
+  const TRANSACTION_INVARIANT_VIOLATION = "Transaction invariant violation";
 
-test("Insufficient holdings when updating existing transaction", async () => {
-  const { asset, tx, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
-  const error = await pipe(
-    api.tx.update(portfolio.id, asset.id, tx.id, fakeSell(11, 1)),
-    TE.orElseW(TE.of),
-    run
-  );
-  expect((error as AppError).message).toContain("Insufficient holdings");
+  test("holdings when selling more than own", async () => {
+    const { asset, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
+    const error = await pipe(
+      api.tx.create(portfolio.id, asset.id, fakeSell(11, 1)),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("when updating existing transaction", async () => {
+    const { asset, tx, portfolio } = await run(
+      api.createPortfolioAssetTx(buyTx)
+    );
+    const error = await pipe(
+      api.tx.update(portfolio.id, asset.id, tx.id, fakeSell(11, 1)),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("delete earlier BUY transaction that later is sold", async () => {
+    const txs = [
+      fakeBuy(3, 10, D("2025-10-01")),
+      fakeBuy(5, 10, D("2025-10-02")),
+      fakeSell(8, 10, D("2025-10-03"))
+    ];
+
+    const {
+      asset,
+      portfolio,
+      txs: [t1, t2, t3]
+    } = await run(api.createPortfolioAssetTxs(txs));
+
+    // delete 2nd BUY transaction, and fail
+    const error = await pipe(
+      api.tx.delete(portfolio.id, asset.id, t2.id),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("update earlier BUY transaction that later is sold", async () => {
+    const txs = [
+      fakeBuy(3, 10, D("2025-10-01")),
+      fakeBuy(5, 10, D("2025-10-02")),
+      fakeSell(8, 10, D("2025-10-03"))
+    ];
+
+    const {
+      asset,
+      portfolio,
+      txs: [t1, t2, t3]
+    } = await run(api.createPortfolioAssetTxs(txs));
+
+    // update 2nd BUY transaction into SELL, and fail
+    const error = await pipe(
+      api.tx.update(portfolio.id, asset.id, t2.id, { ...t2, type: "sell" }),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toMatch(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("bulk upload with insufficient holdings is rejected", async () => {
+    const { portfolio, asset } = await createAsset();
+    const res = await api.tx.uploadAsset(
+      portfolio.id,
+      asset.id,
+      defaultTxsUpload([fakeSell(1, 1)], false)
+    )();
+    expect(E.isLeft(res)).toBe(true);
+    if (E.isLeft(res))
+      expect(res.left.message).toContain(TRANSACTION_INVARIANT_VIOLATION);
+  });
 });
 
 test("CSV roundtrip", async () => {
@@ -306,16 +376,4 @@ test("running values are isolated per asset", async () => {
   const a2now = assets.find((x) => x.id === a2.id)!;
   expect(a1now.holdings).toBe(6);
   expect(a2now.holdings).toBe(5);
-});
-
-test("bulk upload with insufficient holdings is rejected", async () => {
-  const { portfolio, asset } = await createAsset();
-  const res = await api.tx.uploadAsset(
-    portfolio.id,
-    asset.id,
-    defaultTxsUpload([fakeSell(1, 1)], false)
-  )();
-  expect(E.isLeft(res)).toBe(true);
-  if (E.isLeft(res))
-    expect(res.left.message).toContain("Insufficient holdings");
 });

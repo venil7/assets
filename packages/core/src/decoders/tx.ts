@@ -26,14 +26,14 @@ const extTxTypes = {
   value: nullableDecoder(t.number), // value of sold units
   pnl: nullableDecoder(t.number), // for buy txs of non final stretch
   pnl_pct: nullableDecoder(t.number), // return percent on sell
-  realized_pnl: t.number, // only for sell transactions
+  realized_pnl: t.number, // only for sell transactions, otherwise 0
   cost: t.number,
-  cost_basis: t.number, // amount expressed in average  unit price
+  cost_basis: t.number, // amount expressed in average unit price
   contribution: t.number,
   // asset running values
   running_holding: t.number, // quantity owned after transaction
   running_cost: t.number, // total asset cost after this transaction
-  running_average_price: t.number, //averga unit price, after this transaction
+  running_average_price: t.number, //average unit price, after this transaction
   running_break_even: t.number,
   running_contribution: t.number, //% showing max contribution of this stretch
   // from joined asset & portfolio & user

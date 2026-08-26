@@ -1,7 +1,13 @@
 import { run, type PostTx } from "@darkruby/assets-core";
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import * as E from "fp-ts/lib/Either";
-import { fakeAsset, fakePortfolio, nonAdminApi, type TestApi } from "./helper";
+import {
+  D,
+  fakeAsset,
+  fakePortfolio,
+  nonAdminApi,
+  type TestApi
+} from "./helper";
 
 let api: TestApi;
 beforeAll(async () => {
@@ -11,7 +17,6 @@ afterAll(async () => {
   await run(api.profile.delete());
 });
 
-const D = (s: string) => new Date(s);
 const buy = (qty: number, price: number, date: Date): PostTx => ({
   type: "buy",
   quantity: qty,

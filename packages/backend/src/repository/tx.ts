@@ -97,11 +97,11 @@ export const createTx =
       } as Record<string, any>),
       ID.ap(sql.tx.insert),
       ID.ap(db),
-      TE.mapLeft(insufficientHoldingCheck),
+      TE.mapLeft(sqliteConstraintTrigger),
       TE.chain(([txId]) => getTx(db)(txId, assetId, userId)),
       TE.filterOrElse(
         (t): t is GetTx => Boolean(t),
-        handleError("Failed to create portfolio")
+        handleError("Failed to create transaction")
       )
     );
 
@@ -117,7 +117,7 @@ export const updateTx =
       } as Record<string, any>),
       ID.ap(sql.tx.update),
       ID.ap(db),
-      TE.mapLeft(insufficientHoldingCheck),
+      TE.mapLeft(sqliteConstraintTrigger),
       TE.chain(() => getTx(db)(txId, assetId, userId)),
       TE.filterOrElse(
         (t): t is GetTx => Boolean(t),
@@ -128,7 +128,12 @@ export const updateTx =
 export const deleteTx =
   (db: Database) =>
   (txId: TxId, userId: UserId): Action<ExecutionResult> =>
-    pipe(execute<unknown[]>({ txId, userId }), ID.ap(sql.tx.delete), ID.ap(db));
+    pipe(
+      execute<unknown[]>({ txId, userId }),
+      ID.ap(sql.tx.delete),
+      ID.ap(db),
+      TE.mapLeft(sqliteConstraintTrigger)
+    );
 
 export const deleteAssetTxs =
   (db: Database) =>
@@ -136,7 +141,8 @@ export const deleteAssetTxs =
     pipe(
       execute<unknown[]>({ assetId, userId }),
       ID.ap(sql.tx.deleteAllAsset),
-      ID.ap(db)
+      ID.ap(db),
+      TE.mapLeft(sqliteConstraintTrigger)
     );
 
 export const uploadAssetTxs =
@@ -161,15 +167,15 @@ export const uploadAssetTxs =
       transaction(func),
       ID.ap(db),
       TE.map((execResult) => execResult ?? defaultExecutionResult()),
-      TE.mapLeft(insufficientHoldingCheck)
+      TE.mapLeft(sqliteConstraintTrigger)
     );
   };
 
-const insufficientHoldingCheck = (err: AppError) => {
+const sqliteConstraintTrigger = (err: AppError) => {
   switch (true) {
+    case err.message.includes("TX_INVARIANT_VIOLATION"):
+      return validationError(`Transaction invariant violation`);
     case err.message.includes("SQLITE_CONSTRAINT_TRIGGER"):
-    case err.message.includes("Insufficient holdings"):
-      return validationError(`Insufficient holdings for SELL transaction`);
     default:
       return err;
   }

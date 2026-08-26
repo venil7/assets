@@ -47,8 +47,6 @@ export const fakePortfolio = (): PostPortfolio => ({
   description: faker.lorem.slug(2)
 });
 
-export const D = (s: string) => new Date(s);
-
 export const fakeAsset = (
   ticker: string = faker.random.arrayElement(["msft", "mcd", "aapl"])
 ): PostAsset => ({
@@ -113,7 +111,9 @@ const createPortfolioAssetTxs =
       TE.bind("txs", ({ asset, portfolio }) =>
         pipe(
           txs,
-          TE.traverseArray((tx) => api.tx.create(portfolio.id!, asset.id!, tx))
+          TE.traverseSeqArray((tx) =>
+            api.tx.create(portfolio.id!, asset.id!, tx)
+          )
         )
       )
     );
@@ -163,3 +163,5 @@ export const nonAdminApi = () =>
   );
 
 export type TestApi = ReturnType<typeof getExtendedApi>;
+
+export const D = (s: string) => new Date(s);
