@@ -2,6 +2,7 @@ import {
   api,
   BASE_CCYS,
   login,
+  TxTypes,
   type Action,
   type Api,
   type Credentials,
@@ -71,13 +72,13 @@ export const fakeBuy = (
   quantity = faker.datatype.number(100),
   price = faker.datatype.number(100),
   date?: Date
-) => fakeTx("buy", quantity, price, date);
+) => fakeTx(TxTypes.buy, quantity, price, date);
 
 export const fakeSell = (
   quantity = faker.datatype.number(100),
   price = faker.datatype.number(100),
   date?: Date
-) => fakeTx("sell", quantity, price, date);
+) => fakeTx(TxTypes.sell, quantity, price, date);
 
 const createPortfolioAsset =
   (api: Api) =>

@@ -1,5 +1,5 @@
 import type { AppError, PostTx } from "@darkruby/assets-core";
-import { defaultTxsUpload, run } from "@darkruby/assets-core";
+import { defaultTxsUpload, run, TxTypes } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import * as E from "fp-ts/lib/Either";
@@ -158,7 +158,10 @@ describe("Transaction invariant violation", () => {
 
     // update 2nd BUY transaction into SELL, and fail
     const error = await pipe(
-      api.tx.update(portfolio.id, asset.id, t2.id, { ...t2, type: "sell" }),
+      api.tx.update(portfolio.id, asset.id, t2.id, {
+        ...t2,
+        type: TxTypes.sell
+      }),
       TE.orElseW(TE.of),
       run
     );
@@ -181,8 +184,12 @@ describe("Transaction invariant violation", () => {
 
   test("sell valid vs total holdings but overshoots mid-history (date reordering)", async () => {
     const { portfolio, asset } = await createAsset();
-    await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01"))));
-    await run(api.tx.create(portfolio.id, asset.id, fakeBuy(5, 10, D("2025-10-03"))));
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
+    );
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(5, 10, D("2025-10-03")))
+    );
     // total holdings = 15 >= 12, but at this date only the first 10 are in,
     // so running goes 10 -> -2 mid-history. The AFTER invariant scan must catch it.
     const error = await pipe(
@@ -201,14 +208,12 @@ describe("Transaction invariant violation", () => {
 
   test("selling strictly before the first buy", async () => {
     const { portfolio, asset } = await createAsset();
-    await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-02"))));
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-02")))
+    );
     // dated before any buy -> running is -4 at that row
     const error = await pipe(
-      api.tx.create(
-        portfolio.id,
-        asset.id,
-        fakeSell(4, 10, D("2025-10-01"))
-      ),
+      api.tx.create(portfolio.id, asset.id, fakeSell(4, 10, D("2025-10-01"))),
       TE.orElseW(TE.of),
       run
     );
@@ -219,8 +224,12 @@ describe("Transaction invariant violation", () => {
 
   test("update a sell's date to reorder and overshoot", async () => {
     const { portfolio, asset } = await createAsset();
-    await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01"))));
-    await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-02"))));
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
+    );
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-02")))
+    );
     const s = await run(
       api.tx.create(portfolio.id, asset.id, fakeSell(15, 10, D("2025-10-03")))
     );
@@ -292,9 +301,17 @@ test("CSV roundtrip", async () => {
   expect(txs2).toEqual(txs);
 });
 
-test("Delete all txs of an asset", async () => {
-  const txs = [fakeBuy(), fakeBuy(), fakeBuy(), fakeBuy()];
+test("Delete all txs of an asset with buys followed by sells in one call", async () => {
+  const txs = [
+    fakeBuy(10, 10, D("2025-10-01")),
+    fakeBuy(5, 10, D("2025-10-02")),
+    fakeSell(4, 10, D("2025-10-03")),
+    fakeSell(6, 10, D("2025-10-04")),
+    fakeBuy(7, 10, D("2025-10-05"))
+  ];
   const { asset, portfolio } = await run(api.createPortfolioAssetTxs(txs));
+  // each row alone is valid; deleting them one-by-one would break the invariant
+  // (removing an early buy invalidates later sells), but one bulk call succeeds.
   const res = await run(api.tx.deleteAllAsset(portfolio.id, asset.id));
   expect(res.id).toEqual(txs.length);
   const allTxs = await run(api.tx.getMany(portfolio.id, asset.id));

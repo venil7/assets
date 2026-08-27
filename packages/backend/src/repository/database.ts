@@ -1,10 +1,19 @@
 import { handleError, type Action, type Nullable } from "@darkruby/assets-core";
 import { Database, type SQLQueryBindings } from "bun:sqlite";
 import { pipe } from "fp-ts/lib/function";
+import type { Semigroup } from "fp-ts/lib/Semigroup";
 import * as TE from "fp-ts/lib/TaskEither";
 
 export type ExecutionResult = [lastId: number, rows: number];
-export const defaultExecutionResult = (): ExecutionResult => [-1, 0];
+export const executionResult = (
+  lastId: number,
+  rows: number
+): ExecutionResult => [lastId, rows];
+export const defaultExecutionResult = (): ExecutionResult =>
+  executionResult(-1, 0);
+export const ExecutionResultSemigroup: Semigroup<ExecutionResult> = {
+  concat: ([, rows1], [id2, rows2]) => [id2, rows1 + rows2]
+};
 
 export const queryMany =
   <R>(bindings: SQLQueryBindings = null) =>

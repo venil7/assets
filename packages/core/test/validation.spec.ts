@@ -1,6 +1,12 @@
 import { expect, test } from "bun:test";
 import * as E from "fp-ts/lib/Either";
-import { assetValidator, portfolioValidator, txValidator, txsUploadValidator } from "../src";
+import {
+  TxTypes,
+  assetValidator,
+  portfolioValidator,
+  txValidator,
+  txsUploadValidator
+} from "../src";
 import { shortPassword, shortUsername } from "../src/validation/user";
 import {
   alphaNumOnly,
@@ -11,7 +17,7 @@ import {
 } from "../src/validation/util";
 
 const validTx = {
-  type: "buy",
+  type: TxTypes.buy,
   quantity: 10,
   price: 100,
   date: new Date(),
@@ -42,12 +48,16 @@ test("txsUploadValidator rejects empty list", () => {
 });
 
 test("txsUploadValidator passes non-empty list", () => {
-  expect(txsUploadValidator({ txs: [validTx], replace: false }).valid).toBe(true);
+  expect(txsUploadValidator({ txs: [validTx], replace: false }).valid).toBe(
+    true
+  );
 });
 
 test("portfolioValidator rejects empty name", () => {
   expect(portfolioValidator({ name: "", description: "x" }).valid).toBe(false);
-  expect(portfolioValidator({ name: "portfolio", description: "x" }).valid).toBe(true);
+  expect(
+    portfolioValidator({ name: "portfolio", description: "x" }).valid
+  ).toBe(true);
 });
 
 test("assetValidator rejects empty ticker or name", () => {

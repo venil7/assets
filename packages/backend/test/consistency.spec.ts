@@ -1,4 +1,4 @@
-import { run, type PostTx } from "@darkruby/assets-core";
+import { run, TxTypes, type PostTx } from "@darkruby/assets-core";
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import * as E from "fp-ts/lib/Either";
 import {
@@ -18,7 +18,7 @@ afterAll(async () => {
 });
 
 const buy = (qty: number, price: number, date: Date): PostTx => ({
-  type: "buy",
+  type: TxTypes.buy,
   quantity: qty,
   price,
   date,

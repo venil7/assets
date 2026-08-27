@@ -21,6 +21,8 @@ export type GetTx = t.TypeOf<typeof GetTxDecoder>;
 export type TxType = GetTx["type"];
 export type TxId = GetTx["id"];
 
+export const TxTypes: { [K in TxType]: K } = { sell: "sell", buy: "buy" };
+
 export type PostTxsUpload = t.TypeOf<typeof PostTxsUploadDecoder>;
 export type EnrichedTx = t.TypeOf<typeof EnrichedTxDecoder>;
 
@@ -36,7 +38,7 @@ export const byDateAsc = pipe(
   DateOrd,
   contramap<Date, PostTx>((tx) => tx.date)
 );
-export const isBuy = (type: TxType) => type === "buy";
+export const isBuy = (type: TxType) => type === TxTypes.buy;
 export const isSell = (type: TxType) => !isBuy(type);
 
 export const txBuy = <T extends { type: TxType }>({ type }: T) => isBuy(type);
@@ -51,9 +53,9 @@ export const cloneTx = (tx: PostTx): PostTx => ({ ...tx, date: new Date() });
 export const byDateDesc = pipe(byDateAsc, reverse);
 
 export const defaultBuyTx = (date = new Date()): PostTx =>
-  defaultTx("buy", date);
+  defaultTx(TxTypes.buy, date);
 export const defaultSellTx = (date = new Date()): PostTx =>
-  defaultTx("sell", date);
+  defaultTx(TxTypes.sell, date);
 
 export const defaultTxsUpload = (
   txs: PostTx[] = [],

@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import {
+  TxTypes,
   byDateAsc,
   byDateDesc,
   cloneTx,
@@ -60,9 +61,15 @@ test("byDateDesc sorts descending", () => {
 
 test("earliestTxBeforeTimestamp returns tx at or before ts", () => {
   const txs = [mkTx(1, 100, 5), mkTx(2, 200, 8), mkTx(3, 300, 9)];
-  expect(earliestTxBeforeTimestamp(250 as UnixDate)(txs)?.timestamp).toBe(200 as UnixDate);
-  expect(earliestTxBeforeTimestamp(100 as UnixDate)(txs)?.timestamp).toBe(100 as UnixDate);
-  expect(earliestTxBeforeTimestamp(400 as UnixDate)(txs)?.timestamp).toBe(300 as UnixDate);
+  expect(earliestTxBeforeTimestamp(250 as UnixDate)(txs)?.timestamp).toBe(
+    200 as UnixDate
+  );
+  expect(earliestTxBeforeTimestamp(100 as UnixDate)(txs)?.timestamp).toBe(
+    100 as UnixDate
+  );
+  expect(earliestTxBeforeTimestamp(400 as UnixDate)(txs)?.timestamp).toBe(
+    300 as UnixDate
+  );
 });
 
 test("earliestTxBeforeTimestamp returns undefined before first tx or on empty", () => {
@@ -73,13 +80,15 @@ test("earliestTxBeforeTimestamp returns undefined before first tx or on empty", 
 
 test("txsAfterTimestamp returns txs at or after ts", () => {
   const txs = [mkTx(1, 100, 5), mkTx(2, 200, 8), mkTx(3, 300, 9)];
-  expect(txsAfterTimestamp(250 as UnixDate)(txs).map((t) => t.timestamp)).toEqual([300 as UnixDate]);
-  expect(txsAfterTimestamp(100 as UnixDate)(txs).map((t) => t.timestamp)).toEqual([
-    100 as UnixDate, 200 as UnixDate, 300 as UnixDate
-  ]);
-  expect(txsAfterTimestamp(50 as UnixDate)(txs).map((t) => t.timestamp)).toEqual([
-    100 as UnixDate, 200 as UnixDate, 300 as UnixDate
-  ]);
+  expect(
+    txsAfterTimestamp(250 as UnixDate)(txs).map((t) => t.timestamp)
+  ).toEqual([300 as UnixDate]);
+  expect(
+    txsAfterTimestamp(100 as UnixDate)(txs).map((t) => t.timestamp)
+  ).toEqual([100 as UnixDate, 200 as UnixDate, 300 as UnixDate]);
+  expect(
+    txsAfterTimestamp(50 as UnixDate)(txs).map((t) => t.timestamp)
+  ).toEqual([100 as UnixDate, 200 as UnixDate, 300 as UnixDate]);
 });
 
 test("txsAfterTimestamp returns empty after last tx or on empty", () => {
@@ -89,15 +98,23 @@ test("txsAfterTimestamp returns empty after last tx or on empty", () => {
 });
 
 test("toKey / toKeys encode id + modified", () => {
-  const tx = { ...defaultBuyTx(), id: 5, modified: new Date(1234) } as unknown as GetTx;
+  const tx = {
+    ...defaultBuyTx(),
+    id: 5,
+    modified: new Date(1234)
+  } as unknown as GetTx;
   expect(toKey(tx)).toBe("tx-5-1234");
-  const tx2 = { ...defaultBuyTx(), id: 7, modified: new Date(999) } as unknown as GetTx;
+  const tx2 = {
+    ...defaultBuyTx(),
+    id: 7,
+    modified: new Date(999)
+  } as unknown as GetTx;
   expect(toKeys([tx, tx2])).toBe("tx-5-1234-tx-7-999");
 });
 
 test("cloneTx refreshes the date but keeps other fields", () => {
   const tx: PostTx = {
-    type: "buy",
+    type: TxTypes.buy,
     quantity: 1,
     price: 2,
     date: new Date(1000),

@@ -1,5 +1,6 @@
 import {
   handleError,
+  TxTypes,
   validationError,
   type Action,
   type AppError,
@@ -9,6 +10,7 @@ import {
   type PostTx,
   type PostTxsUpload,
   type TxId,
+  type TxType,
   type UserId
 } from "@darkruby/assets-core";
 import {
@@ -24,11 +26,14 @@ import { type Changes, type Database } from "bun:sqlite";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as ID from "fp-ts/lib/Identity";
+import * as SG from "fp-ts/lib/Semigroup";
 import * as TE from "fp-ts/lib/TaskEither";
 import { defaultPaging } from "../domain/paging";
 import {
   defaultExecutionResult,
   execute,
+  executionResult,
+  ExecutionResultSemigroup,
   queryMany,
   queryOne,
   transaction,
@@ -139,10 +144,15 @@ export const deleteAssetTxs =
   (db: Database) =>
   (assetId: AssetId, userId: UserId): Action<ExecutionResult> =>
     pipe(
-      execute<unknown[]>({ assetId, userId }),
-      ID.ap(sql.tx.deleteAllAsset),
-      ID.ap(db),
-      TE.mapLeft(sqliteConstraintTrigger)
+      [TxTypes.sell, TxTypes.buy] as TxType[],
+      TE.traverseSeqArray((type) =>
+        pipe(
+          execute<unknown[]>({ assetId, userId, type }),
+          ID.ap(sql.tx.deleteAllAsset),
+          ID.ap(db)
+        )
+      ),
+      TE.map(SG.concatAll(ExecutionResultSemigroup)(defaultExecutionResult()))
     );
 
 export const uploadAssetTxs =
@@ -151,16 +161,18 @@ export const uploadAssetTxs =
     const deleteTxs = db.prepare(deleteAssetTxsSql());
     const insertTx = db.prepare(insertTxSql());
     const func = () => {
-      if (replace) deleteTxs.run({ assetId, userId });
+      if (replace) {
+        deleteTxs.run({ assetId, userId, type: TxTypes.sell });
+        deleteTxs.run({ assetId, userId, type: TxTypes.buy });
+      }
       return pipe(
         txs,
         A.map(({ date, ...tx }) =>
           insertTx.run({ assetId, date: date.toISOString(), ...tx })
         ),
-        A.reduce<Changes, ExecutionResult>([0, 0], ([, rows], c) => [
-          Number(c.lastInsertRowid),
-          rows + c.changes
-        ])
+        A.reduce<Changes, ExecutionResult>([0, 0], ([, rows], c) =>
+          executionResult(Number(c.lastInsertRowid), rows + c.changes)
+        )
       );
     };
     return pipe(
