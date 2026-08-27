@@ -178,6 +178,111 @@ describe("Transaction invariant violation", () => {
     if (E.isLeft(res))
       expect(res.left.message).toContain(TRANSACTION_INVARIANT_VIOLATION);
   });
+
+  test("sell valid vs total holdings but overshoots mid-history (date reordering)", async () => {
+    const { portfolio, asset } = await createAsset();
+    await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01"))));
+    await run(api.tx.create(portfolio.id, asset.id, fakeBuy(5, 10, D("2025-10-03"))));
+    // total holdings = 15 >= 12, but at this date only the first 10 are in,
+    // so running goes 10 -> -2 mid-history. The AFTER invariant scan must catch it.
+    const error = await pipe(
+      api.tx.create(
+        portfolio.id,
+        asset.id,
+        fakeSell(12, 10, D("2025-10-02T12:00:00"))
+      ),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("selling strictly before the first buy", async () => {
+    const { portfolio, asset } = await createAsset();
+    await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-02"))));
+    // dated before any buy -> running is -4 at that row
+    const error = await pipe(
+      api.tx.create(
+        portfolio.id,
+        asset.id,
+        fakeSell(4, 10, D("2025-10-01"))
+      ),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("update a sell's date to reorder and overshoot", async () => {
+    const { portfolio, asset } = await createAsset();
+    await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01"))));
+    await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-02"))));
+    const s = await run(
+      api.tx.create(portfolio.id, asset.id, fakeSell(15, 10, D("2025-10-03")))
+    );
+    // re-ordering the sell right after the first buy makes it overshoot: total 20 >= 15
+    // but only 10 exist before that date
+    const error = await pipe(
+      api.tx.update(
+        portfolio.id,
+        asset.id,
+        s.id,
+        fakeSell(15, 10, D("2025-10-01T12:00:00"))
+      ),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("update a buy's quantity so a later existing sell overshoots", async () => {
+    const { portfolio, asset } = await createAsset();
+    const t1 = await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
+    );
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeSell(4, 10, D("2025-10-02")))
+    );
+    // shrinking the buy to 2 makes the existing sell(4) now overshoot mid-history
+    const error = await pipe(
+      api.tx.update(
+        portfolio.id,
+        asset.id,
+        t1.id,
+        fakeBuy(2, 10, D("2025-10-01"))
+      ),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("delete a first/foundational buy", async () => {
+    const { portfolio, asset } = await createAsset();
+    const t1 = await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
+    );
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeSell(4, 10, D("2025-10-02")))
+    );
+    // deleting the only buy leaves the sell with running_holding -4 -> violation
+    const error = await pipe(
+      api.tx.delete(portfolio.id, asset.id, t1.id),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
 });
 
 test("CSV roundtrip", async () => {
