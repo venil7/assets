@@ -1,8 +1,8 @@
 import * as t from "io-ts";
 import { withFallback } from "io-ts-types";
+import { nonFutureDate, nonNegativeField } from "../validation/util";
 import { BooleanDecoder } from "./boolean";
 import { dateDecoder, UnixDateDecoder } from "./date";
-import { NumberDecoder } from "./number";
 import { CcyDecoder } from "./prefs";
 import { nullableDecoder } from "./util";
 
@@ -10,9 +10,9 @@ export const TxTypeDecoder = t.union([t.literal("buy"), t.literal("sell")]);
 
 const baseTxTypes = {
   type: TxTypeDecoder,
-  quantity: NumberDecoder,
-  price: NumberDecoder,
-  date: dateDecoder,
+  quantity: nonNegativeField("quantity"),
+  price: nonNegativeField("price"),
+  date: nonFutureDate("date"),
   comments: withFallback(t.string, "")
 };
 

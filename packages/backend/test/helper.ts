@@ -43,16 +43,19 @@ export const fakeNePassword = (oldPassword: string = "-"): PasswordChange => {
   };
 };
 
-export const fakePortfolio = (): PostPortfolio => ({
-  name: faker.lorem.slug(2),
+export const fakePortfolio = (
+  name: string = faker.lorem.slug(2)
+): PostPortfolio => ({
+  name,
   description: faker.lorem.slug(2)
 });
 
 export const fakeAsset = (
-  ticker: string = faker.random.arrayElement(["msft", "mcd", "aapl"])
+  ticker: string = faker.random.arrayElement(["msft", "mcd", "aapl"]),
+  name: string = faker.lorem.slug(2)
 ): PostAsset => ({
   ticker,
-  name: faker.lorem.slug(2)
+  name
 });
 
 export const fakeTx = (

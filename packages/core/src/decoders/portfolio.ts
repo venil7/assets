@@ -1,4 +1,5 @@
 import * as t from "io-ts";
+import { nonEmptyField } from "../validation/util";
 import { dateDecoder } from "./date";
 import { UserIdDecoder } from "./user";
 import { nullableDecoder } from "./util";
@@ -7,8 +8,8 @@ import { RangeDecoder } from "./yahoo/meta";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
 const basePortfolioTypes = {
-  name: t.string,
-  description: t.string
+  name: nonEmptyField("name"),
+  description: nonEmptyField("description")
 };
 
 const extPortfolioTypes = {

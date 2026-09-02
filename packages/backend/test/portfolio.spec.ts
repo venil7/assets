@@ -1,6 +1,7 @@
-import { run } from "@darkruby/assets-core";
+import { run, type AppError } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import { CsvPostPortfolioDecoder } from "../src/decoders/portfolio";
 import {
@@ -107,4 +108,13 @@ test("CSV roundtrip", async () => {
   const csv = CsvPostPortfolioDecoder.encode(portfolios);
   const portfolios2 = await pipe(csv, liftTE(CsvPostPortfolioDecoder), run);
   expect(portfolios2).toEqual(portfolios);
+});
+
+describe("portfolio validation", async () => {
+  test("no empty name", async () => {
+    const portfolio = fakePortfolio("");
+    const res = await api.portfolio.create(portfolio)();
+    expect(E.isRight(res)).not.toBeTrue();
+    expect((res as E.Left<AppError>).left.message).toContain("name");
+  });
 });

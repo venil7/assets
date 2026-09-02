@@ -31,7 +31,7 @@ test("txValidator passes a valid tx", () => {
 test("txValidator rejects negative price", () => {
   const { valid, errors } = txValidator({ ...validTx, price: -1 });
   expect(valid).toBe(false);
-  expect(errors.join()).toContain("Price");
+  expect(errors.join()).toContain("price");
 });
 
 test("txValidator rejects zero quantity", () => {

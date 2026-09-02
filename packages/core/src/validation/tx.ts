@@ -6,23 +6,11 @@ import {
   PostTxDecoder,
   PostTxsUploadDecoder
 } from "../decoders";
-import { nonFuture } from "../decoders/date";
 import { chainDecoder } from "../decoders/util";
 import type { PostTxsUpload } from "../domain";
-import { createValidator, nonNegativeField } from "./util";
+import { createValidator } from "./util";
 
-export const txValidator = pipe(
-  PostTxDecoder,
-  chainDecoder(({ price, quantity, date }) =>
-    pipe(
-      E.Do,
-      E.apS("price", nonNegativeField("Price").decode(price)),
-      E.apS("quantity", nonNegativeField("Quantity").decode(quantity)),
-      E.apS("date", nonFuture.decode(date))
-    )
-  ),
-  createValidator
-);
+export const txValidator = pipe(PostTxDecoder, createValidator);
 
 export const txsUploadValidator = pipe(
   PostTxsUploadDecoder,

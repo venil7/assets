@@ -1,6 +1,7 @@
 import * as t from "io-ts";
 import { nullableDecoder } from "./util";
 
+import { nonEmptyField } from "../validation/util";
 import { dateDecoder } from "./date";
 import { NumberDecoder } from "./number";
 import { CcyDecoder } from "./prefs";
@@ -10,8 +11,8 @@ import { ChartMetaDecoder } from "./yahoo/meta";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
 const baseAssetTypes = {
-  ticker: t.string,
-  name: t.string
+  ticker: nonEmptyField("ticker"),
+  name: nonEmptyField("name")
 };
 
 const extAssetTypes = {

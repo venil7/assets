@@ -10,7 +10,6 @@ import {
   D,
   fakeAsset,
   fakeBuy,
-  fakePortfolio,
   fakeSell,
   nonAdminApi,
   type TestApi
@@ -171,7 +170,7 @@ describe("Transaction invariant violation", () => {
   });
 
   test("bulk upload with insufficient holdings is rejected", async () => {
-    const { portfolio, asset } = await createAsset();
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
     const res = await api.tx.uploadAsset(
       portfolio.id,
       asset.id,
@@ -183,7 +182,7 @@ describe("Transaction invariant violation", () => {
   });
 
   test("sell valid vs total holdings but overshoots mid-history (date reordering)", async () => {
-    const { portfolio, asset } = await createAsset();
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
     await run(
       api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
     );
@@ -207,7 +206,7 @@ describe("Transaction invariant violation", () => {
   });
 
   test("selling strictly before the first buy", async () => {
-    const { portfolio, asset } = await createAsset();
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
     await run(
       api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-02")))
     );
@@ -223,7 +222,7 @@ describe("Transaction invariant violation", () => {
   });
 
   test("update a sell's date to reorder and overshoot", async () => {
-    const { portfolio, asset } = await createAsset();
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
     await run(
       api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
     );
@@ -251,7 +250,7 @@ describe("Transaction invariant violation", () => {
   });
 
   test("update a buy's quantity so a later existing sell overshoots", async () => {
-    const { portfolio, asset } = await createAsset();
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
     const t1 = await run(
       api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
     );
@@ -275,7 +274,7 @@ describe("Transaction invariant violation", () => {
   });
 
   test("delete a first/foundational buy", async () => {
-    const { portfolio, asset } = await createAsset();
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
     const t1 = await run(
       api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
     );
@@ -291,6 +290,32 @@ describe("Transaction invariant violation", () => {
     expect((error as AppError).message).toContain(
       TRANSACTION_INVARIANT_VIOLATION
     );
+  });
+});
+
+describe("Transaction validation", async () => {
+  test("no negative quantity", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    const tx = fakeBuy(-12);
+    const res = await api.tx.create(portfolio.id, asset.id, tx)();
+    expect(E.isRight(res)).not.toBeTrue();
+    expect((res as E.Left<AppError>).left.message).toContain("quantity");
+  });
+
+  test("no negative price", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    const tx = fakeBuy(10, -12);
+    const res = await api.tx.create(portfolio.id, asset.id, tx)();
+    expect(E.isRight(res)).not.toBeTrue();
+    expect((res as E.Left<AppError>).left.message).toContain("price");
+  });
+
+  test("no future date", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    const tx = fakeBuy(10, 12, D("9999-01-01"));
+    const res = await api.tx.create(portfolio.id, asset.id, tx)();
+    expect(E.isRight(res)).not.toBeTrue();
+    expect((res as E.Left<AppError>).left.message).toContain("date");
   });
 });
 
@@ -346,14 +371,8 @@ test("Bulk upload with no replace", async () => {
   expect(newTxs.length).toEqual(txs.length + additionalTxs.length);
 });
 
-const createAsset = async (ticker = "msft") => {
-  const portfolio = await run(api.portfolio.create(fakePortfolio()));
-  const asset = await run(api.asset.create(portfolio.id, fakeAsset(ticker)));
-  return { portfolio, asset };
-};
-
 test("running values across consecutive buys", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   const t1 = await run(
     api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100, D("2023-01-01")))
   );
@@ -377,7 +396,7 @@ test("running values across consecutive buys", async () => {
 });
 
 test("partial sell computes realized pnl and running values", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   await run(
     api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100, D("2023-01-01")))
   );
@@ -400,7 +419,7 @@ test("partial sell computes realized pnl and running values", async () => {
 });
 
 test("sell below average price yields negative pnl", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   await run(
     api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100, D("2023-01-01")))
   );
@@ -413,7 +432,7 @@ test("sell below average price yields negative pnl", async () => {
 });
 
 test("full exit resets the stretch; re-entry starts a new final stretch", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   await run(
     api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100, D("2023-01-01")))
   );
@@ -444,7 +463,7 @@ test("full exit resets the stretch; re-entry starts a new final stretch", async 
 });
 
 test("updating a tx recomputes running values", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   const t1 = await run(
     api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100, D("2023-01-01")))
   );
@@ -468,7 +487,7 @@ test("updating a tx recomputes running values", async () => {
 });
 
 test("deleting a tx recomputes remaining running values", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   const t1 = await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100)));
   const t2 = await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 110)));
   await run(api.tx.delete(portfolio.id, asset.id, t1.id));
@@ -479,7 +498,7 @@ test("deleting a tx recomputes remaining running values", async () => {
 });
 
 test("running values are isolated per asset", async () => {
-  const { portfolio, asset: a1 } = await createAsset("msft");
+  const { portfolio, asset: a1 } = await run(api.createPortfolioAsset());
   const a2 = await run(api.asset.create(portfolio.id, fakeAsset("aapl")));
   const b1 = await run(
     api.tx.create(portfolio.id, a1.id, fakeBuy(10, 100, D("2023-01-01")))
