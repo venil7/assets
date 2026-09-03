@@ -3,7 +3,6 @@ import {
   getToBase,
   isBuy,
   txBuy,
-  txValidator,
   type Ccy,
   type EnrichedAsset,
   type Identity,
@@ -27,6 +26,7 @@ import { useFormatters } from "../../hooks/prefs";
 import { ticker } from "../../services/ticker";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
+import { txValidator } from "../../validation";
 import { DatePicker } from "../Form/DatePicker";
 import { createForm, type FieldsProps } from "../Form/Form";
 import { TextArea } from "../Form/FormControl";

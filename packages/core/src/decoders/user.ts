@@ -1,9 +1,32 @@
-import { pipe } from "fp-ts/lib/function";
+import * as E from "fp-ts/lib/Either";
+import { flow, pipe } from "fp-ts/lib/function";
 import type { Refinement } from "fp-ts/lib/Refinement";
 import * as t from "io-ts";
-import { nonEmptyField } from "../validation/util";
 import { BooleanDecoder } from "./boolean";
 import { dateDecoder } from "./date";
+import {
+  alphaNumOnly,
+  chainDecoder,
+  length,
+  match,
+  nonEmptyField,
+  noWhiteSpace,
+  startsWithLetter
+} from "./util";
+
+const atLeast3 = length(3);
+const atLeast5 = length(5);
+
+export const shortPassword = (pwd: string) =>
+  flow(atLeast5(pwd), noWhiteSpace(pwd));
+
+export const shortUsername = (username: string) =>
+  flow(
+    atLeast3(username),
+    startsWithLetter(username),
+    alphaNumOnly(username),
+    noWhiteSpace(username)
+  );
 
 export const UserIdDecoder = t.brand(
   t.number,
@@ -78,10 +101,42 @@ export const ProfilesDecoder = t.array(ProfileDecoder);
 export const RawInUserDecoder = t.type(rawInUserTypes);
 export const RawOutUserDecoder = t.type(rawOutUserTypes);
 
-export const NewUserDecoder = pipe(t.type(newUserTypes), t.exact);
+export const NewUserDecoder = pipe(
+  t.type(newUserTypes),
+  t.exact,
+  chainDecoder((newUser) =>
+    pipe(
+      E.Do,
+      shortUsername(newUser.username),
+      shortPassword(newUser.password),
+      E.map(() => newUser)
+    )
+  )
+);
 export const GetUserDecoder = pipe(t.type(getUserTypes), t.exact);
 export const GetUsersDecoder = t.array(GetUserDecoder);
 
-export const PostUserDecoder = pipe(t.type(postUserTypes), t.exact);
+export const PostUserDecoder = pipe(
+  t.type(postUserTypes),
+  t.exact,
+  chainDecoder((user) =>
+    pipe(
+      E.Do,
+      shortUsername(user.username),
+      E.map(() => user)
+    )
+  )
+);
 
-export const PasswordChangeDecoder = pipe(t.type(passwordChangeTypes), t.exact);
+export const PasswordChangeDecoder = pipe(
+  t.type(passwordChangeTypes),
+  t.exact,
+  chainDecoder((changePwd) =>
+    pipe(
+      E.Do,
+      match(changePwd.newPassword, changePwd.repeat),
+      shortPassword(changePwd.newPassword),
+      E.map(() => changePwd)
+    )
+  )
+);

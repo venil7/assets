@@ -1,8 +1,7 @@
 import * as t from "io-ts";
-import { nonEmptyField } from "../validation/util";
 import { dateDecoder } from "./date";
 import { UserIdDecoder } from "./user";
-import { nullableDecoder } from "./util";
+import { nonEmptyField, nullableDecoder } from "./util";
 import { ChartDataDecoder, MultiChartDataDecoder } from "./yahoo/chart";
 import { RangeDecoder } from "./yahoo/meta";
 import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";

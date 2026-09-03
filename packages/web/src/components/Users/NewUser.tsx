@@ -1,10 +1,11 @@
-import { newUserValidator, type NewUser } from "@darkruby/assets-core";
+import { type NewUser } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import * as React from "react";
 import { Form } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
+import { newUserValidator } from "../../validation";
 import { createForm, type FieldsProps } from "../Form/Form";
 import { CheckBox, FormEdit } from "../Form/FormControl";
 import { PasswordEdit } from "../Form/Password";

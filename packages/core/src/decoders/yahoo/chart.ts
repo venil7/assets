@@ -9,8 +9,9 @@ import type { ArrayElement } from "../../utils";
 import { unixNow } from "../../utils/date";
 import { calcPnl } from "../../utils/finance";
 import { UnixDateDecoder } from "../date";
+import { validationErr } from "../error";
 import { TxTypeDecoder } from "../tx";
-import { chainDecoder, nullableDecoder, validationErr } from "../util";
+import { chainDecoder, nullableDecoder } from "../util";
 import { ChartMetaDecoder } from "./meta";
 import { type PeriodChangesDecoder } from "./period";
 

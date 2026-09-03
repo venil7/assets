@@ -1,5 +1,6 @@
 import { fromUnixTime } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
+import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import { contramap, reverse } from "fp-ts/lib/Ord";
 import * as t from "io-ts";
 import type {
@@ -61,7 +62,7 @@ export const defaultTxsUpload = (
   txs: PostTx[] = [],
   replace = false
 ): PostTxsUpload => ({
-  txs,
+  txs: txs as unknown as NonEmptyArray<PostTx>,
   replace
 });
 

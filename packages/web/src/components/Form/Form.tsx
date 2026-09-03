@@ -1,6 +1,6 @@
 import type { Identity } from "@darkruby/assets-core";
-import type { Validator } from "@darkruby/assets-core/src/validation/util";
 import { useState } from "react";
+import type { Validator } from "../../validation";
 import { PrimaryButton } from "./FormControl";
 import { FormErrors } from "./FormErrors";
 
@@ -33,7 +33,7 @@ export function createForm<T, FP extends FieldsProps<T> = FieldsProps<T>>(
       ...rest,
       data: inner,
       onChange: setInner,
-      disabled: disabled,
+      disabled: disabled
     } as unknown as FP;
     return (
       <>

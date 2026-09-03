@@ -1,10 +1,7 @@
-import {
-  defaultValidator,
-  type Validator
-} from "@darkruby/assets-core/src/validation/util";
 import { useState } from "react";
 import { Modal, ModalBody, ModalHeader } from "react-bootstrap";
 import type { DialogDrivenComponentProps } from "../../util/modal";
+import { defaultValidator, type Validator } from "../../validation";
 import type { FieldsProps } from "../Form/Form";
 import { FormErrors } from "../Form/FormErrors";
 import { ConfirmationModalFooter } from "./Footer";

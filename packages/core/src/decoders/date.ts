@@ -9,8 +9,9 @@ import {
   DateFromUnixTime,
   date
 } from "io-ts-types";
+import { validationErr } from "./error";
 import { NumberDecoder } from "./number";
-import { chainDecoder, validationErr } from "./util";
+import { chainDecoder } from "./util";
 
 export const dateDecoder: t.Type<Date, any> = t.union([
   DateFromISOString,

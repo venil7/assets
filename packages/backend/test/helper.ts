@@ -27,11 +27,12 @@ export const fakePrefs = (): Prefs => ({
   additional: { altChart: false }
 });
 
-export const fakeNewUser = (admin = false): NewUser => ({
-  username: faker.internet.email(),
+export const fakeNewUser = (overrides: Partial<NewUser> = {}): NewUser => ({
+  username: faker.internet.userName(),
   password: faker.internet.password(),
-  admin,
-  locked: false
+  admin: false,
+  locked: false,
+  ...overrides
 });
 
 export const fakeNePassword = (oldPassword: string = "-"): PasswordChange => {
@@ -44,10 +45,10 @@ export const fakeNePassword = (oldPassword: string = "-"): PasswordChange => {
 };
 
 export const fakePortfolio = (
-  name: string = faker.lorem.slug(2)
+  name: string = faker.lorem.words(2)
 ): PostPortfolio => ({
   name,
-  description: faker.lorem.slug(2)
+  description: faker.lorem.words(3)
 });
 
 export const fakeAsset = (

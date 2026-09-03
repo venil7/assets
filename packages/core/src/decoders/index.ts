@@ -11,4 +11,5 @@ export * from "./summary";
 export * from "./token";
 export * from "./tx";
 export * from "./user";
+export * from "./util";
 export * from "./yahoo";

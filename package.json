@@ -18,6 +18,7 @@
   },
   "scripts": {
     "web:dev": "cd packages/web && bun run dev",
+    "web:test": "cd packages/web && bun test",
     "web:check": "cd packages/web && bun run check",
     "web:build": "cd packages/web && bun run build",
     "backend:dev": "cd packages/backend && bun run dev",

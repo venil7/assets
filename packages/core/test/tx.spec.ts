@@ -129,7 +129,7 @@ test("cloneTx refreshes the date but keeps other fields", () => {
 });
 
 test("defaultTxsUpload", () => {
-  expect(defaultTxsUpload()).toEqual({ txs: [], replace: false });
+  expect(defaultTxsUpload()).toEqual<any>({ txs: [], replace: false });
   const txs = [defaultBuyTx()];
-  expect(defaultTxsUpload(txs, true)).toEqual({ txs, replace: true });
+  expect(defaultTxsUpload(txs, true)).toEqual<any>({ txs, replace: true });
 });

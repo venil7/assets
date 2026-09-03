@@ -1,6 +1,5 @@
 import {
   defaultPasswordChange,
-  passwordChangeValidator,
   type PasswordChange as PasswordChangeData
 } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
@@ -11,6 +10,7 @@ import { withProps } from "../../decorators/props";
 import { usePartialChange } from "../../hooks/formData";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
+import { passwordChangeValidator } from "../../validation";
 import { createForm, type FieldsProps } from "../Form/Form";
 import { PasswordEdit } from "../Form/Password";
 import { createModal } from "../Modals/Modal";

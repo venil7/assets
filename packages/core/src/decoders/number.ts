@@ -2,7 +2,8 @@ import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
 import { NumberFromString } from "io-ts-types";
-import { chainDecoder, validationErr } from "./util";
+import { validationErr } from "./error";
+import { chainDecoder } from "./util";
 
 export const NumberDecoder = t.union([NumberFromString, t.number]);
 

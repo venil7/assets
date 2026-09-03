@@ -1,7 +1,13 @@
-import { login, run, type NewUser, type UserId } from "@darkruby/assets-core";
+import { login, run, type UserId } from "@darkruby/assets-core";
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import * as E from "fp-ts/lib/Either";
-import { BASE_URL, defaultApi, nonAdminApi, type TestApi } from "./helper";
+import {
+  BASE_URL,
+  defaultApi,
+  fakeNewUser,
+  nonAdminApi,
+  type TestApi
+} from "./helper";
 
 let api: TestApi;
 let nonAdmin: TestApi;
@@ -17,14 +23,6 @@ afterAll(async () => {
     createdUsers.map((id) => api.user.delete(id as UserId)())
   );
   await run(nonAdmin.profile.delete()).catch(() => undefined);
-});
-
-const newUser = (overrides: Partial<NewUser> = {}): NewUser => ({
-  username: `auth-${Math.random().toString(36).slice(2)}@test.com`,
-  password: "secret-pass-1",
-  admin: false,
-  locked: false,
-  ...overrides
 });
 
 test("login with wrong password fails", async () => {
@@ -64,7 +62,7 @@ test("endpoints reject a garbage token", async () => {
 });
 
 test("locked user cannot log in", async () => {
-  const creds = newUser({ locked: true });
+  const creds = fakeNewUser({ locked: true });
   const user = await run(api.user.create(creds));
   createdUsers.push(user.id);
   const res = await login(BASE_URL)({
@@ -75,7 +73,7 @@ test("locked user cannot log in", async () => {
 });
 
 test("account locks out after repeated failed logins", async () => {
-  const creds = newUser();
+  const creds = fakeNewUser();
   const user = await run(api.user.create(creds));
   createdUsers.push(user.id);
   for (let i = 0; i < 3; i++) {
@@ -94,7 +92,7 @@ test("account locks out after repeated failed logins", async () => {
 });
 
 test("a user locked after login has their token rejected", async () => {
-  const creds = newUser();
+  const creds = fakeNewUser();
   const user = await run(api.user.create(creds));
   createdUsers.push(user.id);
   const userApi = await run(defaultApi(creds));
@@ -117,7 +115,7 @@ test("a user locked after login has their token rejected", async () => {
 });
 
 test("refresh token can be used for subsequent requests", async () => {
-  const creds = newUser();
+  const creds = fakeNewUser();
   const user = await run(api.user.create(creds));
   createdUsers.push(user.id);
   const userApi = await run(defaultApi(creds));
@@ -134,6 +132,6 @@ test("non-admin cannot access admin user endpoints", async () => {
   const res = await nonAdmin.user.getMany()();
   expect(E.isLeft(res)).toBe(true);
   if (E.isLeft(res)) expect(res.left.message).toContain("admin");
-  const res2 = await nonAdmin.user.create(newUser())();
+  const res2 = await nonAdmin.user.create(fakeNewUser())();
   expect(E.isLeft(res2)).toBe(true);
 });

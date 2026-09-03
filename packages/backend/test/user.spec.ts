@@ -38,7 +38,7 @@ test("Get user", async () => {
 test("Update user profile", async () => {
   const creds = fakeNewUser();
   const user = await run(api.user.create(creds));
-  const newCreds = { ...user, username: faker.internet.email() };
+  const newCreds = { ...user, username: faker.internet.userName() };
   const updatedUser = await run(api.user.update(user.id, newCreds));
   expect(user.id).toBe(updatedUser.id);
   expect(newCreds.username).toBe(updatedUser.username);

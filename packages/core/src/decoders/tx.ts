@@ -1,10 +1,11 @@
+import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import { withFallback } from "io-ts-types";
-import { nonFutureDate, nonNegativeField } from "../validation/util";
+import { nonEmptyArray, withFallback } from "io-ts-types";
 import { BooleanDecoder } from "./boolean";
 import { dateDecoder, UnixDateDecoder } from "./date";
+import { withErrorMessage } from "./error";
 import { CcyDecoder } from "./prefs";
-import { nullableDecoder } from "./util";
+import { nonFutureDate, nonNegativeField, nullableDecoder } from "./util";
 
 export const TxTypeDecoder = t.union([t.literal("buy"), t.literal("sell")]);
 
@@ -54,8 +55,11 @@ export const GetTxDecoder = t.type(extTxTypes);
 export const GetTxsDecoder = t.array(GetTxDecoder);
 
 export const PostTxsUploadDecoder = t.type({
-  replace: t.boolean,
-  txs: t.array(PostTxDecoder)
+  replace: BooleanDecoder,
+  txs: pipe(
+    nonEmptyArray(PostTxDecoder, `txs`),
+    withErrorMessage(`List of transactions can not be empty`)
+  )
 });
 
 export const EnrichedTxDecoder = t.type({
