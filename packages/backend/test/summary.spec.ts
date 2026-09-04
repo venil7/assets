@@ -1,6 +1,5 @@
 import { run } from "@darkruby/assets-core";
-import { afterAll, beforeAll, expect, test } from "bun:test";
-import { afterEach } from "node:test";
+import { afterAll, afterEach, beforeAll, expect, test } from "bun:test";
 import { fakePortfolio, nonAdminApi, type TestApi } from "./helper";
 
 let api: TestApi;

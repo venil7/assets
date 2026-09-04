@@ -1,7 +1,7 @@
 import type { AppError, PostTx } from "@darkruby/assets-core";
-import { defaultTxsUpload, run } from "@darkruby/assets-core";
+import { defaultTxsUpload, run, TxTypes } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -10,7 +10,6 @@ import {
   D,
   fakeAsset,
   fakeBuy,
-  fakePortfolio,
   fakeSell,
   nonAdminApi,
   type TestApi
@@ -90,24 +89,234 @@ test("Update buy tx", async () => {
   expect(price).toBe(updateTx.price);
 });
 
-test("Insufficient holdings when selling more than own", async () => {
-  const { asset, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
-  const error = await pipe(
-    api.tx.create(portfolio.id, asset.id, fakeSell(11, 1)),
-    TE.orElseW(TE.of),
-    run
-  );
-  expect((error as AppError).message).toContain("Insufficient holdings");
+describe("Transaction invariant violation", () => {
+  const TRANSACTION_INVARIANT_VIOLATION = "Transaction invariant violation";
+
+  test("holdings when selling more than own", async () => {
+    const { asset, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
+    const error = await pipe(
+      api.tx.create(portfolio.id, asset.id, fakeSell(11, 1)),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("when updating existing transaction", async () => {
+    const { asset, tx, portfolio } = await run(
+      api.createPortfolioAssetTx(buyTx)
+    );
+    const error = await pipe(
+      api.tx.update(portfolio.id, asset.id, tx.id, fakeSell(11, 1)),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("delete earlier BUY transaction that later is sold", async () => {
+    const txs = [
+      fakeBuy(3, 10, D("2025-10-01")),
+      fakeBuy(5, 10, D("2025-10-02")),
+      fakeSell(8, 10, D("2025-10-03"))
+    ];
+
+    const {
+      asset,
+      portfolio,
+      txs: [t1, t2, t3]
+    } = await run(api.createPortfolioAssetTxs(txs));
+
+    // delete 2nd BUY transaction, and fail
+    const error = await pipe(
+      api.tx.delete(portfolio.id, asset.id, t2.id),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("update earlier BUY transaction that later is sold", async () => {
+    const txs = [
+      fakeBuy(3, 10, D("2025-10-01")),
+      fakeBuy(5, 10, D("2025-10-02")),
+      fakeSell(8, 10, D("2025-10-03"))
+    ];
+
+    const {
+      asset,
+      portfolio,
+      txs: [t1, t2, t3]
+    } = await run(api.createPortfolioAssetTxs(txs));
+
+    // update 2nd BUY transaction into SELL, and fail
+    const error = await pipe(
+      api.tx.update(portfolio.id, asset.id, t2.id, {
+        ...t2,
+        type: TxTypes.sell
+      }),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toMatch(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("bulk upload with insufficient holdings is rejected", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    const res = await api.tx.uploadAsset(
+      portfolio.id,
+      asset.id,
+      defaultTxsUpload([fakeSell(1, 1)], false)
+    )();
+    expect(E.isLeft(res)).toBe(true);
+    if (E.isLeft(res))
+      expect(res.left.message).toContain(TRANSACTION_INVARIANT_VIOLATION);
+  });
+
+  test("sell valid vs total holdings but overshoots mid-history (date reordering)", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
+    );
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(5, 10, D("2025-10-03")))
+    );
+    // total holdings = 15 >= 12, but at this date only the first 10 are in,
+    // so running goes 10 -> -2 mid-history. The AFTER invariant scan must catch it.
+    const error = await pipe(
+      api.tx.create(
+        portfolio.id,
+        asset.id,
+        fakeSell(12, 10, D("2025-10-02T12:00:00"))
+      ),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("selling strictly before the first buy", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-02")))
+    );
+    // dated before any buy -> running is -4 at that row
+    const error = await pipe(
+      api.tx.create(portfolio.id, asset.id, fakeSell(4, 10, D("2025-10-01"))),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("update a sell's date to reorder and overshoot", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
+    );
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-02")))
+    );
+    const s = await run(
+      api.tx.create(portfolio.id, asset.id, fakeSell(15, 10, D("2025-10-03")))
+    );
+    // re-ordering the sell right after the first buy makes it overshoot: total 20 >= 15
+    // but only 10 exist before that date
+    const error = await pipe(
+      api.tx.update(
+        portfolio.id,
+        asset.id,
+        s.id,
+        fakeSell(15, 10, D("2025-10-01T12:00:00"))
+      ),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("update a buy's quantity so a later existing sell overshoots", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    const t1 = await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
+    );
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeSell(4, 10, D("2025-10-02")))
+    );
+    // shrinking the buy to 2 makes the existing sell(4) now overshoot mid-history
+    const error = await pipe(
+      api.tx.update(
+        portfolio.id,
+        asset.id,
+        t1.id,
+        fakeBuy(2, 10, D("2025-10-01"))
+      ),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
+
+  test("delete a first/foundational buy", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    const t1 = await run(
+      api.tx.create(portfolio.id, asset.id, fakeBuy(10, 10, D("2025-10-01")))
+    );
+    await run(
+      api.tx.create(portfolio.id, asset.id, fakeSell(4, 10, D("2025-10-02")))
+    );
+    // deleting the only buy leaves the sell with running_holding -4 -> violation
+    const error = await pipe(
+      api.tx.delete(portfolio.id, asset.id, t1.id),
+      TE.orElseW(TE.of),
+      run
+    );
+    expect((error as AppError).message).toContain(
+      TRANSACTION_INVARIANT_VIOLATION
+    );
+  });
 });
 
-test("Insufficient holdings when updating existing transaction", async () => {
-  const { asset, tx, portfolio } = await run(api.createPortfolioAssetTx(buyTx));
-  const error = await pipe(
-    api.tx.update(portfolio.id, asset.id, tx.id, fakeSell(11, 1)),
-    TE.orElseW(TE.of),
-    run
-  );
-  expect((error as AppError).message).toContain("Insufficient holdings");
+describe("Transaction validation", async () => {
+  test("no negative quantity", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    const tx = fakeBuy(-12);
+    const res = await api.tx.create(portfolio.id, asset.id, tx)();
+    expect(E.isRight(res)).not.toBeTrue();
+    expect((res as E.Left<AppError>).left.message).toContain("quantity");
+  });
+
+  test("no negative price", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    const tx = fakeBuy(10, -12);
+    const res = await api.tx.create(portfolio.id, asset.id, tx)();
+    expect(E.isRight(res)).not.toBeTrue();
+    expect((res as E.Left<AppError>).left.message).toContain("price");
+  });
+
+  test("no future date", async () => {
+    const { portfolio, asset } = await run(api.createPortfolioAsset());
+    const tx = fakeBuy(10, 12, D("9999-01-01"));
+    const res = await api.tx.create(portfolio.id, asset.id, tx)();
+    expect(E.isRight(res)).not.toBeTrue();
+    expect((res as E.Left<AppError>).left.message).toContain("date");
+  });
 });
 
 test("CSV roundtrip", async () => {
@@ -117,9 +326,17 @@ test("CSV roundtrip", async () => {
   expect(txs2).toEqual(txs);
 });
 
-test("Delete all txs of an asset", async () => {
-  const txs = [fakeBuy(), fakeBuy(), fakeBuy(), fakeBuy()];
+test("Delete all txs of an asset with buys followed by sells in one call", async () => {
+  const txs = [
+    fakeBuy(10, 10, D("2025-10-01")),
+    fakeBuy(5, 10, D("2025-10-02")),
+    fakeSell(4, 10, D("2025-10-03")),
+    fakeSell(6, 10, D("2025-10-04")),
+    fakeBuy(7, 10, D("2025-10-05"))
+  ];
   const { asset, portfolio } = await run(api.createPortfolioAssetTxs(txs));
+  // each row alone is valid; deleting them one-by-one would break the invariant
+  // (removing an early buy invalidates later sells), but one bulk call succeeds.
   const res = await run(api.tx.deleteAllAsset(portfolio.id, asset.id));
   expect(res.id).toEqual(txs.length);
   const allTxs = await run(api.tx.getMany(portfolio.id, asset.id));
@@ -154,14 +371,8 @@ test("Bulk upload with no replace", async () => {
   expect(newTxs.length).toEqual(txs.length + additionalTxs.length);
 });
 
-const createAsset = async (ticker = "msft") => {
-  const portfolio = await run(api.portfolio.create(fakePortfolio()));
-  const asset = await run(api.asset.create(portfolio.id, fakeAsset(ticker)));
-  return { portfolio, asset };
-};
-
 test("running values across consecutive buys", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   const t1 = await run(
     api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100, D("2023-01-01")))
   );
@@ -185,7 +396,7 @@ test("running values across consecutive buys", async () => {
 });
 
 test("partial sell computes realized pnl and running values", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   await run(
     api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100, D("2023-01-01")))
   );
@@ -208,7 +419,7 @@ test("partial sell computes realized pnl and running values", async () => {
 });
 
 test("sell below average price yields negative pnl", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   await run(
     api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100, D("2023-01-01")))
   );
@@ -221,7 +432,7 @@ test("sell below average price yields negative pnl", async () => {
 });
 
 test("full exit resets the stretch; re-entry starts a new final stretch", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   await run(
     api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100, D("2023-01-01")))
   );
@@ -252,7 +463,7 @@ test("full exit resets the stretch; re-entry starts a new final stretch", async 
 });
 
 test("updating a tx recomputes running values", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   const t1 = await run(
     api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100, D("2023-01-01")))
   );
@@ -276,7 +487,7 @@ test("updating a tx recomputes running values", async () => {
 });
 
 test("deleting a tx recomputes remaining running values", async () => {
-  const { portfolio, asset } = await createAsset();
+  const { portfolio, asset } = await run(api.createPortfolioAsset());
   const t1 = await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 100)));
   const t2 = await run(api.tx.create(portfolio.id, asset.id, fakeBuy(10, 110)));
   await run(api.tx.delete(portfolio.id, asset.id, t1.id));
@@ -287,7 +498,7 @@ test("deleting a tx recomputes remaining running values", async () => {
 });
 
 test("running values are isolated per asset", async () => {
-  const { portfolio, asset: a1 } = await createAsset("msft");
+  const { portfolio, asset: a1 } = await run(api.createPortfolioAsset());
   const a2 = await run(api.asset.create(portfolio.id, fakeAsset("aapl")));
   const b1 = await run(
     api.tx.create(portfolio.id, a1.id, fakeBuy(10, 100, D("2023-01-01")))
@@ -306,16 +517,4 @@ test("running values are isolated per asset", async () => {
   const a2now = assets.find((x) => x.id === a2.id)!;
   expect(a1now.holdings).toBe(6);
   expect(a2now.holdings).toBe(5);
-});
-
-test("bulk upload with insufficient holdings is rejected", async () => {
-  const { portfolio, asset } = await createAsset();
-  const res = await api.tx.uploadAsset(
-    portfolio.id,
-    asset.id,
-    defaultTxsUpload([fakeSell(1, 1)], false)
-  )();
-  expect(E.isLeft(res)).toBe(true);
-  if (E.isLeft(res))
-    expect(res.left.message).toContain("Insufficient holdings");
 });

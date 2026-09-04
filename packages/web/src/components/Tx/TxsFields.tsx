@@ -1,22 +1,23 @@
 import {
   byDateAsc,
   defaultTxsUpload,
-  txsUploadValidator,
   type AppError,
   type Ccy,
   type Identity,
   type Nullable,
   type PostTx,
-  type PostTxsUpload,
+  type PostTxsUpload
 } from "@darkruby/assets-core";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
+import type { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as React from "react";
 import { useState } from "react";
 import { Error } from "../../decorators/errors";
 import { usePartialChange } from "../../hooks/formData";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
+import { txsUploadValidator } from "../../validation";
 import type { FieldsProps } from "../Form/Form";
 import { CheckBox } from "../Form/FormControl";
 import { createModal } from "../Modals/Modal";
@@ -32,11 +33,12 @@ export const TxsUploadFields: React.FC<TxsUploadFieldsProps> = ({
   data,
   onChange,
   disabled,
-  currency,
+  currency
 }) => {
   const [error, setError] = useState<Nullable<AppError>>(null);
   const setField = usePartialChange(data, onChange);
-  const setTxs = setField("txs");
+  const setTxs = (txs: PostTx[]) =>
+    setField("txs")(txs as unknown as NonEmptyArray<PostTx>);
   const setReplace = setField("replace");
   const handleParse = (txs: PostTx[], error: Nullable<AppError>) => {
     if (error) return setTxs([]) || setError(error);

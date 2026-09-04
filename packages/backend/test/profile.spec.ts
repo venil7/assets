@@ -27,7 +27,7 @@ test("Get own profile", async () => {
 
 test("Update own profile (username only)", async () => {
   const profile = await run(api.profile.get());
-  const newProfile = { ...profile, username: faker.internet.email() };
+  const newProfile = { ...profile, username: faker.internet.userName() };
   const { id, admin, username } = await run(api.profile.update(newProfile));
   expect(username).toBe(newProfile.username);
   expect(admin).toBeFalse();

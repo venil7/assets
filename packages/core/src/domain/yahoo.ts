@@ -127,34 +127,4 @@ export const ealiest = (range: ChartRange): Date => {
   }
 };
 
-export const rangeForDate = (date: Date): ChartRange => {
-  const today = now();
-  switch (true) {
-    case date >= today:
-      return "1d";
-    case date < addYears(today, -10):
-      return "max";
-    case date < addYears(today, -5):
-      return "10y";
-    case date < addYears(today, -2):
-      return "5y";
-    case date < addYears(today, -1):
-      return "2y";
-    case date < addMonths(today, -6):
-      return "1y";
-    case date < addMonths(today, -3):
-      return "6mo";
-    case date < addMonths(today, -1):
-      return "3mo";
-    case date < addDays(today, -5):
-      return "1mo";
-    case date < addDays(today, -1):
-      return "5d";
-    case date < addSeconds(today, -1):
-      return "1d";
-    default:
-      return "max";
-  }
-};
-
 export const getToBase = (baseRate: number) => (n: number) => n / baseRate;

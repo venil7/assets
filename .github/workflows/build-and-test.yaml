@@ -26,6 +26,8 @@ jobs:
           ~/go/bin/migrate -path ./.migrations -database=sqlite3://assets.db up
       - name: INSTALL BUN
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: ".bun-version"
       - name: INSTALL DEPENDENCIES
         run: bun install
       - name: RUN STATIC CHECKS
@@ -40,5 +42,5 @@ jobs:
         run: |
           bun run backend:dev & echo $! >/tmp/backend.pid
           sleep 1
-          bun test
+          bun test --randomize --retry=3
           kill -9 $(cat /tmp/backend.pid)

@@ -3,5 +3,6 @@ where id in (
     select at.id
     from transactions_ext at
     where at.asset_id = $assetId and
-      at.user_id = $userId
+      at.user_id = $userId and
+      at.type = $type
   );

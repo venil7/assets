@@ -1,5 +1,4 @@
 import { type GetPortfolio, type Identity } from "@darkruby/assets-core";
-import { defaultValidator } from "@darkruby/assets-core/src/validation/util";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { useEffect, useState } from "react";
@@ -8,6 +7,7 @@ import { withProps } from "../../decorators/props";
 import { portfolios as portfoliosSvc } from "../../services/portfolios";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
+import { defaultValidator } from "../../validation";
 import { createForm, type FieldsProps } from "../Form/Form";
 import { Select } from "../Form/Select";
 import { createModal } from "../Modals/Modal";

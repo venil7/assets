@@ -1,18 +1,19 @@
+import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import { withFallback } from "io-ts-types";
+import { nonEmptyArray, withFallback } from "io-ts-types";
 import { BooleanDecoder } from "./boolean";
 import { dateDecoder, UnixDateDecoder } from "./date";
-import { NumberDecoder } from "./number";
+import { withErrorMessage } from "./error";
 import { CcyDecoder } from "./prefs";
-import { nullableDecoder } from "./util";
+import { nonFutureDate, nonNegativeField, nullableDecoder } from "./util";
 
 export const TxTypeDecoder = t.union([t.literal("buy"), t.literal("sell")]);
 
 const baseTxTypes = {
   type: TxTypeDecoder,
-  quantity: NumberDecoder,
-  price: NumberDecoder,
-  date: dateDecoder,
+  quantity: nonNegativeField("quantity"),
+  price: nonNegativeField("price"),
+  date: nonFutureDate("date"),
   comments: withFallback(t.string, "")
 };
 
@@ -26,14 +27,14 @@ const extTxTypes = {
   value: nullableDecoder(t.number), // value of sold units
   pnl: nullableDecoder(t.number), // for buy txs of non final stretch
   pnl_pct: nullableDecoder(t.number), // return percent on sell
-  realized_pnl: t.number, // only for sell transactions
+  realized_pnl: t.number, // only for sell transactions, otherwise 0
   cost: t.number,
-  cost_basis: t.number, // amount expressed in average  unit price
+  cost_basis: t.number, // amount expressed in average unit price
   contribution: t.number,
   // asset running values
   running_holding: t.number, // quantity owned after transaction
   running_cost: t.number, // total asset cost after this transaction
-  running_average_price: t.number, //averga unit price, after this transaction
+  running_average_price: t.number, //average unit price, after this transaction
   running_break_even: t.number,
   running_contribution: t.number, //% showing max contribution of this stretch
   // from joined asset & portfolio & user
@@ -54,8 +55,11 @@ export const GetTxDecoder = t.type(extTxTypes);
 export const GetTxsDecoder = t.array(GetTxDecoder);
 
 export const PostTxsUploadDecoder = t.type({
-  replace: t.boolean,
-  txs: t.array(PostTxDecoder)
+  replace: BooleanDecoder,
+  txs: pipe(
+    nonEmptyArray(PostTxDecoder, `txs`),
+    withErrorMessage(`List of transactions can not be empty`)
+  )
 });
 
 export const EnrichedTxDecoder = t.type({

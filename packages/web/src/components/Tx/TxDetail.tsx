@@ -1,9 +1,9 @@
 import type { Ccy, EnrichedAsset, EnrichedTx } from "@darkruby/assets-core";
-import { defaultValidator } from "@darkruby/assets-core/src/validation/util";
 import { pipe } from "fp-ts/lib/function";
 import { ListGroup } from "react-bootstrap";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
+import { defaultValidator } from "../../validation";
 import type { FieldsProps } from "../Form/Form";
 import { Decimal, Money } from "../Formatting";
 import { Percent } from "../Formatting/Percent";

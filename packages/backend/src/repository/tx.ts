@@ -1,5 +1,6 @@
 import {
   handleError,
+  TxTypes,
   validationError,
   type Action,
   type AppError,
@@ -9,6 +10,7 @@ import {
   type PostTx,
   type PostTxsUpload,
   type TxId,
+  type TxType,
   type UserId
 } from "@darkruby/assets-core";
 import {
@@ -24,11 +26,14 @@ import { type Changes, type Database } from "bun:sqlite";
 import * as A from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as ID from "fp-ts/lib/Identity";
+import * as SG from "fp-ts/lib/Semigroup";
 import * as TE from "fp-ts/lib/TaskEither";
 import { defaultPaging } from "../domain/paging";
 import {
   defaultExecutionResult,
   execute,
+  executionResult,
+  ExecutionResultSemigroup,
   queryMany,
   queryOne,
   transaction,
@@ -97,11 +102,11 @@ export const createTx =
       } as Record<string, any>),
       ID.ap(sql.tx.insert),
       ID.ap(db),
-      TE.mapLeft(insufficientHoldingCheck),
+      TE.mapLeft(sqliteConstraintTrigger),
       TE.chain(([txId]) => getTx(db)(txId, assetId, userId)),
       TE.filterOrElse(
         (t): t is GetTx => Boolean(t),
-        handleError("Failed to create portfolio")
+        handleError("Failed to create transaction")
       )
     );
 
@@ -117,7 +122,7 @@ export const updateTx =
       } as Record<string, any>),
       ID.ap(sql.tx.update),
       ID.ap(db),
-      TE.mapLeft(insufficientHoldingCheck),
+      TE.mapLeft(sqliteConstraintTrigger),
       TE.chain(() => getTx(db)(txId, assetId, userId)),
       TE.filterOrElse(
         (t): t is GetTx => Boolean(t),
@@ -128,15 +133,26 @@ export const updateTx =
 export const deleteTx =
   (db: Database) =>
   (txId: TxId, userId: UserId): Action<ExecutionResult> =>
-    pipe(execute<unknown[]>({ txId, userId }), ID.ap(sql.tx.delete), ID.ap(db));
+    pipe(
+      execute<unknown[]>({ txId, userId }),
+      ID.ap(sql.tx.delete),
+      ID.ap(db),
+      TE.mapLeft(sqliteConstraintTrigger)
+    );
 
 export const deleteAssetTxs =
   (db: Database) =>
   (assetId: AssetId, userId: UserId): Action<ExecutionResult> =>
     pipe(
-      execute<unknown[]>({ assetId, userId }),
-      ID.ap(sql.tx.deleteAllAsset),
-      ID.ap(db)
+      [TxTypes.sell, TxTypes.buy] as TxType[],
+      TE.traverseSeqArray((type) =>
+        pipe(
+          execute<unknown[]>({ assetId, userId, type }),
+          ID.ap(sql.tx.deleteAllAsset),
+          ID.ap(db)
+        )
+      ),
+      TE.map(SG.concatAll(ExecutionResultSemigroup)(defaultExecutionResult()))
     );
 
 export const uploadAssetTxs =
@@ -145,31 +161,33 @@ export const uploadAssetTxs =
     const deleteTxs = db.prepare(deleteAssetTxsSql());
     const insertTx = db.prepare(insertTxSql());
     const func = () => {
-      if (replace) deleteTxs.run({ assetId, userId });
+      if (replace) {
+        deleteTxs.run({ assetId, userId, type: TxTypes.sell });
+        deleteTxs.run({ assetId, userId, type: TxTypes.buy });
+      }
       return pipe(
         txs,
         A.map(({ date, ...tx }) =>
           insertTx.run({ assetId, date: date.toISOString(), ...tx })
         ),
-        A.reduce<Changes, ExecutionResult>([0, 0], ([, rows], c) => [
-          Number(c.lastInsertRowid),
-          rows + c.changes
-        ])
+        A.reduce<Changes, ExecutionResult>([0, 0], ([, rows], c) =>
+          executionResult(Number(c.lastInsertRowid), rows + c.changes)
+        )
       );
     };
     return pipe(
       transaction(func),
       ID.ap(db),
       TE.map((execResult) => execResult ?? defaultExecutionResult()),
-      TE.mapLeft(insufficientHoldingCheck)
+      TE.mapLeft(sqliteConstraintTrigger)
     );
   };
 
-const insufficientHoldingCheck = (err: AppError) => {
+const sqliteConstraintTrigger = (err: AppError) => {
   switch (true) {
+    case err.message.includes("TX_INVARIANT_VIOLATION"):
+      return validationError(`Transaction invariant violation`);
     case err.message.includes("SQLITE_CONSTRAINT_TRIGGER"):
-    case err.message.includes("Insufficient holdings"):
-      return validationError(`Insufficient holdings for SELL transaction`);
     default:
       return err;
   }

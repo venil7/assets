@@ -1,7 +1,7 @@
-import { run, type PostTx } from "@darkruby/assets-core";
+import { run, type AppError, type PostTx } from "@darkruby/assets-core";
 import { liftTE } from "@darkruby/assets-core/src/decoders/util";
 import { sum } from "@darkruby/assets-core/src/utils/finance";
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import { CsvPostAssetDecoder } from "../src/decoders/asset";
@@ -142,4 +142,20 @@ test("CSV roundtrip", async () => {
   const csv = CsvPostAssetDecoder.encode(assets);
   const assets2 = await pipe(csv, liftTE(CsvPostAssetDecoder), run);
   expect(assets2).toEqual(assets);
+});
+
+describe("asset validation", async () => {
+  test("no empty ticker", async () => {
+    const asset = fakeAsset("");
+    const res = await api.createPortfolioAsset(asset)();
+    expect(E.isRight(res)).not.toBeTrue();
+    expect((res as E.Left<AppError>).left.message).toContain("ticker");
+  });
+
+  test("no empty name", async () => {
+    const asset = fakeAsset("msft", "");
+    const res = await api.createPortfolioAsset(asset)();
+    expect(E.isRight(res)).not.toBeTrue();
+    expect((res as E.Left<AppError>).left.message).toContain("name");
+  });
 });

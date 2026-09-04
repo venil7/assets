@@ -1,12 +1,14 @@
+import {
+  type NewUser,
+  type PasswordChange,
+  type PostUser
+} from "@darkruby/assets-core";
 import { expect, test } from "bun:test";
 import {
   newUserValidator,
   passwordChangeValidator,
-  postUserValidator,
-  type NewUser,
-  type PasswordChange,
-  type PostUser
-} from "../../src";
+  postUserValidator
+} from "../../src/validation/user";
 
 const validNewUser: NewUser = {
   admin: false,

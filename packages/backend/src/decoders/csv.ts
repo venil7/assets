@@ -1,4 +1,4 @@
-import { validationErr } from "@darkruby/assets-core/src/decoders/util";
+import { validationErr } from "@darkruby/assets-core/src/decoders/error";
 import { parse } from "csv-parse/sync";
 import { stringify } from "csv-stringify/sync";
 import * as E from "fp-ts/lib/Either";
@@ -13,7 +13,8 @@ export const fromCsv = <A, O = A, I = unknown>(decoder: t.Type<A, O, I>) => {
     ((inp) => {
       return pipe(
         E.tryCatch(
-          () => parse(String(inp), { columns: true, autoParse: true, cast: true }),
+          () =>
+            parse(String(inp), { columns: true, autoParse: true, cast: true }),
           (e) => [validationErr((e as Error).message)]
         ),
         E.chain(E.traverseArray((i) => decoder.decode(i as I)))

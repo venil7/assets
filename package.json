@@ -1,23 +1,24 @@
 {
   "name": "@darkruby/assets",
   "private": true,
-  "version": "1.8.4",
+  "version": "1.8.5",
   "type": "module",
   "dependencies": {
-    "date-fns": "^4.1.0",
+    "date-fns": "^4.4.0",
     "fp-ts": "^2.16.11",
     "io-ts": "~2.2.22",
     "io-ts-types": "^0.5.19"
   },
   "devDependencies": {
-    "prettier": "^3.8.3",
+    "prettier": "^3.9.6",
     "@types/bun": "1.3.13",
-    "bun-types": "^1.3.13",
+    "bun-types": "^1.4.0",
     "typescript": "~7.0.2",
-    "@types/node": "^26.1.1"
+    "@types/node": "^26.4.1"
   },
   "scripts": {
     "web:dev": "cd packages/web && bun run dev",
+    "web:test": "cd packages/web && bun test",
     "web:check": "cd packages/web && bun run check",
     "web:build": "cd packages/web && bun run build",
     "backend:dev": "cd packages/backend && bun run dev",

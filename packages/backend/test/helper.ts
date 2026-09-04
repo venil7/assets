@@ -2,6 +2,7 @@ import {
   api,
   BASE_CCYS,
   login,
+  TxTypes,
   type Action,
   type Api,
   type Credentials,
@@ -26,11 +27,12 @@ export const fakePrefs = (): Prefs => ({
   additional: { altChart: false }
 });
 
-export const fakeNewUser = (admin = false): NewUser => ({
-  username: faker.internet.email(),
+export const fakeNewUser = (overrides: Partial<NewUser> = {}): NewUser => ({
+  username: faker.internet.userName(),
   password: faker.internet.password(),
-  admin,
-  locked: false
+  admin: false,
+  locked: false,
+  ...overrides
 });
 
 export const fakeNePassword = (oldPassword: string = "-"): PasswordChange => {
@@ -42,18 +44,19 @@ export const fakeNePassword = (oldPassword: string = "-"): PasswordChange => {
   };
 };
 
-export const fakePortfolio = (): PostPortfolio => ({
-  name: faker.lorem.slug(2),
-  description: faker.lorem.slug(2)
+export const fakePortfolio = (
+  name: string = faker.lorem.words(2)
+): PostPortfolio => ({
+  name,
+  description: faker.lorem.words(3)
 });
 
-export const D = (s: string) => new Date(s);
-
 export const fakeAsset = (
-  ticker: string = faker.random.arrayElement(["msft", "mcd", "aapl"])
+  ticker: string = faker.random.arrayElement(["msft", "mcd", "aapl"]),
+  name: string = faker.lorem.slug(2)
 ): PostAsset => ({
   ticker,
-  name: faker.lorem.slug(2)
+  name
 });
 
 export const fakeTx = (
@@ -73,13 +76,13 @@ export const fakeBuy = (
   quantity = faker.datatype.number(100),
   price = faker.datatype.number(100),
   date?: Date
-) => fakeTx("buy", quantity, price, date);
+) => fakeTx(TxTypes.buy, quantity, price, date);
 
 export const fakeSell = (
   quantity = faker.datatype.number(100),
   price = faker.datatype.number(100),
   date?: Date
-) => fakeTx("sell", quantity, price, date);
+) => fakeTx(TxTypes.sell, quantity, price, date);
 
 const createPortfolioAsset =
   (api: Api) =>
@@ -113,7 +116,9 @@ const createPortfolioAssetTxs =
       TE.bind("txs", ({ asset, portfolio }) =>
         pipe(
           txs,
-          TE.traverseArray((tx) => api.tx.create(portfolio.id!, asset.id!, tx))
+          TE.traverseSeqArray((tx) =>
+            api.tx.create(portfolio.id!, asset.id!, tx)
+          )
         )
       )
     );
@@ -163,3 +168,5 @@ export const nonAdminApi = () =>
   );
 
 export type TestApi = ReturnType<typeof getExtendedApi>;
+
+export const D = (s: string) => new Date(s);

@@ -1,9 +1,10 @@
-import { portfolioValidator, type PostPortfolio } from "@darkruby/assets-core";
+import { type PostPortfolio } from "@darkruby/assets-core";
 import { pipe } from "fp-ts/lib/function";
 import { Form } from "react-bootstrap";
 import { usePartialChange } from "../../hooks/formData";
 import { createDialog } from "../../util/modal";
 import type { PropsOf } from "../../util/props";
+import { portfolioValidator } from "../../validation";
 import { createForm, type FieldsProps } from "../Form/Form";
 import { FormEdit } from "../Form/FormControl";
 import { createModal } from "../Modals/Modal";

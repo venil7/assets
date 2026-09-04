@@ -43,7 +43,7 @@ export const fromValidationError = (
     message: pipe(
       formatValidationErrors([val]),
       A.head,
-      O.getOrElse(() => fallbackMessage)
+      O.getOrElse(() => val.message ?? fallbackMessage)
     )
   };
 };
