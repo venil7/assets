@@ -1,4 +1,5 @@
 import * as t from "io-ts";
+import { withFallback } from "io-ts-types";
 import { dateDecoder } from "./date";
 import { UserIdDecoder } from "./user";
 import { nonEmptyField, nullableDecoder } from "./util";
@@ -8,7 +9,7 @@ import { PeriodChangesDecoder, TotalsDecoder } from "./yahoo/period";
 
 const basePortfolioTypes = {
   name: nonEmptyField("name"),
-  description: nonEmptyField("description")
+  description: withFallback(t.string, "")
 };
 
 const extPortfolioTypes = {
