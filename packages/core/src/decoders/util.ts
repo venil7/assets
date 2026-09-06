@@ -33,7 +33,7 @@ export const alphaNumOnly = (str: string) =>
   filter(
     () => /^[a-zA-Z0-9\.\-_]*$/.test(str),
     `Alpha numeric characters only`
-  ); //alpha chards, numbers, dot and underscore
+  ); //alpha chars, numbers, dot and underscore
 
 export const nonEmptyField = (fieldName: string) =>
   pipe(nonEmptyString, withErrorMessage(`${fieldName} can't be empty`));

@@ -1,6 +1,6 @@
 import { useSignals } from "@preact/signals-react/runtime";
 import { useEffect } from "react";
-import { Navigate /*, useNavigate*/ } from "react-router";
+import { Navigate } from "react-router";
 import { routes } from "../components/Router";
 import { useStore } from "../hooks/store";
 
