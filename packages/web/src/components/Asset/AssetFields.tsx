@@ -38,11 +38,7 @@ const AssetFields: React.FC<AssetFieldsProps> = ({
       </Form.Group>
       <Form.Group className="mb-3">
         <Form.Label>Ticker (Symbol)</Form.Label>
-        <FormEdit
-          value={data.ticker}
-          onChange={setField("ticker")}
-          disabled={disabled}
-        />
+        <FormEdit disabled value={data.ticker} onChange={setField("ticker")} />
       </Form.Group>
     </Form>
   );

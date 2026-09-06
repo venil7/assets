@@ -2,6 +2,7 @@ import { contramap as contramapEq } from "fp-ts/lib/Eq";
 import { contramap, reverse, type Ord } from "fp-ts/lib/Ord";
 import { pipe } from "fp-ts/lib/function";
 import { Eq as numberEq, Ord as numberOrd } from "fp-ts/lib/number";
+import { Eq as stringEq } from "fp-ts/lib/string";
 import * as t from "io-ts";
 import type {
   EnrichedPortfolioDecoder,
@@ -30,7 +31,12 @@ export const byPortfolioChangePct: Ord<EnrichedPortfolio> = pipe(
 
 export type PortfolioId = GetPortfolio["id"];
 
-export const portfolioEq = pipe(
+export const getPortfolioEq = pipe(
   numberEq,
   contramapEq((p: GetPortfolio) => p.id)
+);
+
+export const postPortfolioEq = pipe(
+  stringEq,
+  contramapEq((p: PostPortfolio) => p.name)
 );
