@@ -1,4 +1,4 @@
-FROM golang:1.24 AS migrate
+FROM golang:1.27.1 AS migrate
 RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 FROM oven/bun:latest AS builder
