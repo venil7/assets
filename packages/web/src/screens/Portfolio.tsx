@@ -1,18 +1,29 @@
-import type { PostAsset, PostPortfolio, PostTx } from "@darkruby/assets-core";
+import {
+  postAssetEq,
+  type PostAsset,
+  type PostPortfolio,
+  type PostTx
+} from "@darkruby/assets-core";
 import type { ChartRange } from "@darkruby/assets-core/src/decoders/yahoo/meta";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useHead } from "@unhead/react";
-import { pipe } from "fp-ts/lib/function";
+import * as A from "fp-ts/lib/Array";
+import * as E from "fp-ts/lib/Either";
+import { flow, pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
+import type { Predicate } from "fp-ts/lib/Predicate";
+import { useNavigate } from "react-router";
 import { Portfolio } from "../components/Portfolio/Portfolio";
+import { routes } from "../components/Router";
 import { usePortfolioParams } from "../hooks/params";
 import { useStore } from "../hooks/store";
 
 const RawPortfolio: React.FC = () => {
   useSignals();
-  const [title, setTitle] = useState("Loading..");
+  const navigate = useNavigate();
 
   const { portfolio, assets, asset, txs } = useStore();
   const error = portfolio.error.value || assets.error.value;
@@ -35,8 +46,17 @@ const RawPortfolio: React.FC = () => {
     load();
   }, [assets, portfolio]);
 
+  const handleAddAsset = (asset: PostAsset) => {
+    assets.create(portfolioId, asset).then(
+      E.map(
+        flow(
+          A.findFirst(postAssetEq.equals as Predicate<PostAsset>),
+          O.map(({ id }) => navigate(routes.asset(portfolioId, id)))
+        )
+      )
+    );
+  };
   const handleUpdate = (p: PostPortfolio) => portfolio.update(portfolioId, p);
-  const handleAddAsset = (p: PostAsset) => assets.create(portfolioId, p);
   const handleDeleteAsset = (aid: number) => assets.delete(portfolioId, aid);
   const handleUpdateAsset = (aid: number, a: PostAsset) =>
     assets.update(portfolioId, aid, a);

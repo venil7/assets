@@ -1,5 +1,7 @@
 import {
   calcPnl,
+  EnrichedTxDecoder,
+  liftTE,
   txBuy,
   type Action,
   type EnrichedTx,
@@ -17,17 +19,15 @@ const getTxEnricher =
       TE.bind("meta", () =>
         tx.final_stretch ? yahooApi.meta(tx.asset_ticker) : TE.of(null)
       ),
-      TE.map(({ meta }) => {
+      TE.chain(({ meta }) => {
         // if meta is present, TX is of last stretch, and needs enrichment
         const buy = txBuy(tx);
         if (meta && buy) {
           const value = tx.quantity_ext * meta.regularMarketPrice;
           const [pnl, pnlPct] = calcPnl({ before: tx.cost, after: value });
-          return { ...tx, value, pnl, pnl_pct: pnlPct };
+          return TE.of({ ...tx, value, pnl, pnl_pct: pnlPct });
         }
-        // todo: use EnrichTx decoder
-        const { pnl, value, pnl_pct, ...rest } = tx;
-        return { ...rest, pnl: pnl!, pnl_pct: pnl_pct!, value: value! };
+        return liftTE(EnrichedTxDecoder)(tx);
       })
     );
   };

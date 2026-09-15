@@ -1,12 +1,20 @@
 # todo
 
+## 1.8.6
+
+- [x] make ticker field readonly
+- [x] use encoder for tx enricher
+- [x] redirect to newly created asset/portfolio
+
 ## 1.8.2
+
 - [x] tx modal diff view for buy/sell (cap gains, limit on sales)
 - [x] asset price on specific date
 - [x] mobile client
 - [x] bugfixes
 
 ## 1.8.1
+
 - [x] multi asset layered chart for portfolios
 - [x] multi portfollio layered chart for home screen
 - [x] caching of enriched data

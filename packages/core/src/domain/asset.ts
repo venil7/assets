@@ -1,6 +1,8 @@
+import { contramap as contramapEq } from "fp-ts/lib/Eq";
 import { pipe } from "fp-ts/lib/function";
 import { Ord as ordNumber } from "fp-ts/lib/number";
 import { contramap, reverse, type Ord } from "fp-ts/lib/Ord";
+import { Eq as stringEq } from "fp-ts/lib/string";
 import * as t from "io-ts";
 import type {
   EnrichedAssetDecoder,
@@ -24,3 +26,8 @@ export const byAssetChangePct: Ord<EnrichedAsset> = pipe(
 );
 
 export type AssetId = GetAsset["id"];
+
+export const postAssetEq = pipe(
+  stringEq,
+  contramapEq((p: PostAsset) => p.ticker)
+);
